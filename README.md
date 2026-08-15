@@ -4,8 +4,9 @@ Evolving computation graphs that learn by backpropagation, reconstructed from
 David Ha's [Backprop-NEAT](https://blog.otoro.net/2016/05/07/backprop-neat/)
 (2016) for Chapter 4 of *Japan's Search for a Novel Foreign Policy after 2022*.
 
-**Status: implementation and correctness gates complete. No study has been run
-yet — there are no result artifacts, and nothing here is reportable evidence.**
+**Status: implementation, infrastructure and correctness gates complete; the
+full core matrix runs end-to-end at reference budget. The confirmatory study has
+not been run — nothing here is reportable evidence yet.**
 
 ## What is implemented
 
@@ -49,33 +50,76 @@ and the tick count is derived from topology by BFS, because a value-dependent
 stopping rule makes the traced function discontinuous. Finite-difference
 gradient error fell 4.5e14 → 6.6e-2 → 3.7e-7 as each cause was removed.
 
-## Smoke result (not evidence)
+## Propagation is a declared factor, not a default
 
-One seed, population 50, 6–10 generations — far below the reference budget, and
-reported only to show the mechanism is alive:
+`ha2016` is Ha's exact break rule; `settled` ticks the same propagation to a
+topology-determined fixed point. Head-to-head at population 50, identical seeds:
 
-| Task | Backprop-NEAT val. acc. | Fixed MLP 32×32 | Causal operators evolved |
+| Task | `ha2016` | `settled` | Causal hidden nodes under `ha2016` |
 |---|---|---|---|
-| XOR | 0.950 | 0.965 | tanh, sin, mult |
-| Circles | 0.945 | 0.965 | square, gaussian |
-| Spirals | 0.730 | 0.640 | sin, gaussian, relu |
+| XOR | 0.650 | 0.980 | **0** |
+| Circles | 0.870 | 0.990 | 4 |
+| Spirals | 0.590 | 0.715 | **0** |
 
-Circles evolved radial operators (`square`, `gaussian`) unprompted, which is the
-qualitative behaviour Ha describes. Champions stayed small (6–7 represented
-nodes, 2–3 causally active hidden nodes). These are single-seed numbers at a
-fraction of the reference budget; they are calibration, not results.
+The zero-causal-hidden champions are logistic regressions: evolution never
+escaped its seed topology, because hidden structure added on top of a direct
+input→output edge is invisible to fitness. This reproduces the "near chance
+across conditions" symptom of the earlier attempt, and it belongs in Chapter 4
+as a finding about the source algorithm — so the two modes are separate tracks
+and are never pooled. The fixed MLP scores identically under both modes, which
+is what makes the comparison legitimate.
+
+## Calibration, one replicate (not evidence)
+
+The full core matrix at reference budget — population 100, five species, 10
+generations (20 for spirals), 600 inner steps — on replicate 1 of track B.
+Single seed, so this is calibration and a cost measurement, not a result:
+
+| Task | Backprop-NEAT | Homog. tanh | Evolution only | Random arch. | Fixed MLP | Logistic |
+|---|---|---|---|---|---|---|
+| XOR | 0.965 | 1.000 | 0.970 | 0.990 | 0.990 | 0.470 |
+| Circles | 0.990 | 0.955 | 0.880 | 0.995 | 0.990 | 0.595 |
+| Spirals | **0.775** | 0.755 | 0.705 | 0.730 | 0.685 | 0.630 |
+
+Validation accuracy of the validation-selected champion. Backprop-NEAT leads
+every control on spirals — the deceptive geometry — and the separable tasks are
+at ceiling for everything except the linear floor, which is exactly where a
+linear model should sit. One seed proves none of this.
+
+## Measured compute forecast
+
+One replicate of the six core conditions across all three tasks: **18 runs,
+6.6 minutes** wall clock on 4 cores, measured. So the frozen ten-replicate core
+matrix is **180 runs, ≈66 minutes serial**, or roughly 20 minutes across four
+shards. Track A costs the same again. Cost is dominated by the fixed-MLP
+multistart (60 restarts × 600 steps ≈ 95 s/run), not by evolution.
 
 ## Running
 
 ```bash
 uv venv .venv && uv pip install --python .venv/bin/python numpy matplotlib pytest
-.venv/bin/python -m pytest tests/ -q      # 17 correctness gates
-.venv/bin/python -u bench/final_probe.py  # smoke run across all three tasks
+.venv/bin/python -m pytest tests/ -q                    # 33 gates
+
+export PYTHONPATH=src
+python -m bpneat.cli conditions                         # the comparison matrix
+python -m bpneat.cli plan --track B                     # 180 runs
+python -m bpneat.cli suite --track B --out results/run  # shardable, resumable
+python -m bpneat.cli final-test --dir results/run       # refuses a draft protocol
 ```
+
+Shard a long run with `--shard-index i --shard-total n`; shards never overwrite
+each other, completed runs are skipped by code fingerprint, and `manifest.json`
+is refreshed after every run so progress is read rather than guessed.
+
+## Test isolation
+
+`bpneat.finaltest` is the only module that may read `DatasetBundle.test`. It
+refuses to run against an incomplete, draft-protocol, already-evaluated, or
+code-modified release, loads champions exactly as validation selected them, and
+never retrains or reselects. The gates poison the test split with NaN and assert
+that search output is unchanged.
 
 ## Not yet built
 
-Checkpoint/resume, the one-shot final-test firewall, paired dataset/search
-replicates, sharded execution with durable artifacts, and the analysis and
-figure pipeline. The sealed test split has never been read; `tests/test_core.py`
-enforces that by poisoning it with NaN and asserting search output is unchanged.
+Protocol freeze (the version is `v1-draft`, which the firewall refuses),
+the paired-effects and Pareto analysis, and the figure pipeline.
