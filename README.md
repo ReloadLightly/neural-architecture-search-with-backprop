@@ -26,7 +26,8 @@ not from memory:
   against the full training split;
 - fitness `-error × (1 + 0.03·√connections)`, as in `datafit-neat.js`;
 - NEAT structural mutation, union crossover under an innovation registry,
-  K-medoids subpopulations, elitism and a hall of fame;
+  K-medoids subpopulations, reference roulette selection with no elite,
+  subpopulation extinction, and a hall of fame;
 - inherited learned weights (Lamarckian) with a Baldwinian switch;
 - fixed-MLP, logistic, and random-architecture controls built as ordinary
   genomes, so every condition shares one learner;
@@ -79,29 +80,12 @@ XOR and circles. Spirals reach comparable accuracy at far smaller size, which
 remains an open question — see
 [`docs/reference-targets.md`](docs/reference-targets.md).
 
-## Calibration, one replicate (not evidence)
-
-The full core matrix at reference budget — population 100, five species, 10
-generations (20 for spirals), 600 inner steps — on replicate 1 of track B.
-Single seed, so this is calibration and a cost measurement, not a result:
-
-| Task | Backprop-NEAT | Homog. tanh | Evolution only | Random arch. | Fixed MLP | Logistic |
-|---|---|---|---|---|---|---|
-| XOR | 0.965 | 1.000 | 0.970 | 0.990 | 0.990 | 0.470 |
-| Circles | 0.990 | 0.955 | 0.880 | 0.995 | 0.990 | 0.595 |
-| Spirals | **0.775** | 0.755 | 0.705 | 0.730 | 0.685 | 0.630 |
-
-Validation accuracy of the validation-selected champion. Backprop-NEAT leads
-every control on spirals — the deceptive geometry — and the separable tasks are
-at ceiling for everything except the linear floor, which is exactly where a
-linear model should sit. One seed proves none of this.
-
 ## Measured compute forecast
 
 One replicate of the six core conditions across all three tasks: **18 runs,
 6.6 minutes** wall clock on 4 cores, measured. So the frozen ten-replicate core
 matrix is **180 runs, ≈66 minutes serial**, or roughly 20 minutes across four
-shards. Track A costs the same again. Cost is dominated by the fixed-MLP
+shards. Both tracks together are 360 runs. Cost is dominated by the fixed-MLP
 multistart (60 restarts × 600 steps ≈ 95 s/run), not by evolution.
 
 ## Running
