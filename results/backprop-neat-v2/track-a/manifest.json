@@ -16,7 +16,7 @@
   "planned": 180,
   "present": 180,
   "protocol_version": "v2",
-  "test_evaluated": false,
+  "test_evaluated": true,
   "track": "A",
   "unexpected": []
 }
