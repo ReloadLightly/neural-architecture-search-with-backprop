@@ -171,10 +171,26 @@ def test_final_test_refuses_an_incomplete_suite(tmp_path):
         run_final_test(tmp_path, allow_draft=True, progress=lambda *_: None)
 
 
-def test_final_test_refuses_a_draft_protocol(tmp_path):
+def test_final_test_refuses_a_draft_protocol(tmp_path, monkeypatch):
+    """The gate must hold for any draft version, not just the one shipped today."""
+    from bpneat import finaltest
+
     _tiny_release(tmp_path)
+    m = json.loads((tmp_path / "manifest.json").read_text())
+    m["protocol_version"] = "v2-draft"
+    (tmp_path / "manifest.json").write_text(json.dumps(m))
+    monkeypatch.setattr(finaltest, "PROTOCOL_VERSION", "v2-draft")
+
     with pytest.raises(FinalTestRefused, match="not frozen"):
         run_final_test(tmp_path, allow_draft=False, progress=lambda *_: None)
+
+
+def test_final_test_accepts_the_frozen_protocol(tmp_path):
+    """The shipped protocol is frozen, so the firewall must not block on that."""
+    _tiny_release(tmp_path)
+    release = run_final_test(tmp_path, allow_draft=False, progress=lambda *_: None)
+    assert release["protocol_version"] == protocol.PROTOCOL_VERSION
+    assert not protocol.PROTOCOL_VERSION.endswith("-draft")
 
 
 def test_final_test_refuses_modified_code(tmp_path):

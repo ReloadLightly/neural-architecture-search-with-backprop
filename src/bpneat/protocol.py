@@ -12,8 +12,12 @@ from dataclasses import dataclass
 
 from .conditions import CORE_CONDITIONS, GENERATIONS, SUCCESS_THRESHOLD
 
-PROTOCOL_VERSION = "v1-draft"
-"""``-draft`` until Gate 5. The final-test firewall refuses a draft protocol."""
+PROTOCOL_VERSION = "v1"
+"""Frozen at the Gate 5 commit; see ``docs/protocol-freeze.md``.
+
+Changing anything that alters scientific output requires a new version and a new
+result identity. Results are not patched under an unchanged version.
+"""
 
 TASKS = ("xor", "circle", "spiral")
 
