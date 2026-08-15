@@ -93,3 +93,33 @@
 [1/45] run  xor__backprop_neat__r04
       val_acc=0.995 causal=3n cands=1050 24.9s
 [2/45] run  xor__backprop_neat__r08
+      val_acc=0.910 causal=3n cands=1050 16.2s
+[3/45] run  xor__homogeneous_tanh__r02
+      val_acc=1.000 causal=5n cands=1050 20.5s
+[4/45] run  xor__homogeneous_tanh__r06
+      val_acc=1.000 causal=3n cands=1050 36.9s
+[5/45] run  xor__homogeneous_tanh__r10
+      val_acc=1.000 causal=5n cands=1050 24.3s
+[6/45] run  xor__evolution_only__r04
+      val_acc=0.990 causal=5n cands=1050 1.0s
+[7/45] run  xor__evolution_only__r08
+      val_acc=0.865 causal=3n cands=1050 1.0s
+[8/45] run  xor__random_search__r02
+      val_acc=1.000 causal=5n cands=60 4.2s
+[9/45] run  xor__random_search__r06
+      val_acc=1.000 causal=3n cands=60 3.5s
+[10/45] run  xor__random_search__r10
+      val_acc=1.000 causal=6n cands=60 4.1s
+[11/45] run  xor__fixed_mlp__r04
+      val_acc=0.995 causal=65n cands=60 89.6s
+[12/45] run  xor__fixed_mlp__r08
+      val_acc=0.995 causal=65n cands=60 113.7s
+[13/45] run  xor__logistic__r02
+      val_acc=0.570 causal=0n cands=60 0.5s
+[14/45] run  xor__logistic__r06
+      val_acc=0.675 causal=0n cands=60 0.5s
+[15/45] run  xor__logistic__r10
+      val_acc=0.535 causal=0n cands=60 0.5s
+[16/45] run  circle__backprop_neat__r04
+      val_acc=0.995 causal=5n cands=1050 18.5s
+[17/45] run  circle__backprop_neat__r08

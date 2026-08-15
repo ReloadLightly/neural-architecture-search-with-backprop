@@ -59,3 +59,55 @@
 [30/45] run  circle__logistic__r07
       val_acc=0.645 causal=0n cands=60 0.3s
 [31/45] run  spiral__backprop_neat__r01
+      val_acc=0.750 causal=3n cands=2000 12.4s
+[32/45] run  spiral__backprop_neat__r05
+      val_acc=0.710 causal=2n cands=2000 12.7s
+[33/45] run  spiral__backprop_neat__r09
+      val_acc=0.755 causal=7n cands=2000 16.6s
+[34/45] run  spiral__homogeneous_tanh__r03
+      val_acc=0.690 causal=6n cands=2000 16.6s
+[35/45] run  spiral__homogeneous_tanh__r07
+      val_acc=0.605 causal=0n cands=2000 11.1s
+[36/45] run  spiral__evolution_only__r01
+      val_acc=0.595 causal=0n cands=2000 1.6s
+[37/45] run  spiral__evolution_only__r05
+      val_acc=0.590 causal=0n cands=2000 1.7s
+[38/45] run  spiral__evolution_only__r09
+      val_acc=0.595 causal=0n cands=2000 1.6s
+[39/45] run  spiral__random_search__r03
+      val_acc=0.730 causal=13n cands=60 1.5s
+[40/45] run  spiral__random_search__r07
+      val_acc=0.745 causal=15n cands=60 1.6s
+[41/45] run  spiral__fixed_mlp__r01
+      val_acc=0.685 causal=65n cands=60 23.6s
+[42/45] run  spiral__fixed_mlp__r05
+      val_acc=0.610 causal=65n cands=60 22.9s
+[43/45] run  spiral__fixed_mlp__r09
+      val_acc=0.620 causal=65n cands=60 25.3s
+[44/45] run  spiral__logistic__r03
+      val_acc=0.625 causal=0n cands=60 0.4s
+[45/45] run  spiral__logistic__r07
+      val_acc=0.610 causal=0n cands=60 0.4s
+
+180/180 runs present, complete=True, failed=0
+[1/45] run  xor__backprop_neat__r01
+      val_acc=0.965 causal=3n cands=1050 15.4s
+[2/45] run  xor__backprop_neat__r05
+      val_acc=0.900 causal=3n cands=1050 13.3s
+[3/45] run  xor__backprop_neat__r09
+      val_acc=0.970 causal=3n cands=1050 17.7s
+[4/45] run  xor__homogeneous_tanh__r03
+      val_acc=1.000 causal=3n cands=1050 21.5s
+[5/45] run  xor__homogeneous_tanh__r07
+      val_acc=1.000 causal=4n cands=1050 26.8s
+[6/45] run  xor__evolution_only__r01
+      val_acc=0.970 causal=2n cands=1050 1.0s
+[7/45] run  xor__evolution_only__r05
+      val_acc=0.530 causal=2n cands=1050 0.9s
+[8/45] run  xor__evolution_only__r09
+      val_acc=0.560 causal=5n cands=1050 1.0s
+[9/45] run  xor__random_search__r03
+      val_acc=0.995 causal=3n cands=60 4.9s
+[10/45] run  xor__random_search__r07
+      val_acc=0.990 causal=16n cands=60 4.2s
+[11/45] run  xor__fixed_mlp__r01

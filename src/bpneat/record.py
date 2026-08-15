@@ -66,11 +66,25 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
+# The modules that determine what a run computes. Analysis, figure, CLI,
+# suite, record, checkpoint and final-test code is deliberately excluded: it
+# cannot change a run's result, and including it made the fingerprint move four
+# times during the v1 suite purely because plotting code was added mid-run.
+SCIENCE_MODULES = (
+    "baselines.py",
+    "conditions.py",
+    "datasets.py",
+    "evolve.py",
+    "genome.py",
+    "learn.py",
+    "protocol.py",
+)
+
+
 def code_fingerprint() -> dict:
-    """Hash the source that determines scientific output."""
+    """Hash only the source that determines scientific output."""
     root = Path(__file__).resolve().parent
-    files = sorted(p for p in root.glob("*.py"))
-    per_file = {p.name: sha256_file(p) for p in files}
+    per_file = {name: sha256_file(root / name) for name in SCIENCE_MODULES}
     combined = hashlib.sha256(
         "".join(f"{k}:{v}" for k, v in sorted(per_file.items())).encode()
     ).hexdigest()

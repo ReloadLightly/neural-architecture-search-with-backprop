@@ -12,11 +12,17 @@ from dataclasses import dataclass
 
 from .conditions import CORE_CONDITIONS, GENERATIONS, SUCCESS_THRESHOLD
 
-PROTOCOL_VERSION = "v1"
+PROTOCOL_VERSION = "v2"
 """Frozen at the Gate 5 commit; see ``docs/protocol-freeze.md``.
 
 Changing anything that alters scientific output requires a new version and a new
 result identity. Results are not patched under an unchanged version.
+
+v1 is invalidated, not amended: its selection operator did not match the
+reference (elitism plus truncation to the better half, against Ha's
+fitness-proportionate roulette over the whole subpopulation with no elite).
+That suppressed structural drift and produced the false conclusion that Ha's
+propagation rule traps evolution. See ``docs/v1-invalidation.md``.
 """
 
 TASKS = ("xor", "circle", "spiral")

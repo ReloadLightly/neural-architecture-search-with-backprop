@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 artifacts/
+logs/
 
 # Raw results are ignored by default, but a versioned release is durable
 # evidence and is committed. Checkpoints stay out: they are large and are
@@ -10,4 +11,6 @@ artifacts/
 results/**
 !results/backprop-neat-v1/
 !results/backprop-neat-v1/**
-results/backprop-neat-v1/**/checkpoints/
+!results/backprop-neat-v2/
+!results/backprop-neat-v2/**
+results/backprop-neat-*/**/checkpoints/

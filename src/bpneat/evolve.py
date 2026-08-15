@@ -35,6 +35,9 @@ MUTATION_RATE = 0.2
 MUTATION_SIZE = 0.5
 P_ADD_CONNECTION = 0.5
 P_ADD_NODE = 0.2
+# NEATTrainer defaults in ml/neat.js.
+EXTINCTION_RATE = 0.5
+SELECTION_SLACK = 0.01
 
 
 @dataclass
@@ -63,7 +66,12 @@ class SearchConfig:
     # trap. This is a property of the source algorithm and a Chapter 4 result
     # in its own right, so it is a reported factor rather than a silent default.
     propagation: str = "settled"
-    elitism: int = 1
+    # The reference keeps no elite: the whole population is replaced by
+    # offspring each generation and the best genome survives in the hall of
+    # fame instead. Elitism plus truncation selection suppresses the structural
+    # drift that large topologies need, so both are off by default.
+    elitism: int = 0
+    extinction_rate: float = EXTINCTION_RATE
 
     def __post_init__(self) -> None:
         if self.propagation not in ("ha2016", "settled"):
@@ -412,45 +420,80 @@ def search(
     )
 
 
+def _pick_parent(members: list[Individual], rng: np.random.Generator) -> Individual:
+    """Reference roulette selection: weight ``1 / (-fitness + slack)``.
+
+    Ha's ``pickRandomIndex``. Fitness is strictly negative (``-error*penalty``),
+    so the weight rises as error falls — but only gently: at slack 0.01 an
+    error-0.3 genome is barely twice as likely to breed as an error-0.7 one.
+    That weakness is the point. It lets structural additions that are neutral or
+    mildly harmful survive long enough to combine, which is how the search
+    reaches large topologies at all.
+    """
+    weights = np.array([1.0 / (-m.fitness + SELECTION_SLACK) for m in members])
+    total = weights.sum()
+    if not np.isfinite(total) or total <= 0:
+        return members[int(rng.integers(0, len(members)))]
+    x = float(rng.random()) * total
+    acc = 0.0
+    for m, w in zip(members, weights):
+        acc += w
+        if x <= acc:
+            return m
+    return members[-1]
+
+
 def _reproduce(
     pop: list[Individual], cfg: SearchConfig, rng: np.random.Generator, reg: InnovationRegistry
 ) -> list[Individual]:
-    """Within-species selection, elitism, crossover, mutation, repopulation."""
+    """Replace the whole population with offspring, as the reference does.
+
+    There is no elitism: every member of the next generation is a fresh child of
+    two roulette-picked parents from its own subpopulation. The best genome is
+    not carried forward here — it survives in the hall of fame kept by
+    :func:`search`, which is where the reference keeps it too.
+
+    With probability ``EXTINCTION_RATE`` the weakest subpopulation is wiped and
+    repopulated from the strongest one.
+    """
     by_species: dict[int, list[Individual]] = {}
     for ind in pop:
         by_species.setdefault(ind.species, []).append(ind)
 
+    ranked = sorted(
+        by_species.items(), key=lambda kv: max(i.fitness for i in kv[1]), reverse=True
+    )
+    best_species = ranked[0][0]
+    worst_species = ranked[-1][0]
+    extinction = (
+        cfg.extinction_rate > 0
+        and len(ranked) > 1
+        and rng.random() < cfg.extinction_rate
+    )
+
+    quota = max(1, cfg.population // max(len(by_species), 1))
     next_pop: list[Individual] = []
-    n_species = max(len(by_species), 1)
-    quota = max(1, cfg.population // n_species)
 
-    for members in by_species.values():
-        members.sort(key=lambda i: i.fitness, reverse=True)
-        produced: list[Individual] = []
-
-        for elite in members[: cfg.elitism]:
-            keep = elite.copy()
-            if not cfg.lamarckian:
-                keep.weights = rng.normal(0.0, 1.0, len(keep.weights))
-                keep.evaluated = False
-            produced.append(keep)
-
-        # Selection pressure: parents are drawn from the better half of the
-        # species, so each subpopulation fills its own quota.
-        pool = members[: max(2, len(members) // 2)]
-        while len(produced) < quota:
-            a = pool[int(rng.integers(0, len(pool)))]
-            b = pool[int(rng.integers(0, len(pool)))]
-            child = crossover(a, b, rng) if a is not b else a.copy()
+    for species, members in by_species.items():
+        source = (
+            by_species[best_species]
+            if extinction and species == worst_species
+            else members
+        )
+        for _ in range(quota):
+            if len(next_pop) >= cfg.population:
+                break
+            mom = _pick_parent(source, rng)
+            dad = _pick_parent(source, rng)
+            child = crossover(mom, dad, rng) if mom is not dad else mom.copy()
             mutate(child, rng, reg, cfg)
             if not cfg.lamarckian:
                 child.weights = rng.normal(0.0, 1.0, len(child.weights))
+            child.species = species
             child.evaluated = False
-            produced.append(child)
+            next_pop.append(child)
 
-        next_pop.extend(produced)
-
-    # Extinction/repopulation: refill any shortfall with fresh minimal genomes.
+    # Repopulate any shortfall from rounding with fresh minimal genomes.
     while len(next_pop) < cfg.population:
         g = logistic_genome(rng)
         next_pop.append(Individual(genome=g, weights=np.array(g.weight, dtype=np.float64)))
