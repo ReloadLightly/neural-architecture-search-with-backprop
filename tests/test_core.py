@@ -21,6 +21,7 @@ from bpneat.evolve import (
 from bpneat.genome import (
     ACTIVATIONS,
     OUT,
+    Genome,
     backward,
     causal_subgraph,
     forward,
@@ -126,14 +127,38 @@ def test_every_operator_is_reachable_and_differentiable():
 # --------------------------------------------------------------------------
 
 
-def test_reference_break_rule_can_zero_a_working_network():
-    """Documents *why* this project does not use Ha's break rule by default.
+def _naive_mlp_with_direct_output_bias(hidden, rng):
+    """The obvious MLP construction — and the one Ha's break rule kills."""
+    from bpneat.baselines import _connect
+    from bpneat.genome import OP_NULL, OP_TANH
 
-    A fixed MLP is touched everywhere on the first tick, so the reference rule
-    stops before any hidden unit has influenced the output node.
+    g = Genome(ops=[OP_NULL] * 4)
+    prev = [1, 2]
+    for width in hidden:
+        ids = []
+        for _ in range(width):
+            g.ops.append(OP_TANH)
+            ids.append(g.n_nodes - 1)
+        for node in ids:
+            _connect(g, 0, node, 0.0)
+            for p in prev:
+                _connect(g, p, node, float(rng.normal(0.0, 0.5)))
+        prev = ids
+    _connect(g, 0, OUT, 0.0)  # the fatal direct bias -> output edge
+    for p in prev:
+        _connect(g, p, OUT, float(rng.normal(0.0, 0.5)))
+    return g
+
+
+def test_direct_output_bias_is_zeroed_by_has_break_rule():
+    """The hazard, pinned as a regression test.
+
+    Ha's rule stops once every node is touched. A direct ``bias -> output`` edge
+    makes the output touched on tick 0 together with the hidden units, and since
+    the output holds id 3 it is computed before any of them — so the network
+    returns a constant.
     """
-    rng = np.random.default_rng(1)
-    g = make_mlp((8, 8), rng)
+    g = _naive_mlp_with_direct_output_bias((8, 8), np.random.default_rng(1))
     X = make_bundle("spiral", seed=2).train.X[:16]
     w = np.array(g.weight, dtype=np.float64)
 
@@ -144,15 +169,19 @@ def test_reference_break_rule_can_zero_a_working_network():
     assert not np.allclose(settled.vals[settled.out_var], 0.0)
 
 
-def test_mlp_hidden_units_causally_reach_the_output():
-    """Gate 2: a baseline must not be silently crippled by propagation order."""
+@pytest.mark.parametrize("settle", [False, True])
+def test_mlp_hidden_units_causally_reach_the_output(settle):
+    """Gate 2: baselines must be alive under Ha's exact rule *and* under settling."""
     rng = np.random.default_rng(1)
     g = make_mlp((8, 8), rng)
     b = make_bundle("circle", seed=2)
     w = np.array(g.weight, dtype=np.float64)
 
-    info = causal_subgraph(g, b.train.X[:16], w, settle=True)
-    assert info["causal_hidden_nodes"] == 16, info
+    tape = forward(g, b.train.X[:16], w, settle=settle)
+    assert not np.allclose(tape.vals[tape.out_var], 0.0)
+
+    info = causal_subgraph(g, b.train.X[:16], w, settle=settle)
+    assert info["causal_hidden_nodes"] == 17, info  # 16 units + bias carrier
 
 
 def test_perturbing_a_hidden_weight_changes_the_output():
@@ -195,12 +224,15 @@ def test_search_never_reads_the_sealed_test_split():
 # --------------------------------------------------------------------------
 
 
-def test_random_architecture_is_wired_and_alive():
+@pytest.mark.parametrize("settle", [False, True])
+def test_random_architecture_is_wired_and_alive(settle):
     rng = np.random.default_rng(8)
     g = make_random_architecture(rng, n_hidden=10, n_extra_connections=8, activations=ACTIVATIONS)
     X = make_bundle("spiral", seed=4).train.X[:16]
     w = np.array(g.weight, dtype=np.float64)
-    info = causal_subgraph(g, X, w, settle=True)
+    tape = forward(g, X, w, settle=settle)
+    assert not np.allclose(tape.vals[tape.out_var], 0.0)
+    info = causal_subgraph(g, X, w, settle=settle)
     assert info["causal_hidden_nodes"] > 0
     assert any(g.dst[i] == OUT for i in range(g.n_connections))
 

@@ -50,10 +50,30 @@ class SearchConfig:
     lamarckian: bool = True
     activations: tuple[int, ...] = ACTIVATIONS
     fitness_split: str = "train"  # "train" (Track A) or "validation" (Track B)
-    # Propagation mode. See genome.forward: Ha's exact break rule silently
-    # zeroes any graph whose nodes all become touched on the first tick.
-    settle: bool = True
+    # Declared propagation mode, never inferred and never pooled across tracks.
+    #
+    #   "ha2016"  — Ha's exact break rule: stop once every node is touched.
+    #   "settled" — same propagation, but ticked to a topology-determined fixed
+    #               point so every represented path contributes.
+    #
+    # Under "ha2016" the output node (id 3) is recomputed before every hidden
+    # node, so a genome that grows hidden structure while keeping a direct
+    # input/bias edge into the output has that structure ignored by fitness.
+    # Seed genomes are exactly that shape, which makes the linear solution a
+    # trap. This is a property of the source algorithm and a Chapter 4 result
+    # in its own right, so it is a reported factor rather than a silent default.
+    propagation: str = "settled"
     elitism: int = 1
+
+    def __post_init__(self) -> None:
+        if self.propagation not in ("ha2016", "settled"):
+            raise ValueError(f"unknown propagation mode {self.propagation!r}")
+        if self.fitness_split not in ("train", "validation"):
+            raise ValueError(f"unknown fitness split {self.fitness_split!r}")
+
+    @property
+    def settle(self) -> bool:
+        return self.propagation == "settled"
 
 
 class InnovationRegistry:
@@ -176,21 +196,29 @@ def crossover(a: Individual, b: Individual, rng: np.random.Generator) -> Individ
     return child
 
 
-def distance(a: Genome, b: Genome) -> float:
-    """NEAT compatibility distance over innovation sets."""
-    ia, ib = set(a.innovation), set(b.innovation)
+def distance(a: Individual, b: Individual) -> float:
+    """NEAT compatibility distance over innovation sets.
+
+    Weights come from ``Individual.weights``, which is the single source of
+    truth. ``Genome.weight`` only carries the *initial* vector — mutation and
+    learning update the array, not the list — so reading the list here would
+    cluster on stale values, and would silently change behaviour across a
+    checkpoint round-trip.
+    """
+    ga, gb = a.genome, b.genome
+    ia, ib = set(ga.innovation), set(gb.innovation)
     if not ia and not ib:
         return 0.0
     disjoint = len(ia ^ ib)
     n = max(len(ia), len(ib), 1)
     shared = ia & ib
     if shared:
-        wa = {inv: w for inv, w in zip(a.innovation, a.weight)}
-        wb = {inv: w for inv, w in zip(b.innovation, b.weight)}
+        wa = {inv: w for inv, w in zip(ga.innovation, a.weights)}
+        wb = {inv: w for inv, w in zip(gb.innovation, b.weights)}
         wdiff = float(np.mean([abs(wa[i] - wb[i]) for i in shared]))
     else:
         wdiff = 0.0
-    op_diff = abs(a.n_nodes - b.n_nodes)
+    op_diff = abs(ga.n_nodes - gb.n_nodes)
     return disjoint / n + 0.4 * wdiff + 0.2 * op_diff
 
 
@@ -201,7 +229,7 @@ def kmedoids(pop: list[Individual], k: int, rng: np.random.Generator, iters: int
     D = np.zeros((n, n))
     for i in range(n):
         for j in range(i + 1, n):
-            d = distance(pop[i].genome, pop[j].genome)
+            d = distance(pop[i], pop[j])
             D[i, j] = D[j, i] = d
 
     medoids = list(rng.choice(n, size=k, replace=False))
@@ -276,23 +304,51 @@ def evaluate(ind: Individual, bundle: DatasetBundle, cfg: SearchConfig, rng: np.
     ind.evaluated = True
 
 
-def search(bundle: DatasetBundle, cfg: SearchConfig, seed: int) -> SearchResult:
-    """Run one Backprop-NEAT search. Never reads ``bundle.test``."""
-    rng = np.random.default_rng(seed)
-    reg = InnovationRegistry()
+def search(
+    bundle: DatasetBundle,
+    cfg: SearchConfig,
+    seed: int,
+    checkpoint_path=None,
+    checkpoint_every: int = 1,
+) -> SearchResult:
+    """Run one Backprop-NEAT search. Never reads ``bundle.test``.
+
+    If ``checkpoint_path`` exists the run resumes from it exactly; otherwise it
+    starts fresh and writes a checkpoint every ``checkpoint_every`` generations.
+    """
+    from pathlib import Path
+
+    from . import checkpoint as ckpt
+
+    cp = Path(checkpoint_path) if checkpoint_path else None
     started = time.time()
 
-    pop: list[Individual] = []
-    for _ in range(cfg.population):
-        g = logistic_genome(rng)
-        pop.append(Individual(genome=g, weights=np.array(g.weight, dtype=np.float64)))
+    if cp is not None and cp.exists():
+        state = ckpt.load(cp)
+        rng = state["rng"]
+        reg = state["registry"]
+        pop = state["population"]
+        champion = state["champion"]
+        history = state["history"]
+        candidates = state["candidates"]
+        grad_steps = state["gradient_steps"]
+        start_gen = state["generation"]
+        prior_elapsed = state["elapsed"]
+    else:
+        rng = np.random.default_rng(seed)
+        reg = InnovationRegistry()
+        pop = []
+        for _ in range(cfg.population):
+            g = logistic_genome(rng)
+            pop.append(Individual(genome=g, weights=np.array(g.weight, dtype=np.float64)))
+        champion = None
+        history = []
+        candidates = 0
+        grad_steps = 0
+        start_gen = 0
+        prior_elapsed = 0.0
 
-    candidates = 0
-    grad_steps = 0
-    champion: Individual | None = None
-    history: list[dict] = []
-
-    for gen in range(cfg.generations + 1):
+    for gen in range(start_gen, cfg.generations + 1):
         for ind in pop:
             if not ind.evaluated:
                 evaluate(ind, bundle, cfg, rng)
@@ -318,6 +374,8 @@ def search(bundle: DatasetBundle, cfg: SearchConfig, seed: int) -> SearchResult:
                 "champion_fitness": float(champion.fitness),
                 "champion_validation_accuracy": float(val_acc),
                 "mean_nodes": float(np.mean([i.genome.n_nodes for i in pop])),
+                "mean_connections": float(np.mean([i.genome.n_enabled for i in pop])),
+                "species": len({i.species for i in pop}),
                 "candidates": candidates,
                 "gradient_steps": grad_steps,
             }
@@ -329,13 +387,27 @@ def search(bundle: DatasetBundle, cfg: SearchConfig, seed: int) -> SearchResult:
         kmedoids(pop, cfg.n_species, rng)
         pop = _reproduce(pop, cfg, rng, reg)
 
+        if cp is not None and (gen + 1) % checkpoint_every == 0:
+            ckpt.save(
+                cp,
+                generation=gen + 1,
+                population=pop,
+                champion=champion,
+                rng=rng,
+                registry=reg,
+                history=history,
+                candidates=candidates,
+                gradient_steps=grad_steps,
+                elapsed=prior_elapsed + (time.time() - started),
+            )
+
     assert champion is not None
     return SearchResult(
         champion=champion,
         history=history,
         candidates=candidates,
         gradient_steps=grad_steps,
-        wall_time=time.time() - started,
+        wall_time=prior_elapsed + (time.time() - started),
         metrics=_champion_metrics(champion, bundle, cfg.settle),
     )
 
