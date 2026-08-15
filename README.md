@@ -42,7 +42,8 @@ returns an output computed before a single hidden node has run. A fixed 32×32
 MLP outputs identically zero under that rule — 0.500 accuracy, a dead network.
 Settled, the same weights under the same RMSProp settings reach 0.745 train /
 0.715 validation on spirals. Any comparison against a baseline crippled this way
-would be void, so `settle=True` is the default and both modes are tested.
+would be void — so every baseline routes its output bias through a carrier node
+and is verified alive under Ha's exact rule as well as under settling.
 
 **Settling must be bounded and weight-independent.** Recurrent cycles carrying
 `square`/`mult` diverge to inf within a few ticks, so node values are clamped;
