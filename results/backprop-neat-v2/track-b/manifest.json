@@ -1,11 +1,11 @@
 {
   "code_fingerprint": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
   "complete": false,
-  "elapsed_seconds": 819.6130635738373,
+  "elapsed_seconds": 869.7641792297363,
   "environment": {
     "code_fingerprint": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
     "cpu_count": 4,
-    "git_commit": "6dac1df8d5a4720fa5c25a2fa7badb8b7001bec7",
+    "git_commit": "7cb87f45ac14e5529e28c655095703f00ac27af3",
     "machine": "x86_64",
     "numpy": "2.4.6",
     "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
@@ -14,7 +14,6 @@
   "failed": [],
   "missing": [
     "circle__fixed_mlp__r01",
-    "circle__fixed_mlp__r02",
     "circle__fixed_mlp__r05",
     "circle__fixed_mlp__r06",
     "circle__fixed_mlp__r09",
@@ -49,11 +48,8 @@
     "spiral__fixed_mlp__r08",
     "spiral__fixed_mlp__r09",
     "spiral__fixed_mlp__r10",
-    "spiral__homogeneous_tanh__r01",
     "spiral__homogeneous_tanh__r03",
     "spiral__homogeneous_tanh__r04",
-    "spiral__homogeneous_tanh__r05",
-    "spiral__homogeneous_tanh__r06",
     "spiral__homogeneous_tanh__r07",
     "spiral__homogeneous_tanh__r08",
     "spiral__homogeneous_tanh__r09",
@@ -80,7 +76,7 @@
     "spiral__random_search__r10"
   ],
   "planned": 180,
-  "present": 115,
+  "present": 119,
   "protocol_version": "v2",
   "test_evaluated": false,
   "track": "B",
