@@ -1,11 +1,11 @@
 {
   "code_fingerprint": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
   "complete": false,
-  "elapsed_seconds": 47.975889682769775,
+  "elapsed_seconds": 111.2502372264862,
   "environment": {
     "code_fingerprint": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
     "cpu_count": 4,
-    "git_commit": "909df34777140000fc0b6f13c97f91abb6ef1cdc",
+    "git_commit": "37782eff9b261fc378b205a61f4e4a4997469e75",
     "machine": "x86_64",
     "numpy": "2.4.6",
     "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
@@ -133,10 +133,6 @@
     "spiral__random_search__r08",
     "spiral__random_search__r09",
     "spiral__random_search__r10",
-    "xor__fixed_mlp__r01",
-    "xor__fixed_mlp__r02",
-    "xor__fixed_mlp__r03",
-    "xor__fixed_mlp__r04",
     "xor__fixed_mlp__r05",
     "xor__fixed_mlp__r06",
     "xor__fixed_mlp__r07",
@@ -155,7 +151,7 @@
     "xor__logistic__r10"
   ],
   "planned": 180,
-  "present": 40,
+  "present": 44,
   "protocol_version": "v2",
   "test_evaluated": false,
   "track": "A",
