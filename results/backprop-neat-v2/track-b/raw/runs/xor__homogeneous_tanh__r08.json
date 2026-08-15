@@ -1,0 +1,273 @@
+{
+  "champion": {
+    "active": [
+      true,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      3,
+      4,
+      3,
+      5,
+      3,
+      4,
+      6,
+      3,
+      5
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      0,
+      4,
+      2,
+      12,
+      7,
+      10,
+      21,
+      17,
+      22
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "tanh",
+      "tanh",
+      "tanh"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      2,
+      2,
+      2
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      3,
+      3,
+      4,
+      2,
+      5,
+      5,
+      1,
+      6,
+      5
+    ],
+    "weights": [
+      -4.930912946177693,
+      -0.0542683295378227,
+      -8.81075230890799,
+      -0.1564284155970047,
+      1.9563059221593182,
+      -9.735757155067049,
+      8.320115125950194,
+      4.790686664046341,
+      0.1456358732106374,
+      6.1049752243620325,
+      -4.780021060579439,
+      2.242843977593029
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1100,
+    "gradient_steps": 123811,
+    "wall_time_seconds": 36.87917399406433
+  },
+  "condition": "homogeneous_tanh",
+  "config": {
+    "backprop": true,
+    "batch_size": 10,
+    "fitness_split": "validation",
+    "generations": 10,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "lamarckian": true,
+    "n_activations": 1,
+    "n_species": 5,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "settled",
+    "restarts": null,
+    "success_threshold": 0.9,
+    "use_penalty": true
+  },
+  "dataset_seed": 8808,
+  "environment": {
+    "code_fingerprint": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "cpu_count": 4,
+    "git_commit": "8d826b120efa1bf78d1492ae003e287394ca858b",
+    "machine": "x86_64",
+    "numpy": "2.4.6",
+    "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
+    "python": "3.11.15"
+  },
+  "history": [
+    {
+      "best_fitness": -0.7112066236034401,
+      "candidates": 100,
+      "champion_fitness": -0.7112066236034401,
+      "champion_validation_accuracy": 0.56,
+      "generation": 0,
+      "gradient_steps": 6700,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "species": 1
+    },
+    {
+      "best_fitness": -0.5165149523177228,
+      "candidates": 200,
+      "champion_fitness": -0.5165149523177228,
+      "champion_validation_accuracy": 0.82,
+      "generation": 1,
+      "gradient_steps": 10900,
+      "mean_connections": 3.71,
+      "mean_nodes": 4.23,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.4986782446815838,
+      "candidates": 300,
+      "champion_fitness": -0.4986782446815838,
+      "champion_validation_accuracy": 0.835,
+      "generation": 2,
+      "gradient_steps": 15580,
+      "mean_connections": 4.47,
+      "mean_nodes": 4.65,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.32104470576637234,
+      "candidates": 400,
+      "champion_fitness": -0.32104470576637234,
+      "champion_validation_accuracy": 0.915,
+      "generation": 3,
+      "gradient_steps": 21860,
+      "mean_connections": 5.16,
+      "mean_nodes": 4.84,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.25542210372818275,
+      "candidates": 500,
+      "champion_fitness": -0.25542210372818275,
+      "champion_validation_accuracy": 0.915,
+      "generation": 4,
+      "gradient_steps": 27960,
+      "mean_connections": 5.19,
+      "mean_nodes": 4.85,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.09477754850736275,
+      "candidates": 600,
+      "champion_fitness": -0.09477754850736275,
+      "champion_validation_accuracy": 0.995,
+      "generation": 5,
+      "gradient_steps": 38640,
+      "mean_connections": 7.07,
+      "mean_nodes": 5.83,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.042562529985249495,
+      "candidates": 700,
+      "champion_fitness": -0.042562529985249495,
+      "champion_validation_accuracy": 1.0,
+      "generation": 6,
+      "gradient_steps": 51259,
+      "mean_connections": 7.99,
+      "mean_nodes": 6.07,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.020014903341017853,
+      "candidates": 800,
+      "champion_fitness": -0.020014903341017853,
+      "champion_validation_accuracy": 1.0,
+      "generation": 7,
+      "gradient_steps": 68119,
+      "mean_connections": 8.27,
+      "mean_nodes": 6.62,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.012032349864128652,
+      "candidates": 900,
+      "champion_fitness": -0.012032349864128652,
+      "champion_validation_accuracy": 1.0,
+      "generation": 8,
+      "gradient_steps": 86435,
+      "mean_connections": 9.26,
+      "mean_nodes": 7.25,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.01026855530010083,
+      "candidates": 1000,
+      "champion_fitness": -0.01026855530010083,
+      "champion_validation_accuracy": 1.0,
+      "generation": 9,
+      "gradient_steps": 104793,
+      "mean_connections": 10.47,
+      "mean_nodes": 7.49,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.01148303019214194,
+      "candidates": 1100,
+      "champion_fitness": -0.01026855530010083,
+      "champion_validation_accuracy": 1.0,
+      "generation": 10,
+      "gradient_steps": 123811,
+      "mean_connections": 11.02,
+      "mean_nodes": 8.03,
+      "species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 9,
+    "causal_hidden_nodes": 3,
+    "causal_nodes": 7,
+    "causal_operators": {
+      "tanh": 3
+    },
+    "generalization_gap": 0.0,
+    "represented_connections": 9,
+    "represented_nodes": 7,
+    "success": true,
+    "train_accuracy": 1.0,
+    "train_loss": 0.011774147829941151,
+    "validation_accuracy": 1.0,
+    "validation_loss": 0.009301875990795098
+  },
+  "protocol_version": "v2",
+  "replicate": 8,
+  "run_id": "xor__homogeneous_tanh__r08",
+  "schema_version": 1,
+  "search_seed": 18808,
+  "task": "xor",
+  "test_evaluated": false,
+  "track": "B"
+}

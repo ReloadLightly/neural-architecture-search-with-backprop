@@ -1,0 +1,239 @@
+{
+  "champion": {
+    "active": [
+      true,
+      true,
+      true,
+      false,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      3,
+      4,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      0,
+      3,
+      2
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "abs"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      6
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      3,
+      3,
+      4
+    ],
+    "weights": [
+      -0.051140523460850185,
+      0.06080020363575206,
+      0.08114223288767686,
+      1.9943468542923475,
+      1.0,
+      1.9943468542923475
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1100,
+    "gradient_steps": 0,
+    "wall_time_seconds": 1.046076774597168
+  },
+  "condition": "evolution_only",
+  "config": {
+    "backprop": false,
+    "batch_size": 10,
+    "fitness_split": "validation",
+    "generations": 10,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "lamarckian": true,
+    "n_activations": 9,
+    "n_species": 5,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "settled",
+    "restarts": null,
+    "success_threshold": 0.9,
+    "use_penalty": true
+  },
+  "dataset_seed": 8909,
+  "environment": {
+    "code_fingerprint": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "cpu_count": 4,
+    "git_commit": "8d826b120efa1bf78d1492ae003e287394ca858b",
+    "machine": "x86_64",
+    "numpy": "2.4.6",
+    "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
+    "python": "3.11.15"
+  },
+  "history": [
+    {
+      "best_fitness": -0.8022481494182951,
+      "candidates": 100,
+      "champion_fitness": -0.8022481494182951,
+      "champion_validation_accuracy": 0.43,
+      "generation": 0,
+      "gradient_steps": 0,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "species": 1
+    },
+    {
+      "best_fitness": -0.7339895306131708,
+      "candidates": 200,
+      "champion_fitness": -0.7339895306131708,
+      "champion_validation_accuracy": 0.425,
+      "generation": 1,
+      "gradient_steps": 0,
+      "mean_connections": 3.73,
+      "mean_nodes": 4.25,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7340124310447618,
+      "candidates": 300,
+      "champion_fitness": -0.7339895306131708,
+      "champion_validation_accuracy": 0.425,
+      "generation": 2,
+      "gradient_steps": 0,
+      "mean_connections": 4.33,
+      "mean_nodes": 4.47,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.6531214509694577,
+      "candidates": 400,
+      "champion_fitness": -0.6531214509694577,
+      "champion_validation_accuracy": 0.505,
+      "generation": 3,
+      "gradient_steps": 0,
+      "mean_connections": 4.72,
+      "mean_nodes": 4.66,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7352160627837478,
+      "candidates": 500,
+      "champion_fitness": -0.6531214509694577,
+      "champion_validation_accuracy": 0.505,
+      "generation": 4,
+      "gradient_steps": 0,
+      "mean_connections": 6.06,
+      "mean_nodes": 5.31,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7413497697879752,
+      "candidates": 600,
+      "champion_fitness": -0.6531214509694577,
+      "champion_validation_accuracy": 0.505,
+      "generation": 5,
+      "gradient_steps": 0,
+      "mean_connections": 6.48,
+      "mean_nodes": 5.44,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7361367524692074,
+      "candidates": 700,
+      "champion_fitness": -0.6531214509694577,
+      "champion_validation_accuracy": 0.505,
+      "generation": 6,
+      "gradient_steps": 0,
+      "mean_connections": 6.31,
+      "mean_nodes": 5.39,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7343836651074535,
+      "candidates": 800,
+      "champion_fitness": -0.6531214509694577,
+      "champion_validation_accuracy": 0.505,
+      "generation": 7,
+      "gradient_steps": 0,
+      "mean_connections": 6.47,
+      "mean_nodes": 5.26,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.734142833842393,
+      "candidates": 900,
+      "champion_fitness": -0.6531214509694577,
+      "champion_validation_accuracy": 0.505,
+      "generation": 8,
+      "gradient_steps": 0,
+      "mean_connections": 8.26,
+      "mean_nodes": 6.31,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7397096442364574,
+      "candidates": 1000,
+      "champion_fitness": -0.6531214509694577,
+      "champion_validation_accuracy": 0.505,
+      "generation": 9,
+      "gradient_steps": 0,
+      "mean_connections": 9.4,
+      "mean_nodes": 6.5,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.736547969046189,
+      "candidates": 1100,
+      "champion_fitness": -0.6531214509694577,
+      "champion_validation_accuracy": 0.505,
+      "generation": 10,
+      "gradient_steps": 0,
+      "mean_connections": 8.87,
+      "mean_nodes": 6.42,
+      "species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 5,
+    "causal_hidden_nodes": 1,
+    "causal_nodes": 5,
+    "causal_operators": {
+      "abs": 1
+    },
+    "generalization_gap": -0.044999999999999984,
+    "represented_connections": 5,
+    "represented_nodes": 5,
+    "success": false,
+    "train_accuracy": 0.46,
+    "train_loss": 0.6249413883811102,
+    "validation_accuracy": 0.505,
+    "validation_loss": 0.6084124493476947
+  },
+  "protocol_version": "v2",
+  "replicate": 9,
+  "run_id": "xor__evolution_only__r09",
+  "schema_version": 1,
+  "search_seed": 18909,
+  "task": "xor",
+  "test_evaluated": false,
+  "track": "B"
+}
