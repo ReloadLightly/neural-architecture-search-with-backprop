@@ -1,0 +1,339 @@
+{
+  "champion": {
+    "active": [
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "src": [
+      0,
+      1,
+      2
+    ],
+    "weights": [
+      -0.006952178144327172,
+      0.007807293014177815,
+      0.21269412706391155
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 60,
+    "gradient_steps": 3800,
+    "wall_time_seconds": 0.46920275688171387
+  },
+  "condition": "logistic",
+  "config": {
+    "backprop": true,
+    "batch_size": 10,
+    "fitness_split": "validation",
+    "generations": 20,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "multistart",
+    "lamarckian": true,
+    "n_activations": 9,
+    "n_species": 5,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "settled",
+    "restarts": 60,
+    "success_threshold": 0.8,
+    "use_penalty": true
+  },
+  "dataset_seed": 8404,
+  "environment": {
+    "code_fingerprint": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "cpu_count": 4,
+    "git_commit": "c4c974bc6adac5546701870210b2c30c12b9e989",
+    "machine": "x86_64",
+    "numpy": "2.4.6",
+    "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
+    "python": "3.11.15"
+  },
+  "history": [
+    {
+      "restart": 0,
+      "validation_loss": 0.6641114257370898
+    },
+    {
+      "restart": 1,
+      "validation_loss": 0.6652116132042653
+    },
+    {
+      "restart": 2,
+      "validation_loss": 0.6785072400806698
+    },
+    {
+      "restart": 3,
+      "validation_loss": 0.6763862686826101
+    },
+    {
+      "restart": 4,
+      "validation_loss": 0.6756941157662669
+    },
+    {
+      "restart": 5,
+      "validation_loss": 0.6677115651589225
+    },
+    {
+      "restart": 6,
+      "validation_loss": 0.6657666480966554
+    },
+    {
+      "restart": 7,
+      "validation_loss": 0.6712123486581046
+    },
+    {
+      "restart": 8,
+      "validation_loss": 0.6650941176746761
+    },
+    {
+      "restart": 9,
+      "validation_loss": 0.6663909499262302
+    },
+    {
+      "restart": 10,
+      "validation_loss": 0.6664225465632024
+    },
+    {
+      "restart": 11,
+      "validation_loss": 0.6649719662196714
+    },
+    {
+      "restart": 12,
+      "validation_loss": 0.6675168974685459
+    },
+    {
+      "restart": 13,
+      "validation_loss": 0.6724915721048795
+    },
+    {
+      "restart": 14,
+      "validation_loss": 0.6710737026543327
+    },
+    {
+      "restart": 15,
+      "validation_loss": 0.6680700608977417
+    },
+    {
+      "restart": 16,
+      "validation_loss": 0.6680061924451735
+    },
+    {
+      "restart": 17,
+      "validation_loss": 0.6809589522469737
+    },
+    {
+      "restart": 18,
+      "validation_loss": 0.6779792022769763
+    },
+    {
+      "restart": 19,
+      "validation_loss": 0.668418403741431
+    },
+    {
+      "restart": 20,
+      "validation_loss": 0.6789996086262129
+    },
+    {
+      "restart": 21,
+      "validation_loss": 0.6731373001911066
+    },
+    {
+      "restart": 22,
+      "validation_loss": 0.6673146987849848
+    },
+    {
+      "restart": 23,
+      "validation_loss": 0.6679780925641084
+    },
+    {
+      "restart": 24,
+      "validation_loss": 0.672841933954443
+    },
+    {
+      "restart": 25,
+      "validation_loss": 0.6654630355165091
+    },
+    {
+      "restart": 26,
+      "validation_loss": 0.6793893368986939
+    },
+    {
+      "restart": 27,
+      "validation_loss": 0.6686594301269454
+    },
+    {
+      "restart": 28,
+      "validation_loss": 0.6674434391169919
+    },
+    {
+      "restart": 29,
+      "validation_loss": 0.6659681929905023
+    },
+    {
+      "restart": 30,
+      "validation_loss": 0.6819224728999208
+    },
+    {
+      "restart": 31,
+      "validation_loss": 0.6701469671953914
+    },
+    {
+      "restart": 32,
+      "validation_loss": 0.6669340747041221
+    },
+    {
+      "restart": 33,
+      "validation_loss": 0.665823269928888
+    },
+    {
+      "restart": 34,
+      "validation_loss": 0.6648570300626807
+    },
+    {
+      "restart": 35,
+      "validation_loss": 0.6646181602274104
+    },
+    {
+      "restart": 36,
+      "validation_loss": 0.6670060680729231
+    },
+    {
+      "restart": 37,
+      "validation_loss": 0.6660850783145983
+    },
+    {
+      "restart": 38,
+      "validation_loss": 0.6679568227585213
+    },
+    {
+      "restart": 39,
+      "validation_loss": 0.6754342093138251
+    },
+    {
+      "restart": 40,
+      "validation_loss": 0.6656384318767483
+    },
+    {
+      "restart": 41,
+      "validation_loss": 0.6671856371447297
+    },
+    {
+      "restart": 42,
+      "validation_loss": 0.6728642453184555
+    },
+    {
+      "restart": 43,
+      "validation_loss": 0.6654438754605184
+    },
+    {
+      "restart": 44,
+      "validation_loss": 0.6648878405608347
+    },
+    {
+      "restart": 45,
+      "validation_loss": 0.6648398849242758
+    },
+    {
+      "restart": 46,
+      "validation_loss": 0.6803918792975867
+    },
+    {
+      "restart": 47,
+      "validation_loss": 0.6670389749912284
+    },
+    {
+      "restart": 48,
+      "validation_loss": 0.6640783747365328
+    },
+    {
+      "restart": 49,
+      "validation_loss": 0.6823581256281415
+    },
+    {
+      "restart": 50,
+      "validation_loss": 0.6696039484779199
+    },
+    {
+      "restart": 51,
+      "validation_loss": 0.6702455612924865
+    },
+    {
+      "restart": 52,
+      "validation_loss": 0.6668810771490001
+    },
+    {
+      "restart": 53,
+      "validation_loss": 0.665198233784271
+    },
+    {
+      "restart": 54,
+      "validation_loss": 0.6653587135897661
+    },
+    {
+      "restart": 55,
+      "validation_loss": 0.6683456641497153
+    },
+    {
+      "restart": 56,
+      "validation_loss": 0.6648027120683111
+    },
+    {
+      "restart": 57,
+      "validation_loss": 0.6697325047625295
+    },
+    {
+      "restart": 58,
+      "validation_loss": 0.6658456506231709
+    },
+    {
+      "restart": 59,
+      "validation_loss": 0.6678683077145928
+    }
+  ],
+  "metrics": {
+    "causal_connections": 3,
+    "causal_hidden_nodes": 0,
+    "causal_nodes": 4,
+    "causal_operators": {},
+    "generalization_gap": -0.040000000000000036,
+    "represented_connections": 3,
+    "represented_nodes": 4,
+    "success": false,
+    "train_accuracy": 0.575,
+    "train_loss": 0.6660941100431381,
+    "validation_accuracy": 0.615,
+    "validation_loss": 0.6640783747365328
+  },
+  "protocol_version": "v2",
+  "replicate": 4,
+  "run_id": "spiral__logistic__r04",
+  "schema_version": 1,
+  "search_seed": 18404,
+  "task": "spiral",
+  "test_evaluated": false,
+  "track": "B"
+}
