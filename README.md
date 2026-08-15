@@ -4,9 +4,10 @@ Evolving computation graphs that learn by backpropagation, reconstructed from
 David Ha's [Backprop-NEAT](https://blog.otoro.net/2016/05/07/backprop-neat/)
 (2016) for Chapter 4 of *Japan's Search for a Novel Foreign Policy after 2022*.
 
-**Status: implementation, infrastructure and correctness gates complete; the
-full core matrix runs end-to-end at reference budget. The confirmatory study has
-not been run — nothing here is reportable evidence yet.**
+**Status: protocol v2 frozen; the confirmatory suite is running. Protocol v1 is
+invalidated for a selection-fidelity defect and its records are retained only
+for audit — see [`docs/v1-invalidation.md`](docs/v1-invalidation.md). No number
+here is reportable evidence until the v2 release completes.**
 
 ## What is implemented
 
@@ -32,18 +33,18 @@ not from memory:
 - causal subgraph extraction — the nodes, connections and operators that
   actually reached the returned output.
 
-## Two findings from the gates
+## What the gates caught
 
-**Ha's propagation break rule can silently zero a working network.** The output
-node holds id 3 and is recomputed before every hidden node on each tick, while
-the loop stops as soon as every node has been touched. Any graph wired directly
-from bias or the inputs into *both* the output and the hidden units therefore
-returns an output computed before a single hidden node has run. A fixed 32×32
-MLP outputs identically zero under that rule — 0.500 accuracy, a dead network.
-Settled, the same weights under the same RMSProp settings reach 0.745 train /
-0.715 validation on spirals. Any comparison against a baseline crippled this way
-would be void — so every baseline routes its output bias through a carrier node
-and is verified alive under Ha's exact rule as well as under settling.
+**A naive baseline is silently zeroed by Ha's propagation rule.** The rule stops
+propagation once every node has been touched. The output node holds id 3 and is
+recomputed before every hidden node on each tick, so it reads its operands from
+the previous tick. Wire bias straight into *both* the output and the hidden
+units — the obvious way to build an MLP — and every node is touched on tick 0,
+the loop stops, and the network returns a constant. A fixed 32×32 MLP built that
+way outputs identically zero: 0.500 accuracy, a dead control. Every baseline here
+therefore routes its output bias through a carrier node, and is verified alive
+under Ha's exact rule as well as under settling. A comparison against a control
+crippled this way would be void.
 
 **Settling must be bounded and weight-independent.** Recurrent cycles carrying
 `square`/`mult` diverge to inf within a few ticks, so node values are clamped;
@@ -51,32 +52,32 @@ and the tick count is derived from topology by BFS, because a value-dependent
 stopping rule makes the traced function discontinuous. Finite-difference
 gradient error fell 4.5e14 → 6.6e-2 → 3.7e-7 as each cause was removed.
 
-## Propagation is a declared factor, not a default
+**Selection fidelity decides whether topologies grow at all.** The reference
+replaces the whole population with offspring each generation and picks parents by
+fitness-proportionate roulette over the entire subpopulation, weight
+`1/(-fitness + 0.01)` — an error-0.3 genome breeds only ~2.3× as often as an
+error-0.7 one. That weakness is functional: it lets neutral or mildly harmful
+structural additions survive long enough to combine. An earlier version of this
+code used elitism plus truncation to the better half, which pinned topologies at
+the minimal seed and produced a false finding — that Ha's propagation rule traps
+evolution in logistic regression. It does not. See
+[`docs/v1-invalidation.md`](docs/v1-invalidation.md).
 
-`ha2016` is Ha's exact break rule; `settled` ticks the same propagation to a
-topology-determined fixed point. Head-to-head at population 50, identical seeds:
+## Fidelity against the published reference
 
-| Task | `ha2016` | `settled` | Causal hidden nodes under `ha2016` |
-|---|---|---|---|
-| XOR | 0.650 | 0.980 | **0** |
-| Circles | 0.870 | 0.990 | 4 |
-| Spirals | 0.590 | 0.715 | **0** |
+With reference selection restored, track A (`ha2016`, Ha's exact rule) reaches
+the regime published in *Neuroevolution* §10.1, Figure 10.3:
 
-The zero-causal-hidden champions are logistic regressions: evolution never
-escaped its seed topology, because under a strict reading of the break rule any
-hidden structure added on top of a direct input→output edge is invisible to
-fitness. The fixed MLP scores identically under both modes, which is what makes
-the comparison legitimate.
+| Task | This reconstruction (validation) | Ha, Fig. 10.3 (test) | Nodes here / Ha | Conns here / Ha |
+|---|---|---|---|---|
+| XOR | 1.000 | 94.3% | 7 / 8 | 10 / 12 |
+| Circles | 0.960 | 96.3% | 8 / 11 | 13 / 20 |
+| Spirals | 0.795 | 81.5% | 9 / 34 | 18 / 96 |
 
-**This is a property of this reconstruction, not a demonstrated property of Ha's
-algorithm.** Figure 10.3 of *Neuroevolution* §10.1 shows Ha's champions as 8–34
-node networks with live hidden structure at 94.3% / 96.3% / 81.5% test accuracy,
-so his runs plainly do not fall into this trap. The strict reading is therefore
-wrong somewhere, or the demo's dynamics differ. See
-[`docs/reference-targets.md`](docs/reference-targets.md) for the published
-targets, where this reconstruction lands against them, and the unresolved
-network-size discrepancy. The two modes are separate tracks and are never
-pooled.
+Single seed, reference budget. Accuracy and champion size both land close on
+XOR and circles. Spirals reach comparable accuracy at far smaller size, which
+remains an open question — see
+[`docs/reference-targets.md`](docs/reference-targets.md).
 
 ## Calibration, one replicate (not evidence)
 
@@ -107,7 +108,7 @@ multistart (60 restarts × 600 steps ≈ 95 s/run), not by evolution.
 
 ```bash
 uv venv .venv && uv pip install --python .venv/bin/python numpy matplotlib pytest
-.venv/bin/python -m pytest tests/ -q                    # 33 gates
+.venv/bin/python -m pytest tests/ -q                    # 39 gates
 
 export PYTHONPATH=src
 python -m bpneat.cli conditions                         # the comparison matrix
@@ -130,5 +131,5 @@ that search output is unchanged.
 
 ## Not yet built
 
-Protocol freeze (the version is `v1-draft`, which the firewall refuses),
-the paired-effects and Pareto analysis, and the figure pipeline.
+The v2 release README with its final claim ladder, and the decision-boundary and
+topology figures for individual champions.
