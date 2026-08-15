@@ -1,0 +1,51 @@
+[1/45] run  xor__backprop_neat__r04
+      val_acc=0.855 causal=2n cands=1050 5.7s
+[2/45] run  xor__backprop_neat__r08
+      val_acc=0.815 causal=2n cands=1050 5.7s
+[3/45] run  xor__homogeneous_tanh__r02
+      val_acc=0.925 causal=4n cands=1050 6.2s
+[4/45] run  xor__homogeneous_tanh__r06
+      val_acc=0.370 causal=0n cands=1050 5.5s
+[5/45] run  xor__homogeneous_tanh__r10
+      val_acc=0.965 causal=5n cands=1050 7.6s
+[6/45] run  xor__evolution_only__r04
+      val_acc=0.420 causal=0n cands=1050 0.7s
+[7/45] run  xor__evolution_only__r08
+      val_acc=0.510 causal=2n cands=1050 0.8s
+[8/45] run  xor__random_search__r02
+      val_acc=0.985 causal=12n cands=60 1.5s
+[9/45] run  xor__random_search__r06
+      val_acc=0.980 causal=10n cands=60 2.6s
+[10/45] run  xor__random_search__r10
+      val_acc=0.960 causal=8n cands=60 1.7s
+[11/45] run  xor__fixed_mlp__r04
+      val_acc=0.995 causal=65n cands=60 58.5s
+[12/45] run  xor__fixed_mlp__r08
+      val_acc=0.995 causal=65n cands=60 71.7s
+[13/45] run  xor__logistic__r02
+      val_acc=0.570 causal=0n cands=60 0.4s
+[14/45] run  xor__logistic__r06
+      val_acc=0.675 causal=0n cands=60 0.4s
+[15/45] run  xor__logistic__r10
+      val_acc=0.535 causal=0n cands=60 0.3s
+[16/45] run  circle__backprop_neat__r04
+      val_acc=0.990 causal=3n cands=1050 7.8s
+[17/45] run  circle__backprop_neat__r08
+      val_acc=0.965 causal=5n cands=1050 8.3s
+[18/45] run  circle__homogeneous_tanh__r02
+      val_acc=0.805 causal=3n cands=1050 10.2s
+[19/45] run  circle__homogeneous_tanh__r06
+      val_acc=0.830 causal=3n cands=1050 7.1s
+[20/45] run  circle__homogeneous_tanh__r10
+      val_acc=0.620 causal=3n cands=1050 6.5s
+[21/45] run  circle__evolution_only__r04
+      val_acc=0.615 causal=2n cands=1050 0.9s
+[22/45] run  circle__evolution_only__r08
+      val_acc=0.815 causal=2n cands=1050 0.8s
+[23/45] run  circle__random_search__r02
+      val_acc=0.980 causal=12n cands=60 2.9s
+[24/45] run  circle__random_search__r06
+      val_acc=0.995 causal=15n cands=60 2.3s
+[25/45] run  circle__random_search__r10
+      val_acc=0.990 causal=11n cands=60 2.5s
+[26/45] run  circle__fixed_mlp__r04

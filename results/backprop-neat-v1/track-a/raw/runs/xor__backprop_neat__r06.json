@@ -1,0 +1,270 @@
+{
+  "champion": {
+    "active": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      4,
+      3,
+      5,
+      3,
+      5,
+      6,
+      3,
+      6
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      1,
+      2,
+      7,
+      8,
+      11,
+      16,
+      17,
+      14
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sin",
+      "mult",
+      "add"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      5,
+      7,
+      9
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      2,
+      4,
+      1,
+      5,
+      4,
+      0,
+      6,
+      1
+    ],
+    "weights": [
+      -0.11441398398299044,
+      -0.7877957676953001,
+      0.42193996103459147,
+      -0.4142460987102097,
+      -0.18955028535803808,
+      4.076662297222576,
+      2.5387091839943046,
+      -3.6938676786577718,
+      0.3732344737300209,
+      0.005159900340388204,
+      0.23088830037403754
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1050,
+    "gradient_steps": 48330,
+    "wall_time_seconds": 5.830515623092651
+  },
+  "condition": "backprop_neat",
+  "config": {
+    "backprop": true,
+    "batch_size": 10,
+    "fitness_split": "train",
+    "generations": 10,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "lamarckian": true,
+    "n_activations": 9,
+    "n_species": 5,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "ha2016",
+    "restarts": null,
+    "success_threshold": 0.9,
+    "use_penalty": true
+  },
+  "dataset_seed": 8606,
+  "environment": {
+    "code_fingerprint": "0ae3000f2888c2b17877e5d7b575e35054dc0b190732ea1c1e892a8738bfee18",
+    "cpu_count": 4,
+    "git_commit": "b5878a8ced5a9cd0e542b4420a25736dfb53ff11",
+    "machine": "x86_64",
+    "numpy": "2.4.6",
+    "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
+    "python": "3.11.15"
+  },
+  "history": [
+    {
+      "best_fitness": -0.7245330864497934,
+      "candidates": 100,
+      "champion_fitness": -0.7245330864497934,
+      "champion_validation_accuracy": 0.37,
+      "generation": 0,
+      "gradient_steps": 6860,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "species": 1
+    },
+    {
+      "best_fitness": -0.7245330864497934,
+      "candidates": 195,
+      "champion_fitness": -0.7245330864497934,
+      "champion_validation_accuracy": 0.37,
+      "generation": 1,
+      "gradient_steps": 10095,
+      "mean_connections": 3.63,
+      "mean_nodes": 4.16,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7245330864497934,
+      "candidates": 290,
+      "champion_fitness": -0.7245330864497934,
+      "champion_validation_accuracy": 0.37,
+      "generation": 2,
+      "gradient_steps": 14210,
+      "mean_connections": 4.35,
+      "mean_nodes": 4.61,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7245330864497934,
+      "candidates": 385,
+      "champion_fitness": -0.7245330864497934,
+      "champion_validation_accuracy": 0.37,
+      "generation": 3,
+      "gradient_steps": 18125,
+      "mean_connections": 4.36,
+      "mean_nodes": 4.61,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7245330864497934,
+      "candidates": 480,
+      "champion_fitness": -0.7245330864497934,
+      "champion_validation_accuracy": 0.37,
+      "generation": 4,
+      "gradient_steps": 22700,
+      "mean_connections": 4.41,
+      "mean_nodes": 4.75,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7245330864497934,
+      "candidates": 575,
+      "champion_fitness": -0.7245330864497934,
+      "champion_validation_accuracy": 0.37,
+      "generation": 5,
+      "gradient_steps": 27155,
+      "mean_connections": 4.51,
+      "mean_nodes": 4.93,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7245330864497934,
+      "candidates": 670,
+      "champion_fitness": -0.7245330864497934,
+      "champion_validation_accuracy": 0.37,
+      "generation": 6,
+      "gradient_steps": 31230,
+      "mean_connections": 4.86,
+      "mean_nodes": 5.0,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7245330864497934,
+      "candidates": 765,
+      "champion_fitness": -0.7245330864497934,
+      "champion_validation_accuracy": 0.37,
+      "generation": 7,
+      "gradient_steps": 34925,
+      "mean_connections": 4.93,
+      "mean_nodes": 4.99,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.6936982680467735,
+      "candidates": 860,
+      "champion_fitness": -0.6936982680467735,
+      "champion_validation_accuracy": 0.625,
+      "generation": 8,
+      "gradient_steps": 38700,
+      "mean_connections": 5.13,
+      "mean_nodes": 5.17,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.015081304289384171,
+      "candidates": 955,
+      "champion_fitness": -0.015081304289384171,
+      "champion_validation_accuracy": 1.0,
+      "generation": 9,
+      "gradient_steps": 43335,
+      "mean_connections": 5.51,
+      "mean_nodes": 5.37,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.010199686705016966,
+      "candidates": 1050,
+      "champion_fitness": -0.010199686705016966,
+      "champion_validation_accuracy": 1.0,
+      "generation": 10,
+      "gradient_steps": 48330,
+      "mean_connections": 6.0,
+      "mean_nodes": 5.86,
+      "species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 8,
+    "causal_hidden_nodes": 3,
+    "causal_nodes": 7,
+    "causal_operators": {
+      "add": 1,
+      "mult": 1,
+      "sin": 1
+    },
+    "generalization_gap": 0.0,
+    "represented_connections": 8,
+    "represented_nodes": 7,
+    "success": true,
+    "train_accuracy": 1.0,
+    "train_loss": 0.009276669721871968,
+    "validation_accuracy": 1.0,
+    "validation_loss": 0.017215031085921186
+  },
+  "protocol_version": "v1",
+  "replicate": 6,
+  "run_id": "xor__backprop_neat__r06",
+  "schema_version": 1,
+  "search_seed": 18606,
+  "task": "xor",
+  "test_evaluated": false,
+  "track": "A"
+}

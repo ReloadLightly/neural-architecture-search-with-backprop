@@ -1,0 +1,12 @@
+run_id,task,condition,replicate,loss,loss_source,causal_connections,gradient_steps,non_dominated
+xor__backprop_neat__r04,xor,backprop_neat,4,0.3640030035533672,validation,6,46990,True
+xor__backprop_neat__r05,xor,backprop_neat,5,0.008125628275368802,validation,7,48350,True
+xor__backprop_neat__r06,xor,backprop_neat,6,0.017215031085921186,validation,8,48330,True
+xor__evolution_only__r01,xor,evolution_only,1,0.08359208560029367,validation,7,0,True
+xor__evolution_only__r06,xor,evolution_only,6,0.6931193867400812,validation,4,0,True
+xor__evolution_only__r08,xor,evolution_only,8,0.6938521995157177,validation,3,0,True
+xor__evolution_only__r10,xor,evolution_only,10,0.5554412986653864,validation,6,0,True
+xor__random_search__r02,xor,random_search,2,0.057234666476042445,validation,31,4160,True
+xor__random_search__r04,xor,random_search,4,0.009472496484414982,validation,17,5080,True
+xor__random_search__r08,xor,random_search,8,0.016335324937428886,validation,17,4580,True
+xor__random_search__r09,xor,random_search,9,0.014198051053972817,validation,38,4300,True

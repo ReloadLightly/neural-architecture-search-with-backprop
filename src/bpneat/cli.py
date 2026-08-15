@@ -83,6 +83,31 @@ def _cmd_final_test(args) -> int:
     return 0
 
 
+def _cmd_report(args) -> int:
+    from .analysis import build
+
+    payload = build(Path(args.dir))
+    print(f"\n{payload['n_runs']} runs, tracks={payload['tracks']}, "
+          f"test_evaluated={payload['test_evaluated']}")
+    print(f"\n{'task':8s} {'condition':18s} {'val_acc':>9} {'sd':>6} {'succ':>6} "
+          f"{'causal_n':>9} {'steps':>9}")
+    for r in payload["summary"]:
+        print(f"{r['task']:8s} {r['condition']:18s} "
+              f"{r['validation_accuracy_mean']:9.3f} {r['validation_accuracy_sd']:6.3f} "
+              f"{r['success_rate']:6.2f} {r['causal_hidden_nodes_mean']:9.1f} "
+              f"{r['gradient_steps_mean']:9.0f}")
+    return 0
+
+
+def _cmd_figures(args) -> int:
+    from .figures import build_all
+
+    paths = build_all(Path(args.dir))
+    for p in paths:
+        print(f"wrote {p}")
+    return 0
+
+
 def _cmd_conditions(args) -> int:
     for name, c in CONDITIONS.items():
         print(f"{'*' if c.core else ' '} {name:18s} {c.kind:14s} {c.mechanism}")
@@ -130,6 +155,14 @@ def main(argv=None) -> int:
         help="permit a -draft protocol (calibration rehearsal only)",
     )
     s.set_defaults(func=_cmd_final_test)
+
+    s = sub.add_parser("report", help="rebuild every table from the raw records")
+    s.add_argument("--dir", required=True)
+    s.set_defaults(func=_cmd_report)
+
+    s = sub.add_parser("figures", help="render the publication figures")
+    s.add_argument("--dir", required=True)
+    s.set_defaults(func=_cmd_figures)
 
     s = sub.add_parser("conditions", help="list the comparison matrix")
     s.set_defaults(func=_cmd_conditions)

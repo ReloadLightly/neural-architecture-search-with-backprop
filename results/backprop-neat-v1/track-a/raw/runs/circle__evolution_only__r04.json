@@ -1,0 +1,269 @@
+{
+  "champion": {
+    "active": [
+      false,
+      true,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      4,
+      3,
+      5,
+      3,
+      5,
+      6,
+      3,
+      6
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      2,
+      9,
+      10,
+      11,
+      17,
+      14,
+      15
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sigmoid",
+      "square",
+      "tanh"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      8,
+      2
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      2,
+      4,
+      0,
+      5,
+      1,
+      4,
+      6,
+      5
+    ],
+    "weights": [
+      1.624821370102348,
+      -0.13940625575307308,
+      -0.8180688330480596,
+      1.456641241091518,
+      -0.8180688330480596,
+      0.585460191538138,
+      -0.061739178739034214,
+      2.0170234389078594,
+      1.0,
+      -0.8180688330480596,
+      -0.4747175712871275
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1050,
+    "gradient_steps": 0,
+    "wall_time_seconds": 0.8754255771636963
+  },
+  "condition": "evolution_only",
+  "config": {
+    "backprop": false,
+    "batch_size": 10,
+    "fitness_split": "train",
+    "generations": 10,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "lamarckian": true,
+    "n_activations": 9,
+    "n_species": 5,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "ha2016",
+    "restarts": null,
+    "success_threshold": 0.9,
+    "use_penalty": true
+  },
+  "dataset_seed": 8404,
+  "environment": {
+    "code_fingerprint": "df1a3ee61dbffdb06ea73c8e1414dc289818e2056cd79edd7b180e650fb8a407",
+    "cpu_count": 4,
+    "git_commit": "b5878a8ced5a9cd0e542b4420a25736dfb53ff11",
+    "machine": "x86_64",
+    "numpy": "2.4.6",
+    "platform": "Linux-6.18.5-fc-v20-x86_64-with-glibc2.39",
+    "python": "3.11.15"
+  },
+  "history": [
+    {
+      "best_fitness": -0.7507880812650898,
+      "candidates": 100,
+      "champion_fitness": -0.7507880812650898,
+      "champion_validation_accuracy": 0.545,
+      "generation": 0,
+      "gradient_steps": 0,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "species": 1
+    },
+    {
+      "best_fitness": -0.7460996263275442,
+      "candidates": 195,
+      "champion_fitness": -0.7460996263275442,
+      "champion_validation_accuracy": 0.345,
+      "generation": 1,
+      "gradient_steps": 0,
+      "mean_connections": 3.75,
+      "mean_nodes": 4.28,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7460996263275442,
+      "candidates": 290,
+      "champion_fitness": -0.7460996263275442,
+      "champion_validation_accuracy": 0.345,
+      "generation": 2,
+      "gradient_steps": 0,
+      "mean_connections": 4.39,
+      "mean_nodes": 4.62,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7424652716220044,
+      "candidates": 385,
+      "champion_fitness": -0.7424652716220044,
+      "champion_validation_accuracy": 0.335,
+      "generation": 3,
+      "gradient_steps": 0,
+      "mean_connections": 4.96,
+      "mean_nodes": 4.93,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.7424652716220044,
+      "candidates": 480,
+      "champion_fitness": -0.7424652716220044,
+      "champion_validation_accuracy": 0.335,
+      "generation": 4,
+      "gradient_steps": 0,
+      "mean_connections": 5.8,
+      "mean_nodes": 5.39,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.6557143678231676,
+      "candidates": 575,
+      "champion_fitness": -0.6557143678231676,
+      "champion_validation_accuracy": 0.5,
+      "generation": 5,
+      "gradient_steps": 0,
+      "mean_connections": 6.09,
+      "mean_nodes": 5.38,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.6540215656083552,
+      "candidates": 670,
+      "champion_fitness": -0.6540215656083552,
+      "champion_validation_accuracy": 0.5,
+      "generation": 6,
+      "gradient_steps": 0,
+      "mean_connections": 6.76,
+      "mean_nodes": 5.72,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.6444557312886635,
+      "candidates": 765,
+      "champion_fitness": -0.6444557312886635,
+      "champion_validation_accuracy": 0.63,
+      "generation": 7,
+      "gradient_steps": 0,
+      "mean_connections": 7.04,
+      "mean_nodes": 5.97,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.5842865876281882,
+      "candidates": 860,
+      "champion_fitness": -0.5842865876281882,
+      "champion_validation_accuracy": 0.615,
+      "generation": 8,
+      "gradient_steps": 0,
+      "mean_connections": 7.83,
+      "mean_nodes": 6.58,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.5842865876281882,
+      "candidates": 955,
+      "champion_fitness": -0.5842865876281882,
+      "champion_validation_accuracy": 0.615,
+      "generation": 9,
+      "gradient_steps": 0,
+      "mean_connections": 7.64,
+      "mean_nodes": 6.35,
+      "species": 5
+    },
+    {
+      "best_fitness": -0.5842865876281882,
+      "candidates": 1050,
+      "champion_fitness": -0.5842865876281882,
+      "champion_validation_accuracy": 0.615,
+      "generation": 10,
+      "gradient_steps": 0,
+      "mean_connections": 8.5,
+      "mean_nodes": 6.87,
+      "species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 5,
+    "causal_hidden_nodes": 2,
+    "causal_nodes": 5,
+    "causal_operators": {
+      "square": 1,
+      "tanh": 1
+    },
+    "generalization_gap": 0.03500000000000003,
+    "represented_connections": 8,
+    "represented_nodes": 7,
+    "success": false,
+    "train_accuracy": 0.65,
+    "train_loss": 0.5314117828423329,
+    "validation_accuracy": 0.615,
+    "validation_loss": 0.5576119603617821
+  },
+  "protocol_version": "v1",
+  "replicate": 4,
+  "run_id": "circle__evolution_only__r04",
+  "schema_version": 1,
+  "search_seed": 18404,
+  "task": "circle",
+  "test_evaluated": false,
+  "track": "A"
+}
