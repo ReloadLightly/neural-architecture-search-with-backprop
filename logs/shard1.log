@@ -49,3 +49,17 @@
 [25/45] run  circle__random_search__r08
       val_acc=0.985 causal=6n cands=60 2.6s
 [26/45] run  circle__fixed_mlp__r02
+      val_acc=0.980 causal=65n cands=60 73.2s
+[27/45] run  circle__fixed_mlp__r06
+      val_acc=0.975 causal=65n cands=60 58.6s
+[28/45] run  circle__fixed_mlp__r10
+      val_acc=0.985 causal=65n cands=60 62.2s
+[29/45] run  circle__logistic__r04
+      val_acc=0.560 causal=0n cands=60 0.4s
+[30/45] run  circle__logistic__r08
+      val_acc=0.645 causal=0n cands=60 0.3s
+[31/45] run  spiral__backprop_neat__r02
+      val_acc=0.800 causal=4n cands=2000 20.1s
+[32/45] run  spiral__backprop_neat__r06
+      val_acc=0.785 causal=4n cands=2000 20.1s
+[33/45] run  spiral__backprop_neat__r10

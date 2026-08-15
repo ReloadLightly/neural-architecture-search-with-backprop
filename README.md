@@ -63,12 +63,20 @@ topology-determined fixed point. Head-to-head at population 50, identical seeds:
 | Spirals | 0.590 | 0.715 | **0** |
 
 The zero-causal-hidden champions are logistic regressions: evolution never
-escaped its seed topology, because hidden structure added on top of a direct
-input→output edge is invisible to fitness. This reproduces the "near chance
-across conditions" symptom of the earlier attempt, and it belongs in Chapter 4
-as a finding about the source algorithm — so the two modes are separate tracks
-and are never pooled. The fixed MLP scores identically under both modes, which
-is what makes the comparison legitimate.
+escaped its seed topology, because under a strict reading of the break rule any
+hidden structure added on top of a direct input→output edge is invisible to
+fitness. The fixed MLP scores identically under both modes, which is what makes
+the comparison legitimate.
+
+**This is a property of this reconstruction, not a demonstrated property of Ha's
+algorithm.** Figure 10.3 of *Neuroevolution* §10.1 shows Ha's champions as 8–34
+node networks with live hidden structure at 94.3% / 96.3% / 81.5% test accuracy,
+so his runs plainly do not fall into this trap. The strict reading is therefore
+wrong somewhere, or the demo's dynamics differ. See
+[`docs/reference-targets.md`](docs/reference-targets.md) for the published
+targets, where this reconstruction lands against them, and the unresolved
+network-size discrepancy. The two modes are separate tracks and are never
+pooled.
 
 ## Calibration, one replicate (not evidence)
 
