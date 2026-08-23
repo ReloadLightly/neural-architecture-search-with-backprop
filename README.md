@@ -188,8 +188,8 @@ bpneat suite --track B --out results/rerun/track-b       # shardable, resumable
 bpneat final-test --dir results/rerun/track-b            # refuses drafts and modified code
 ```
 
-Measured budget for the full 360-run matrix: 1.87 core-hours (roughly 35
-minutes across four shards). Shards never overwrite each other, completed runs
+Measured budget for the full 360-run matrix: 1.87 core-hours (32 minutes
+across four shards). Shards never overwrite each other, completed runs
 are skipped by code fingerprint, and `manifest.json` is refreshed after every
 run so progress is read rather than guessed. `bpneat final-test` runs exactly
 once per release: it refuses an incomplete, draft, already-evaluated or
