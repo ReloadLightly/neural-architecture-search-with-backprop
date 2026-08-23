@@ -1,5 +1,10 @@
 # Backprop-NEAT — Summer
 
+**Can a search process be trusted to design something no one can check by hand?**
+Second of three experiments toward computational foreign policy. Here the thing
+being designed is a small neural network that evolves its own structure, on
+problems where the right answer is hidden from any single straight line.
+
 [![CI](https://github.com/ReloadLightly/backprop-neat-summer/actions/workflows/ci.yml/badge.svg)](https://github.com/ReloadLightly/backprop-neat-summer/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
