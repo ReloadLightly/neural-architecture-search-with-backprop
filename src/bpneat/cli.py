@@ -108,6 +108,24 @@ def _cmd_figures(args) -> int:
     return 0
 
 
+def _cmd_verify(args) -> int:
+    from .release import render, verify
+
+    report = verify(Path(args.dir))
+    render(report)
+    return 0 if report.ok else 1
+
+
+def _cmd_champions(args) -> int:
+    from .champions import build_all
+
+    paths = build_all(Path(args.dir), track_dir=args.track_dir)
+    if not paths:
+        print(f"no champions to draw under {args.dir}", file=sys.stderr)
+        return 1
+    return 0
+
+
 def _cmd_conditions(args) -> int:
     for name, c in CONDITIONS.items():
         print(f"{'*' if c.core else ' '} {name:18s} {c.kind:14s} {c.mechanism}")
@@ -163,6 +181,17 @@ def main(argv=None) -> int:
     s = sub.add_parser("figures", help="render the publication figures")
     s.add_argument("--dir", required=True)
     s.set_defaults(func=_cmd_figures)
+
+    s = sub.add_parser(
+        "verify", help="prove a committed release regenerates from its raw records"
+    )
+    s.add_argument("--dir", required=True, help="a track directory inside a release")
+    s.set_defaults(func=_cmd_verify)
+
+    s = sub.add_parser("champions", help="draw the champion boundaries and topologies")
+    s.add_argument("--dir", required=True, help="a release directory containing track dirs")
+    s.add_argument("--track-dir", default="track-b")
+    s.set_defaults(func=_cmd_champions)
 
     s = sub.add_parser("conditions", help="list the comparison matrix")
     s.set_defaults(func=_cmd_conditions)

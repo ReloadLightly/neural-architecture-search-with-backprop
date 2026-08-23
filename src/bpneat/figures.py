@@ -294,4 +294,13 @@ def build_all(root: Path, progress=print) -> list[Path]:
 
     if "A" in per_track and "B" in per_track:
         written.append(track_contrast(per_track["A"], per_track["B"], out))
+
+    # Wiring only: the paired sealed-test-loss forest plot belongs to the same
+    # release figure set, but its code lives in `champions.py` so that the
+    # seven frozen science modules are not the only thing this file has to
+    # stay careful about. Imported late to keep the dependency one-way.
+    from .champions import paired_test_loss
+
+    if "B" in per_track:
+        written.append(paired_test_loss(root, out, "track-b"))
     return [w for w in written if w]

@@ -262,5 +262,8 @@ def build(release_dir: Path, progress=print) -> dict:
         "paired_effects": [{k: v for k, v in e.items() if k != "per_replicate"} for e in effects],
     }
     (release_dir / "summary.json").write_text(json.dumps(payload, indent=2, default=float))
-    progress(f"{len(runs)} runs -> summary.csv, paired-effects.csv, operation-usage.csv, pareto-front.csv")
+    progress(
+        f"{len(runs)} runs -> summary.csv, paired-effects.csv, "
+        "operation-usage.csv, pareto-front.csv"
+    )
     return payload

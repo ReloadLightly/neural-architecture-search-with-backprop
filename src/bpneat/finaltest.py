@@ -14,8 +14,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import numpy as np
-
 from .conditions import SUCCESS_THRESHOLD
 from .datasets import make_bundle
 from .learn import accuracy, total_error
