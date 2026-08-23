@@ -87,9 +87,10 @@ steps, **1.87 core-hours**.
 random architecture search, evolution-only and the linear floor in 10/10 paired
 replicates, with intervals excluding zero. (2) Gradient learning and topology
 search are complementary: evolution alone lost on all three tasks, decisively
-(10/10, 10/10, 9/10). (3) Evolved architectures specialise by task in *which
-operators reach the output* — XOR runs on `mult` (0.46), circles on
-`square`+`gaussian` (0.53), spirals on `sin` (0.52) — not merely in size.
+(XOR 9/10, circles 10/10, spirals 10/10). (3) Evolved architectures specialise
+by task in *which operators reach the output* — XOR runs on `mult` (0.46),
+circles on `square`+`gaussian` (0.53), spirals on `sin` (0.52) — not merely in
+size.
 (4) Represented size is not computation: 4.6 causally active hidden nodes beat
 a 65-unit MLP on spirals. (5) Ha's exact propagation rule measurably changes
 what evolution discovers, and its cost is task-dependent (XOR sealed-test
@@ -187,8 +188,8 @@ bpneat suite --track B --out results/rerun/track-b       # shardable, resumable
 bpneat final-test --dir results/rerun/track-b            # refuses drafts and modified code
 ```
 
-Measured budget for the full 360-run matrix: 1.87 core-hours (roughly 35
-minutes across four shards). Shards never overwrite each other, completed runs
+Measured budget for the full 360-run matrix: 1.87 core-hours (32 minutes
+across four shards). Shards never overwrite each other, completed runs
 are skipped by code fingerprint, and `manifest.json` is refreshed after every
 run so progress is read rather than guessed. `bpneat final-test` runs exactly
 once per release: it refuses an incomplete, draft, already-evaluated or
