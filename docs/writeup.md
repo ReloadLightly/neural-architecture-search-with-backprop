@@ -128,9 +128,10 @@ search earned its budget only where the problem deceived, and that is precisely
 the regime one would deploy it in.
 
 **The mechanisms are complementary, not redundant.** Evolution without gradient
-learning lost on every task, decisively (10/10, 10/10, 9/10). Gradient
-learning without topology search — the fixed MLP — lost exactly where deception
-began. Neither half of Backprop-NEAT's name is decorative.
+learning lost on every task, decisively (XOR 9/10, circles 10/10, spirals
+10/10). Gradient learning without topology search — the fixed MLP — lost
+exactly where deception began. Neither half of Backprop-NEAT's name is
+decorative.
 
 **Architectures specialise in operators, not just size.** The causally active
 hidden units of the spiral champions are 52% `sin`; the circle champions are
