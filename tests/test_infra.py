@@ -23,7 +23,6 @@ from bpneat.finaltest import FinalTestRefused, run_final_test
 from bpneat.record import assert_no_test_metrics, code_fingerprint
 from bpneat.suite import run_plan, shard
 
-
 # --------------------------------------------------------------------------
 # Exact resume
 # --------------------------------------------------------------------------
@@ -218,7 +217,6 @@ def test_final_test_runs_once_and_then_refuses(tmp_path):
 def test_suite_skips_completed_runs(tmp_path):
     first = _tiny_release(tmp_path)
     assert first["present"] == 1
-    calls = []
     _tiny_release(tmp_path)
     # Second invocation must not have re-run anything: the record is unchanged.
     rec = json.loads(next((tmp_path / "raw" / "runs").glob("*.json")).read_text())

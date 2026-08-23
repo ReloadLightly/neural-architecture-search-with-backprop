@@ -240,7 +240,6 @@ def test_random_architecture_is_wired_and_alive(settle):
 def test_optimiser_state_is_not_shared_between_genomes():
     from bpneat.learn import train
 
-    rng = np.random.default_rng(2)
     b = make_bundle("xor", seed=13)
     g1 = make_mlp((4,), np.random.default_rng(1))
     g2 = make_mlp((4,), np.random.default_rng(1))

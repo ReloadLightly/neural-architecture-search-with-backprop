@@ -8,13 +8,13 @@ asserts the equivalence rather than assuming it.
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
 
 from .evolve import Individual, InnovationRegistry
 from .record import deserialise_genome, serialise_genome, write_json_atomic
-import json
 
 
 def dump_individual(ind: Individual) -> dict:
