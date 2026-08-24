@@ -1,4 +1,4 @@
-# Backprop-NEAT — Summer
+# Neural architecture search with backprop
 
 [![CI](https://github.com/ReloadLightly/backprop-neat-summer/actions/workflows/ci.yml/badge.svg)](https://github.com/ReloadLightly/backprop-neat-summer/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
