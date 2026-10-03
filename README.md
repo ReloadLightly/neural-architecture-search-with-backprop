@@ -1,4 +1,4 @@
-# Backprop-NEAT — Summer
+# Neural architecture search with backprop
 
 **Can a search process be trusted to design something no one can check by hand?**
 Second of three experiments toward computational foreign policy. Here the thing
