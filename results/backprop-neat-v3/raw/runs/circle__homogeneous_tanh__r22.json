@@ -1,0 +1,297 @@
+{
+  "blocks": [
+    "A"
+  ],
+  "champion": {
+    "active": [
+      true,
+      false,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      4,
+      3,
+      4,
+      4,
+      5,
+      3,
+      5,
+      4,
+      6,
+      3,
+      6,
+      6,
+      6
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      2,
+      1,
+      4,
+      13,
+      7,
+      12,
+      10,
+      24,
+      15,
+      14,
+      23,
+      22
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "tanh",
+      "tanh",
+      "tanh"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      2,
+      2,
+      2
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      1,
+      4,
+      0,
+      2,
+      4,
+      5,
+      3,
+      5,
+      5,
+      6,
+      2,
+      1,
+      0
+    ],
+    "weights": [
+      -2.097178275306768,
+      -1.8480730115589528,
+      -1.0606728953968334,
+      -0.7478458876821398,
+      -0.6245389921724452,
+      -2.365020035825568,
+      -0.7134945136104703,
+      2.4198152467580907,
+      -1.68985640433269,
+      0.29667540803416187,
+      1.1558873553135016,
+      2.688761077253841,
+      -4.7872919048130536,
+      -0.4920217960715336,
+      0.5230479834718724,
+      0.6068563756792447
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1100,
+    "gradient_steps": 82080,
+    "selection_intensity": 0.08645870332466102,
+    "wall_time_seconds": 19.912179708480835
+  },
+  "condition": "homogeneous_tanh",
+  "config": {
+    "backprop": true,
+    "builder": null,
+    "fitness_split": "validation",
+    "generations": 10,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "lamarckian": true,
+    "matched_steps": null,
+    "n_activations": 1,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "settled",
+    "restarts": null,
+    "selector": "roulette_s0.01",
+    "success_threshold": 0.9
+  },
+  "dataset_seed": 30148,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.7272230038033598,
+      "candidates": 100,
+      "champion_fitness": -0.7272230038033598,
+      "generation": 0,
+      "gradient_steps": 6260,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "selection_intensity": 0.00886611978620142
+    },
+    {
+      "best_fitness": -0.7271006521722202,
+      "candidates": 200,
+      "champion_fitness": -0.7271006521722202,
+      "generation": 1,
+      "gradient_steps": 10560,
+      "mean_connections": 3.71,
+      "mean_nodes": 4.25,
+      "selection_intensity": 0.007433046586793812
+    },
+    {
+      "best_fitness": -0.5197705046464026,
+      "candidates": 300,
+      "champion_fitness": -0.5197705046464026,
+      "generation": 2,
+      "gradient_steps": 15640,
+      "mean_connections": 4.15,
+      "mean_nodes": 4.31,
+      "selection_intensity": 0.05722478742956112
+    },
+    {
+      "best_fitness": -0.51996970424753,
+      "candidates": 400,
+      "champion_fitness": -0.5197705046464026,
+      "generation": 3,
+      "gradient_steps": 22300,
+      "mean_connections": 5.19,
+      "mean_nodes": 4.98,
+      "selection_intensity": 0.0787382555050998
+    },
+    {
+      "best_fitness": -0.44684199895334376,
+      "candidates": 500,
+      "champion_fitness": -0.44684199895334376,
+      "generation": 4,
+      "gradient_steps": 30120,
+      "mean_connections": 6.04,
+      "mean_nodes": 5.19,
+      "selection_intensity": 0.06581750080709885
+    },
+    {
+      "best_fitness": -0.40761326215276084,
+      "candidates": 600,
+      "champion_fitness": -0.40761326215276084,
+      "generation": 5,
+      "gradient_steps": 38580,
+      "mean_connections": 6.68,
+      "mean_nodes": 5.35,
+      "selection_intensity": 0.13632935563155557
+    },
+    {
+      "best_fitness": -0.39338580386250005,
+      "candidates": 700,
+      "champion_fitness": -0.39338580386250005,
+      "generation": 6,
+      "gradient_steps": 46240,
+      "mean_connections": 7.81,
+      "mean_nodes": 5.88,
+      "selection_intensity": 0.14671081820479848
+    },
+    {
+      "best_fitness": -0.3876726037949249,
+      "candidates": 800,
+      "champion_fitness": -0.3876726037949249,
+      "generation": 7,
+      "gradient_steps": 54740,
+      "mean_connections": 8.43,
+      "mean_nodes": 5.81,
+      "selection_intensity": 0.1209568087536903
+    },
+    {
+      "best_fitness": -0.33583568593379565,
+      "candidates": 900,
+      "champion_fitness": -0.33583568593379565,
+      "generation": 8,
+      "gradient_steps": 63420,
+      "mean_connections": 9.13,
+      "mean_nodes": 6.13,
+      "selection_intensity": 0.11789006637875063
+    },
+    {
+      "best_fitness": -0.22814899741522043,
+      "candidates": 1000,
+      "champion_fitness": -0.22814899741522043,
+      "generation": 9,
+      "gradient_steps": 72680,
+      "mean_connections": 8.76,
+      "mean_nodes": 5.81,
+      "selection_intensity": 0.12462027416306017
+    },
+    {
+      "best_fitness": -0.2321365207698647,
+      "candidates": 1100,
+      "champion_fitness": -0.22814899741522043,
+      "generation": 10,
+      "gradient_steps": 82080,
+      "mean_connections": 8.82,
+      "mean_nodes": 6.05
+    }
+  ],
+  "metrics": {
+    "causal_connections": 13,
+    "causal_hidden_nodes": 3,
+    "causal_nodes": 7,
+    "causal_operators": {
+      "tanh": 3
+    },
+    "collapsed": false,
+    "generalization_gap": 0.015000000000000013,
+    "represented_connections": 13,
+    "represented_nodes": 7,
+    "success": true,
+    "train_accuracy": 0.96,
+    "train_loss": 0.1996272134056205,
+    "validation_accuracy": 0.945,
+    "validation_loss": 0.20370446197787537
+  },
+  "protocol_version": "v3",
+  "replicate": 22,
+  "run_id": "circle__homogeneous_tanh__r22",
+  "search_seed": 40148,
+  "task": "circle",
+  "test_evaluated": false
+}

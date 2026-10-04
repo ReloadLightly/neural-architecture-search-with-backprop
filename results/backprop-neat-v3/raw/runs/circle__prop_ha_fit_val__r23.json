@@ -1,0 +1,299 @@
+{
+  "blocks": [
+    "B"
+  ],
+  "champion": {
+    "active": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      3,
+      4,
+      3,
+      4,
+      5,
+      3,
+      6,
+      3,
+      7,
+      4,
+      8,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      0,
+      1,
+      2,
+      11,
+      15,
+      7,
+      22,
+      14,
+      19,
+      28,
+      40,
+      35
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sin",
+      "square",
+      "relu",
+      "add",
+      "gaussian"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      5,
+      8,
+      3,
+      9,
+      4
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      3,
+      3,
+      4,
+      4,
+      1,
+      5,
+      0,
+      6,
+      3,
+      7,
+      2,
+      8
+    ],
+    "weights": [
+      0.3422232839659054,
+      0.21003795377962792,
+      0.20161359056479441,
+      0.4597290840017717,
+      0.21003795377962792,
+      -0.31337910613815917,
+      -0.5076467297855677,
+      0.7763135350964894,
+      -0.9794257280283161,
+      1.0960857467569107,
+      -0.40549794491913277,
+      0.7534131012276413,
+      0.12199019203822045,
+      -0.48417642720514686,
+      6.219911365053872
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1100,
+    "gradient_steps": 57580,
+    "selection_intensity": 0.08558632261277707,
+    "wall_time_seconds": 8.878427267074585
+  },
+  "condition": "prop_ha_fit_val",
+  "config": {
+    "backprop": true,
+    "builder": null,
+    "fitness_split": "validation",
+    "generations": 10,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "lamarckian": true,
+    "matched_steps": null,
+    "n_activations": 9,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "ha2016",
+    "restarts": null,
+    "selector": "roulette_s0.01",
+    "success_threshold": 0.9
+  },
+  "dataset_seed": 30155,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.7093342797443377,
+      "candidates": 100,
+      "champion_fitness": -0.7093342797443377,
+      "generation": 0,
+      "gradient_steps": 6440,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "selection_intensity": 0.01434924353159757
+    },
+    {
+      "best_fitness": -0.7078082435007034,
+      "candidates": 200,
+      "champion_fitness": -0.7078082435007034,
+      "generation": 1,
+      "gradient_steps": 10180,
+      "mean_connections": 3.68,
+      "mean_nodes": 4.26,
+      "selection_intensity": 0.014500960159348642
+    },
+    {
+      "best_fitness": -0.7165773550488961,
+      "candidates": 300,
+      "champion_fitness": -0.7078082435007034,
+      "generation": 2,
+      "gradient_steps": 14340,
+      "mean_connections": 4.05,
+      "mean_nodes": 4.31,
+      "selection_intensity": 0.018449555610744205
+    },
+    {
+      "best_fitness": -0.7144080689600437,
+      "candidates": 400,
+      "champion_fitness": -0.7078082435007034,
+      "generation": 3,
+      "gradient_steps": 18900,
+      "mean_connections": 4.52,
+      "mean_nodes": 4.56,
+      "selection_intensity": 0.016985372940087517
+    },
+    {
+      "best_fitness": -0.4328180754892877,
+      "candidates": 500,
+      "champion_fitness": -0.4328180754892877,
+      "generation": 4,
+      "gradient_steps": 23120,
+      "mean_connections": 4.76,
+      "mean_nodes": 4.61,
+      "selection_intensity": 0.04177137252233255
+    },
+    {
+      "best_fitness": -0.4513434404178522,
+      "candidates": 600,
+      "champion_fitness": -0.4328180754892877,
+      "generation": 5,
+      "gradient_steps": 27960,
+      "mean_connections": 5.4,
+      "mean_nodes": 4.89,
+      "selection_intensity": 0.05716132889679506
+    },
+    {
+      "best_fitness": -0.4271350377692937,
+      "candidates": 700,
+      "champion_fitness": -0.4271350377692937,
+      "generation": 6,
+      "gradient_steps": 33180,
+      "mean_connections": 6.41,
+      "mean_nodes": 5.36,
+      "selection_intensity": 0.1081405675634255
+    },
+    {
+      "best_fitness": -0.42751327333189937,
+      "candidates": 800,
+      "champion_fitness": -0.4271350377692937,
+      "generation": 7,
+      "gradient_steps": 38720,
+      "mean_connections": 7.02,
+      "mean_nodes": 5.59,
+      "selection_intensity": 0.1755851926021104
+    },
+    {
+      "best_fitness": -0.39471455019178986,
+      "candidates": 900,
+      "champion_fitness": -0.39471455019178986,
+      "generation": 8,
+      "gradient_steps": 44940,
+      "mean_connections": 8.18,
+      "mean_nodes": 6.42,
+      "selection_intensity": 0.19211264031472836
+    },
+    {
+      "best_fitness": -0.14258116251283834,
+      "candidates": 1000,
+      "champion_fitness": -0.14258116251283834,
+      "generation": 9,
+      "gradient_steps": 51620,
+      "mean_connections": 10.1,
+      "mean_nodes": 7.34,
+      "selection_intensity": 0.21680699198660108
+    },
+    {
+      "best_fitness": -0.09745343774159723,
+      "candidates": 1100,
+      "champion_fitness": -0.09745343774159723,
+      "generation": 10,
+      "gradient_steps": 57580,
+      "mean_connections": 10.48,
+      "mean_nodes": 7.44
+    }
+  ],
+  "metrics": {
+    "causal_connections": 7,
+    "causal_hidden_nodes": 4,
+    "causal_nodes": 8,
+    "causal_operators": {
+      "gaussian": 1,
+      "relu": 1,
+      "sin": 1,
+      "square": 1
+    },
+    "collapsed": false,
+    "generalization_gap": -0.015000000000000013,
+    "represented_connections": 10,
+    "represented_nodes": 9,
+    "success": true,
+    "train_accuracy": 0.98,
+    "train_loss": 0.11527023817731634,
+    "validation_accuracy": 0.995,
+    "validation_loss": 0.0873090435879181
+  },
+  "protocol_version": "v3",
+  "replicate": 23,
+  "run_id": "circle__prop_ha_fit_val__r23",
+  "search_seed": 40155,
+  "task": "circle",
+  "test_evaluated": false
+}
