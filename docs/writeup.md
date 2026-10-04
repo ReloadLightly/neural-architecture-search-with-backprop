@@ -132,47 +132,86 @@ the version rather than amending it, so all 233 runs were declared dead,
 retained for audit, and barred from citation. The false conclusion died before
 it could be published, which is the whole purpose of the machinery.
 
-## 4. What the experiment found
+## 4. What the experiment found — and what an audit took back
 
-Four results survive the sealed test, and one welcome negative.
+This section was rewritten in October 2026. An external audit reproduced every
+number in the v2 release and showed that two of its five claims were artifacts
+of the evaluator rather than findings about the algorithm. The full accounting
+is in [`v2-errata.md`](v2-errata.md); what follows is the corrected reading,
+and the correction is more interesting than the original.
 
-**Search pays exactly where the geometry is deceptive.** On spirals — the one
-task where no simple boundary exists — Backprop-NEAT beat the fixed MLP, random
-architecture search, evolution-only and the linear floor on sealed-test loss in
-ten out of ten paired replicates, with bootstrap intervals excluding zero. On
-XOR and circles, the controls matched or beat it: a fixed MLP is entirely
-adequate for easy geometry, and random architecture sampling won circles
-outright. The honest summary is conditional, and stronger for it: architecture
-search earned its budget only where the problem deceived, and that is precisely
-the regime one would deploy it in.
+### What survives
 
 **The mechanisms are complementary, not redundant.** Evolution without gradient
-learning lost on every task, decisively (XOR 9/10, circles 10/10, spirals
-10/10). Gradient learning without topology search — the fixed MLP — lost
-exactly where deception began. Neither half of Backprop-NEAT's name is
-decorative.
+learning lost on every task, decisively — XOR 9/10, circles 10/10, spirals
+10/10 — at an identical candidate budget. Removing operator diversity cost
+accuracy on circles (10/10) and spirals (7/10), also at matched budget. These
+two comparisons are clean because both arms are evolutionary conditions that
+spend the same number of candidate evaluations by construction. Neither half of
+Backprop-NEAT's name is decorative.
 
-**Architectures specialise in operators, not just size.** The causally active
-hidden units of the spiral champions are 52% `sin`; the circle champions are
-53% `square` and `gaussian`; the XOR champions are 46% `mult`. Evolution
-discovered periodicity for the periodic task, radial symmetry for the radial
-task, and multiplicative interaction for the parity task — the qualitative
-behaviour the *Neuroevolution* book describes for this system, here measured
-rather than narrated.
+**Architectures specialise in which operators reach the output.** Among the
+causally active hidden units of the champions, spirals are 52% `sin`, circles
+53% `square` and `gaussian`, XOR 46% `mult`.
 
-**Represented structure is not computation.** The champions that beat a
-65-hidden-unit MLP on spirals did it with 4.6 causally active hidden nodes —
-measured on the executed trace, counting only structure whose output actually
-reaches the decision. The gap between what a network *contains* and what it
-*computes* is not a rounding error; it is nearly an order of magnitude, and it
-is the difference between counting a network and understanding one.
+That statistic is sound. The sentence that used to follow it — that evolution
+"discovered periodicity for the periodic task" — is not. Looking at what the
+champions actually draw, the median spiral champion lays down roughly
+horizontal sine stripes that extend into regions containing no data. A periodic
+operator is being used to tile the plane in a way that happens to cut the
+spiral arms, not to represent the spiral's rotational structure. The measurable
+claim is that operator usage differs by task. The satisfying claim — that the
+evolved feature matches the task's generative structure — is not supported, and
+it was the kind of claim that is pleasant enough to be worth distrusting.
 
-**And the propagation rule mattered.** Ha's exact break rule — a scheduling
-detail of the forward pass, invisible in any published description of the
-algorithm — cost a quarter of the achievable accuracy on XOR (0.751 sealed,
-against 0.996 settled) and changed what evolution could discover on every
-task. This is the welcome negative: the "same" algorithm under two defensible
-readings of its forward pass is two different experiments.
+**Represented structure is not computation.** Champions carry 2.6 to 4.6
+causally active hidden nodes against 6.6 to 8.7 represented ones, measured on
+the executed trace. This is a measurement of the evolved graphs themselves and
+survives intact, because it does not depend on comparing against anything.
+
+### What the audit took back
+
+**"Search pays exactly where the geometry is deceptive" — withdrawn.** On
+spirals the fixed-MLP control received 2,506 realized gradient steps against
+Backprop-NEAT's 132,138, a factor of 53. The cause is Ha's rollback rule, which
+stops training at the first full-batch loss increase: a mild regulariser for an
+eight-node evolved graph, a hard stop after roughly 42 updates for a 69-node
+network. The comparison measured two budgets, not two architectures. Given the
+same budget and no rollback, that network reaches 0.78–0.91 on spirals; given a
+sinusoidal activation and 600 plain updates, a fixed network reaches 0.94–0.96,
+above every evolved champion in the release.
+
+**"Few causal nodes beat a 65-unit MLP" — withdrawn, same cause.** The
+structure-efficiency claim inherits the budget confound entirely. What remains
+true is the measurement of causal size; what does not is the comparison.
+
+**"The propagation rule mattered" — withdrawn as stated.** The two tracks
+differ in propagation *and* in fitness split, so neither factor can be
+credited. The 0.751-versus-0.996 contrast is real but unattributable.
+
+**And one thing the previous retraction got wrong in the other direction.**
+Protocol v1 had claimed that Ha's propagation rule collapses evolution to the
+linear floor, and v2 called that simply wrong. It was overstated, not wrong: in
+the confirmatory data, 3 of 10 XOR champions and 1 of 10 spiral champions under
+`ha2016` really do have zero causally active hidden nodes at the logistic
+floor, which makes track A's XOR mean of 0.751 a bimodal mixture rather than a
+central tendency. The phenomenon is real at a rate.
+
+### Why this section is the most useful one
+
+Three protocols, two reversed conclusions, and in both cases the culprit was a
+choice the published algorithm does not fix: first a selection operator we
+chose ourselves, then a stopping rule we inherited faithfully and which
+disadvantaged a baseline the original never had. Both failures are perfectly
+reproducible. The v2 release regenerates byte-identically, passes its own
+fingerprint check, was preregistered, and opened its sealed test exactly once —
+and two of its five claims were still wrong.
+
+Reproducibility guarantees that someone else gets the same numbers. It does not
+guarantee that the numbers answer the question. For an instrument intended to
+inform decisions under uncertainty, that distinction is the whole lesson, and
+it is why protocol v3 treats the evaluator as the object of study rather than
+as the measuring device.
 
 ## 5. Three readings for Experiment 3
 
