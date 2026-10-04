@@ -131,31 +131,78 @@ def stability(matrix: list[dict], out: Path) -> Path | None:
     return _save(fig, out / "stability-matrix.png", bottom=0.30, left=0.30, top=0.88, right=0.99)
 
 
+#: Block A only. The compute figure is about controls and budgets; the
+#: propagation, selection and inheritance conditions belong to other blocks.
+#: Eight conditions over a six-hue validated palette. Hues are never cycled —
+#: a repeated hue is disambiguated by marker shape, so every condition has a
+#: unique (colour, marker) pair and identity never rests on colour alone.
+BLOCK_A_STYLE = {
+    "backprop_neat": (0, "o"),
+    "fixed_mlp_tanh_ha": (1, "o"),
+    "fixed_mlp_tanh_matched": (2, "o"),
+    "fixed_mlp_sin_matched": (3, "o"),
+    "fixed_mlp_mixed_matched": (4, "o"),
+    "random_search_matched": (5, "o"),
+    "homogeneous_tanh": (0, "s"),
+    "evolution_only": (1, "s"),
+}
+
+BLOCK_A = (
+    "backprop_neat",
+    "fixed_mlp_tanh_ha",
+    "fixed_mlp_tanh_matched",
+    "fixed_mlp_sin_matched",
+    "fixed_mlp_mixed_matched",
+    "random_search_matched",
+    "homogeneous_tanh",
+    "evolution_only",
+)
+
+
 def budget_vs_accuracy(summary: list[dict], out: Path) -> Path:
-    """Block A: accuracy against the compute each condition actually spent."""
+    """Block A: accuracy against the compute each condition actually spent.
+
+    A shared legend carries identity; only the two conditions that make the
+    point — v2's starved control and the best matched one — are labelled in
+    place, because labelling eight clustered points makes all eight unreadable.
+    """
     by = {(r["task"], r["condition"]): r for r in summary}
-    conds = [c for c in LABEL if any((t, c) in by for t in TASKS)]
-    fig, axes = _fig(1, 5, figsize=(16, 4.0))
+    fig, axes = _fig(1, 5, figsize=(16, 4.4))
+    handles: dict[str, object] = {}
     for ax, task in zip(axes, TASKS):
-        for i, c in enumerate(conds):
+        best_matched = max(
+            (c for c in BLOCK_A if c.endswith("_matched") and (task, c) in by),
+            key=lambda c: by[(task, c)].get("test_accuracy_mean", 0.0),
+            default=None,
+        )
+        for c in BLOCK_A:
             r = by.get((task, c))
             if r is None or "test_accuracy_mean" not in r:
                 continue
-            ax.plot(max(r["gradient_steps_mean"], 1), r["test_accuracy_mean"], "o",
-                    markersize=9, color=SERIES[i % len(SERIES)],
-                    markeredgecolor=SURFACE, markeredgewidth=1.5)
-            ax.annotate(LABEL[c].replace(" (matched)", ""),
-                        (max(r["gradient_steps_mean"], 1), r["test_accuracy_mean"]),
-                        textcoords="offset points", xytext=(0, 9), ha="center",
-                        fontsize=6.5, color=INK)
+            slot, marker = BLOCK_A_STYLE[c]
+            x = max(r["gradient_steps_mean"], 1)
+            y = r["test_accuracy_mean"]
+            (h,) = ax.plot(x, y, marker, markersize=9, color=SERIES[slot],
+                           markeredgecolor=SURFACE, markeredgewidth=1.5)
+            handles.setdefault(LABEL[c], h)
+            if c in ("fixed_mlp_tanh_ha", best_matched):
+                ax.annotate(
+                    f"{y:.3f}", (x, y), textcoords="offset points",
+                    xytext=(0, 11), ha="center", fontsize=8, color=INK,
+                )
         ax.set_xscale("symlog", linthresh=1000)
         ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
         ax.set_xlabel("realized gradient steps", color=INK2, fontsize=8)
-        ax.set_ylim(0.35, 1.12)
+        ax.set_ylim(0.45, 1.08)
     axes[0].set_ylabel("sealed-test accuracy", color=INK2, fontsize=9)
-    fig.suptitle("Block A: accuracy against realized compute — v2's control sits at the left edge",
-                 color=INK, fontsize=11)
-    return _save(fig, out / "budget-vs-accuracy.png")
+    fig.legend(handles.values(), handles.keys(), frameon=False, fontsize=8.5,
+               labelcolor=INK2, ncol=4, loc="lower center", bbox_to_anchor=(0.5, -0.02))
+    fig.suptitle(
+        "Block A: accuracy against realized compute — v2's starved control sits at the left edge",
+        color=INK, fontsize=11,
+    )
+    return _save(fig, out / "budget-vs-accuracy.png",
+                 bottom=0.26, top=0.88, left=0.05, right=0.99, wspace=0.18)
 
 
 def block_a_effects(effects: list[dict], out: Path) -> Path | None:
