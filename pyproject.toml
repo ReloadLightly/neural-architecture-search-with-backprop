@@ -38,8 +38,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ReloadLightly/backprop-neat-summer"
-Release = "https://github.com/ReloadLightly/backprop-neat-summer/tree/main/results/backprop-neat-v2"
+Homepage = "https://github.com/ReloadLightly/neural-architecture-search-with-backprop"
+Release = "https://github.com/ReloadLightly/neural-architecture-search-with-backprop/tree/main/results/backprop-neat-v2"
 
 [project.scripts]
 bpneat = "bpneat.cli:main"

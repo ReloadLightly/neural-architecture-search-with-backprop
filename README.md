@@ -5,7 +5,7 @@ Second of three experiments toward computational foreign policy. Here the thing
 being designed is a small neural network that evolves its own structure, on
 problems where the right answer is hidden from any single straight line.
 
-[![CI](https://github.com/ReloadLightly/backprop-neat-summer/actions/workflows/ci.yml/badge.svg)](https://github.com/ReloadLightly/backprop-neat-summer/actions/workflows/ci.yml)
+[![CI](https://github.com/ReloadLightly/neural-architecture-search-with-backprop/actions/workflows/ci.yml/badge.svg)](https://github.com/ReloadLightly/neural-architecture-search-with-backprop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
 > *"…build a multilayer network among its ally and like-minded countries, expand it, and strengthen deterrence."*
@@ -165,8 +165,8 @@ was invalidated for it rather than patched
 ## Verify and reproduce
 
 ```bash
-git clone https://github.com/ReloadLightly/backprop-neat-summer
-cd backprop-neat-summer
+git clone https://github.com/ReloadLightly/neural-architecture-search-with-backprop
+cd neural-architecture-search-with-backprop
 python -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]"
 
