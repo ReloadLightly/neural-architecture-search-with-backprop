@@ -1,8 +1,0 @@
-task,condition,selector,n,selection_intensity_mean,collapse_rate,causal_hidden_nodes_mean,represented_nodes_mean,test_accuracy_mean
-xor,sel_roulette_s1.0,roulette_s1.0,4,0.09475402975433386,0.0,2.75,6.75,
-xor,sel_roulette_s0.1,roulette_s0.1,4,0.25708800746497473,0.0,2.0,6.0,
-xor,backprop_neat,roulette_s0.01,8,0.3266623889169308,0.0,2.75,6.875,
-xor,sel_roulette_s0.001,roulette_s0.001,4,0.3626893738431239,0.0,3.25,7.25,
-xor,sel_tournament_k2,tournament_k2,4,0.4757284508758515,0.0,2.75,6.75,
-xor,sel_v1_truncation,v1_truncation,4,0.6243518820859478,0.0,3.0,7.0,
-xor,sel_tournament_k4,tournament_k4,4,0.7630741102372899,0.0,3.5,7.5,
