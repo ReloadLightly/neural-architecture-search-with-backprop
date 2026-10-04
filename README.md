@@ -1,25 +1,28 @@
 # Neural architecture search with backprop
 
-**Can a search process be trusted to design something no one can check by hand?**
-Second of three experiments toward computational foreign policy. Here the thing
-being designed is a small neural network that evolves its own structure, on
-problems where the right answer is hidden from any single straight line.
+A NumPy reconstruction of David Ha's
+[Backprop-NEAT](https://blog.otoro.net/2016/05/07/backprop-neat/) (2016) — NEAT
+topology search with backpropagation training every candidate — run as a frozen,
+preregistered experiment, and then audited until it broke.
 
 [![CI](https://github.com/ReloadLightly/neural-architecture-search-with-backprop/actions/workflows/ci.yml/badge.svg)](https://github.com/ReloadLightly/neural-architecture-search-with-backprop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 
-> *"…build a multilayer network among its ally and like-minded countries, expand it, and strengthen deterrence."*
-> — National Security Strategy of Japan, December 2022
-
-That sentence assumes a mechanism: that a network can be grown node by node and
-strengthened edge by edge until the ensemble sees what no single connection can.
-This repository studies that mechanism in the smallest laboratory that has it —
-computation graphs whose topology is evolved and whose parameters are trained,
-classifying geometries that defeat any single decision line. **It supports no
-geopolitical claim** (the claim ladder below is explicit about this). It is the
-calibration bench for an instrument that the final experiment in this line
-points at an open world. The argument is made in full in
-[`docs/writeup.md`](docs/writeup.md).
+> ### ⚠️ Read the errata first
+>
+> An external audit (October 2026) reproduced every v2 number and showed that
+> the headline comparison is **confounded**: v2's fixed-MLP control received
+> 2,506 gradient steps on spirals against Backprop-NEAT's 132,138, because Ha's
+> rollback rule stops a 69-node network after ~42 updates. Two of the five v2
+> claims are withdrawn and two are narrowed.
+> **[`docs/v2-errata.md`](docs/v2-errata.md)** · reproduction:
+> **[`docs/audit-2026-10.md`](docs/audit-2026-10.md)**
+>
+> The runs themselves are correct and regenerate byte-identically. What was
+> wrong is what was claimed about them. Protocol **v3**
+> ([`docs/v3-preregistration.md`](docs/v3-preregistration.md)) turns the
+> confounds into the object of study: *when does the evaluator, rather than the
+> algorithm, decide the conclusion?*
 
 ## What this is
 
@@ -37,16 +40,16 @@ exactly once.
 | A | `ha2016` — Ha's exact break rule | training loss | historical reconstruction |
 | B | `settled` — topology-determined fixed point | validation loss | mechanism comparison |
 
-This is **Experiment 2 of 3** in a research line on evolutionary search for
-open-world decision problems: competitive coevolution
-([`competitive-coevolution-of-slimes`](https://github.com/ReloadLightly/competitive-coevolution-of-slimes))
-→ topology-and-parameter search under a frozen protocol (this repository) →
-LLM-driven program evolution over foreign-policy portfolios
-(*actir-shinkaevolve*, forthcoming). The master write-up is *After 2022:
-Japan's Search for a Novel Foreign Policy*; this repository is its Chapter-4
-evidence.
+This repository is the second of three experiments in a line on evolutionary
+search for open-world decision problems; the motivating argument, which is a
+policy-research argument and **not** evidence produced here, lives in
+[`docs/writeup.md`](docs/writeup.md). Nothing in this README depends on it.
 
 ## Status
+
+Protocol **v3 is running** — 1,920 runs over 150 cells, preregistered and
+frozen at commit `a343c66` before any compute
+([`docs/v3-preregistration.md`](docs/v3-preregistration.md)).
 
 Protocol **v2 is released**: 360 runs, zero failures, sealed test evaluated
 once — [`results/backprop-neat-v2/`](results/backprop-neat-v2/), with the full
@@ -57,64 +60,92 @@ be cited.
 
 ## Headline: sealed-test accuracy, track B
 
-Mean over ten paired replicates.
+Mean over ten paired replicates. **Read the budget column before the accuracy
+columns** — it is the whole of erratum E1.
 
 | Task | Backprop-NEAT | Homog. tanh | Evolution only | Random arch. | Fixed MLP | Logistic |
 |---|---|---|---|---|---|---|
-| XOR | **0.996** | 0.995 | 0.736 | 0.986 | 0.979 | 0.536 |
-| Circles | **0.986** | 0.943 | 0.791 | 0.988 | 0.973 | 0.503 |
-| Spirals | **0.787** | 0.746 | 0.639 | 0.713 | 0.637 | 0.596 |
+| XOR | **0.996** | 0.995 | 0.736 | 0.986 | 0.978 | 0.536 |
+| Circles | **0.986** | 0.943 | 0.791 | 0.988 | 0.973 | 0.504 |
+| Spirals | **0.787** | 0.745 | 0.639 | 0.713 | 0.637 | 0.595 |
 
-The spirals column is the finding. On XOR and circles, a fixed MLP or random
-architecture search matches or beats Backprop-NEAT: easy geometry does not pay
-for search. On the one deceptive geometry, Backprop-NEAT beat every control on
-sealed-test loss — paired within replicate, 95% bootstrap intervals:
+| Spirals, realized gradient steps | | |
+|---|---:|---|
+| `backprop_neat` | 132,138 | — |
+| `homogeneous_tanh` | 124,044 | comparable |
+| `evolution_only` | 0 | zero *by construction*; that is the ablation |
+| `random_search` | 4,018 | 33× less |
+| `fixed_mlp` | 2,506 | **53× less** |
 
-| Spirals, vs | Mean diff | 95% CI | Wins |
-|---|---|---|---|
-| Fixed MLP | **−0.210** | [−0.262, −0.157] | 10/10 |
-| Evolution only | **−0.208** | [−0.262, −0.153] | 10/10 |
-| Random arch. | **−0.126** | [−0.181, −0.077] | 10/10 |
-| Logistic | **−0.228** | [−0.275, −0.184] | 10/10 |
-| Homog. tanh | **−0.088** | [−0.144, −0.030] | 8/10 |
+The fixed-MLP and random-architecture columns are **not** fair comparisons.
+Ha's rollback rule halts a 69-node network after ~42 updates, so those two
+conditions were starved rather than outperformed. Given a matched budget and no
+rollback, the same 32×32 network reaches 0.78–0.91 on spirals, and a fixed
+*sin* network reaches 0.94–0.96 in 600 plain steps — above every champion here.
+See [`docs/v2-errata.md`](docs/v2-errata.md).
 
-And it did so with almost no structure: 2.6 (XOR), 4.0 (circles), 4.6
-(spirals) causally active hidden nodes, against the fixed MLP's 65.
-Validation-based selection did not overfit — mean validation→test drop is
-≤0.032 in every condition and ≤0.011 for Backprop-NEAT.
+### The comparisons that survive
 
-Total compute: 268,800 candidate evaluations, 11,653,669 realized gradient
-steps, **1.87 core-hours**.
+Both evolutionary ablations share the candidate budget by construction, so they
+are clean. Paired within replicate, sealed test:
+
+| Spirals, vs | Accuracy | Backprop-NEAT wins | Mean loss diff | 95% CI |
+|---|---|---|---|---|
+| Homogeneous tanh | 0.787 vs 0.745 | 7/10 | −0.088 | [−0.144, −0.030] |
+| Evolution only | 0.787 vs 0.639 | 9/10 | −0.208 | [−0.262, −0.153] |
+
+Operator diversity and gradient learning each contribute. Beating a fixed
+architecture is not shown.
+
+Validation-based selection did not overfit: mean validation→test drop is ≤0.032
+in every condition and ≤0.011 for Backprop-NEAT. Total compute: 268,800
+candidate evaluations, 11,653,669 realized gradient steps, **1.87 core-hours**.
 
 ## What is supported, and what is not
 
-**Supported.** (1) On the deceptive geometry, Backprop-NEAT beat the fixed MLP,
-random architecture search, evolution-only and the linear floor in 10/10 paired
-replicates, with intervals excluding zero. (2) Gradient learning and topology
-search are complementary: evolution alone lost on all three tasks, decisively
-(XOR 9/10, circles 10/10, spirals 10/10). (3) Evolved architectures specialise
-by task in *which operators reach the output* — XOR runs on `mult` (0.46),
-circles on `square`+`gaussian` (0.53), spirals on `sin` (0.52) — not merely in
-size.
-(4) Represented size is not computation: 4.6 causally active hidden nodes beat
-a 65-unit MLP on spirals. (5) Ha's exact propagation rule measurably changes
-what evolution discovers, and its cost is task-dependent (XOR sealed-test
-accuracy 0.751 under `ha2016` against 0.996 settled).
+**Supported.**
 
-**Not supported.** That architecture search beats fixed architectures in
-general (two of three tasks say otherwise); that evolutionary selection beats
-random sampling in general (spirals only; random search won circles); that this
-reproduces Ha's Figure 10.3 champions (accuracy regime: reached; champion
-sizes: not reproduced on any task — see
-[`docs/reference-targets.md`](docs/reference-targets.md)); and anything about
-geopolitics, forecasting, or foreign policy — these are two-dimensional
-synthetic classification tasks.
+1. **Gradient learning and topology search are complementary.** `evolution_only`
+   loses on all three tasks at identical candidate budget — XOR 9/10, circles
+   10/10, spirals 10/10.
+2. **Operator diversity contributes.** `homogeneous_tanh` loses on circles
+   (10/10) and spirals (7/10) at matched candidate budget.
+3. **Causal operator usage differs by task** — `mult` on XOR (0.46),
+   `square`+`gaussian` on circles (0.53), `sin` on spirals (0.52). This is a
+   statement about which operators reach the output, and nothing more; see
+   erratum E6 against the stronger reading.
+4. **Represented structure is not computation.** Champions carry 2.6–4.6
+   causally active hidden nodes against 6.6–8.7 represented ones. This is a
+   measurement of the evolved graphs themselves and does not depend on any
+   between-condition comparison.
+5. **The release reproduces.** Every derived file rebuilds byte-identically
+   from the raw records; CI asserts it on every push.
+
+**Withdrawn** (see [`docs/v2-errata.md`](docs/v2-errata.md)).
+
+- *That architecture search beats fixed architectures on deceptive geometry*
+  (E1 — the control was starved 53×).
+- *That 4.6 causal nodes beat a 65-unit MLP* (E1 — same cause; the comparison
+  measures budgets, not architectures).
+- *That Ha's propagation rule alone changes what evolution discovers* (E3 —
+  the two tracks differ in propagation **and** fitness split).
+
+**Narrowed.**
+
+- The XOR sentence "controls match or beat Backprop-NEAT" was wrong on its own
+  data: Backprop-NEAT wins 10/10 on accuracy and is perfect in 7/10. Mean BCE
+  inverted the ranking because of two confident errors (E2).
+- v1's collapse phenomenon is restored at a *rate*, not retracted: 3/10 XOR and
+  1/10 spiral track-A champions collapse to zero causal hidden nodes at the
+  logistic floor, making track-A XOR's 0.751 a bimodal mixture (E4).
+
+**Never supported, by construction.** Anything about geopolitics, forecasting
+or foreign policy. These are two-dimensional synthetic classification tasks.
 
 The most tempting unsupported claim, stated so it can be resisted: *"evolution
-discovers better architectures than human engineers."* The defensible version
-is narrower and more interesting: architecture search paid off exactly where
-the problem was deceptive, and paid off in structure-efficiency rather than raw
-accuracy.
+designs better architectures than human engineers."* After E1, this repository
+has no evidence for even the weak form of that. What it does have is a
+measurement of how much the evaluator decided — which is what v3 is for.
 
 ## Figures
 

@@ -1,5 +1,24 @@
 # A Network That Must See Together
 
+> *"…build a multilayer network among its ally and like-minded countries, expand
+> it, and strengthen deterrence."*
+> — National Security Strategy of Japan, December 2022
+
+That sentence assumes a mechanism: that a network can be grown node by node and
+strengthened edge by edge until the ensemble sees what no single connection
+can. This document makes the argument that motivates studying that mechanism in
+a small laboratory. **It is an argument, not evidence.** No experiment in this
+repository supports a geopolitical claim, and the top-level README is
+deliberately free of this framing so the two cannot be confused.
+
+This is Experiment 2 of 3: competitive coevolution
+([`competitive-coevolution-of-slimes`](https://github.com/ReloadLightly/competitive-coevolution-of-slimes))
+→ topology-and-parameter search under a frozen protocol (this repository) →
+LLM-driven program evolution over foreign-policy portfolios
+(*actir-shinkaevolve*, forthcoming).
+
+
+
 *Backprop-NEAT as the second experiment of* After 2022
 
 > Draft for Chapter 4 of *After 2022: Japan's Search for a Novel Foreign

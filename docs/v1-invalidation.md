@@ -33,22 +33,51 @@ exact propagation rule evolution collapses to logistic regression — champions
 with **zero** causally active hidden nodes on XOR and spirals — and this was
 written up as a property of the source algorithm.
 
-It is not. It was an artifact of the over-strong selection. With reference
-selection restored, the same propagation rule reaches the published regime:
+It is not — or at least, it is not the whole story, and the version of this
+section written in August overcorrected in the other direction. See
+**Erratum E4** below.
 
-| Task | v1 `ha2016` | v2 `ha2016` | Ha (Fig. 10.3, test) |
+### What the single calibration runs showed
+
+> **These are single runs on one calibration seed, not results.** They were
+> recorded before the v2 confirmatory suite existed, and they are kept here
+> only to show what motivated the fix. Do not cite them.
+
+| Task | v1 `ha2016` | v2 `ha2016` *(1 calibration run)* | Ha (Fig. 10.3, test) |
 |---|---|---|---|
-| XOR | 0.650 | **1.000** | 94.3% |
-| Circles | 0.870 | **0.960** | 96.3% |
-| Spirals | 0.590 | **0.795** | 81.5% |
+| XOR | 0.650 | 1.000 | 94.3% |
+| Circles | 0.870 | 0.960 | 96.3% |
+| Spirals | 0.590 | 0.795 | 81.5% |
 
-Champion sizes also move toward the reference: XOR 7 nodes / 10 connections
-against Ha's 8 / 12, circles 8 / 13 against 11 / 20. Spirals remain smaller
-(9 / 18 against 34 / 96) while reaching comparable accuracy, so the size
-question in `docs/reference-targets.md` stays open.
+### What the confirmatory suite actually shows
 
-On spirals, `ha2016` now *outperforms* settled propagation (0.795 vs 0.730),
-which is the opposite of what v1 concluded.
+Ten paired replicates, sealed test, from
+`results/backprop-neat-v2/track-a/final-test.json`:
+
+| Task | track A `ha2016` mean | median | collapse rate |
+|---|---|---|---|
+| XOR | **0.751** | 0.782 | 3/10 |
+| Circles | **0.929** | 0.955 | 0/10 |
+| Spirals | **0.738** | 0.730 | 1/10 |
+
+The calibration run's XOR 1.000 was a lucky draw: the confirmatory mean is
+0.751, and it is **bimodal** — three of ten champions collapse to zero causally
+active hidden nodes at the logistic floor (0.535–0.560) while the rest reach
+0.630–1.000. So the v1 phenomenon is real at a *rate*, not absent. v1's error
+was treating it as universal; this document's error was then calling it simply
+"wrong and retracted".
+
+The sentence this section used to carry — "`ha2016` now outperforms settled
+propagation on spirals (0.795 vs 0.730)" — **is withdrawn**. In the
+confirmatory data the comparison runs the other way: track A spirals 0.738
+against track B 0.787. It was also never a clean comparison, because the two
+tracks differ in the fitness split as well as the propagation rule
+(**Erratum E3**). Protocol v3 separates those factors.
+
+Champion sizes do move toward the reference, and that part stands: XOR 7 nodes
+/ 10 connections against Ha's 8 / 12, circles 8 / 13 against 11 / 20. Spirals
+remain far smaller (9 / 18 against 34 / 96), so the size question in
+[`reference-targets.md`](reference-targets.md) stays open.
 
 ## A second, lesser defect
 
