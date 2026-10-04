@@ -85,7 +85,7 @@ sealed test evaluated exactly once.
 
 ## 3. What was actually run
 
-The protocol (frozen in `docs/protocol-freeze.md` before the confirmatory run)
+The protocol (frozen in `docs/protocol-freeze-v2.md` before the confirmatory run)
 crosses six conditions with three tasks and ten paired replicates, on two
 tracks that are never pooled. Track A runs Ha's exact propagation rule and
 training-loss fitness: the historical reconstruction. Track B runs the same

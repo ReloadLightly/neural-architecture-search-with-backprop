@@ -33,7 +33,6 @@ from ..genome import (
     OP_ADD,
     OP_GAUSSIAN,
     OP_MULT,
-    OP_NULL,
     OP_RELU,
     OP_SIGMOID,
     OP_SIN,
@@ -67,7 +66,10 @@ class DensePlan:
     """Topological groups plus the weight matrix that drives them."""
 
     n_nodes: int
-    groups: list[tuple[np.ndarray, int]]  # (node ids at this depth, shared op)
+    # One entry per topological depth: the node ids settled at that depth, and
+    # the (op, column-slice) runs within them. One matrix product per depth, so
+    # a layer of mixed operators costs the same as a uniform one.
+    groups: list[tuple[np.ndarray, list[tuple[int, np.ndarray]]]]
     conn_src: np.ndarray
     conn_dst: np.ndarray
     conn_active: np.ndarray
@@ -113,11 +115,17 @@ def plan(g: Genome) -> DensePlan:
         for i in ready:
             depth[i] = d
             remaining.discard(i)
-        ops = {g.ops[i] for i in ready}
-        # Split the depth level by operator so each sub-group is one matmul.
-        for op in sorted(ops):
-            ids = np.array(sorted(i for i in ready if g.ops[i] == op), dtype=np.int64)
-            groups.append((ids, op))
+        # Order the level by operator so each operator is a contiguous slice of
+        # one matrix product, rather than a matrix product of its own.
+        ordered = sorted(ready, key=lambda i: (g.ops[i], i))
+        ids = np.array(ordered, dtype=np.int64)
+        runs: list[tuple[int, np.ndarray]] = []
+        start = 0
+        for pos in range(1, len(ordered) + 1):
+            if pos == len(ordered) or g.ops[ordered[pos]] != g.ops[ordered[start]]:
+                runs.append((g.ops[ordered[start]], np.arange(start, pos)))
+                start = pos
+        groups.append((ids, runs))
 
     return DensePlan(
         n_nodes=n,
@@ -190,9 +198,11 @@ def forward(p: DensePlan, weights: np.ndarray, X: np.ndarray) -> DenseTape:
     M = _weight_matrix(p, weights)
 
     pre_all, post_all = [], []
-    for ids, op in p.groups:
+    for ids, runs in p.groups:
         pre = V @ M[:, ids]
-        post = _apply(op, pre)
+        post = np.empty_like(pre)
+        for op, cols in runs:
+            post[:, cols] = _apply(op, pre[:, cols])
         V[:, ids] = np.clip(post, -NODE_CLAMP, NODE_CLAMP)
         pre_all.append(pre)
         post_all.append(post)
@@ -209,13 +219,15 @@ def backward(
     dM = np.zeros((p.n_nodes, p.n_nodes))
 
     for gi in range(len(p.groups) - 1, -1, -1):
-        ids, op = p.groups[gi]
+        ids, runs = p.groups[gi]
         pre, post = tape.pre[gi], tape.post[gi]
         g_node = dV[:, ids].copy()
         dV[:, ids] = 0.0
         # The clamp is the identity inside the band and flat outside it.
         g_node = g_node * (np.abs(post) <= NODE_CLAMP)
-        g_pre = g_node * _grad(op, pre, post)
+        g_pre = np.empty_like(g_node)
+        for op, cols in runs:
+            g_pre[:, cols] = g_node[:, cols] * _grad(op, pre[:, cols], post[:, cols])
 
         # pre = V_before @ M[:, ids]. Every node with a live edge into this
         # group sits at a strictly smaller depth, was settled in an earlier

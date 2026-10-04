@@ -1,3 +1,14 @@
+> **This document describes protocol v1, which is INVALIDATED.**
+>
+> It is kept because the v1 freeze is part of the record, not because it
+> governs anything. Its "elitism 1" selection setting is precisely the defect
+> that invalidated v1 — see [`v1-invalidation.md`](v1-invalidation.md). The
+> contract that actually governed the committed results is
+> [`protocol-freeze-v2.md`](protocol-freeze-v2.md), and the live contract for
+> new work is [`v3-preregistration.md`](v3-preregistration.md).
+>
+> No number may be cited from a v1 run.
+
 # Protocol freeze — `v1`
 
 Frozen before the confirmatory run. Nothing below may change without a new
