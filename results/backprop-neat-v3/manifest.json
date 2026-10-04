@@ -1,6 +1,6 @@
 {
   "complete": false,
-  "elapsed_seconds": 15572.867616415024,
+  "elapsed_seconds": 15752.37587094307,
   "failed": [],
   "fingerprints": {
     "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
@@ -25,13 +25,11 @@
     ]
   },
   "missing": [
-    "checkerboard__backprop_neat__r10",
     "checkerboard__backprop_neat__r11",
     "checkerboard__backprop_neat__r12",
     "checkerboard__backprop_neat__r14",
     "checkerboard__backprop_neat__r15",
     "checkerboard__backprop_neat__r16",
-    "checkerboard__backprop_neat__r17",
     "checkerboard__backprop_neat__r18",
     "checkerboard__backprop_neat__r19",
     "checkerboard__backprop_neat__r20",
@@ -45,7 +43,6 @@
     "checkerboard__backprop_neat__r28",
     "checkerboard__backprop_neat__r29",
     "checkerboard__backprop_neat__r30",
-    "checkerboard__evolution_only__r10",
     "checkerboard__evolution_only__r11",
     "checkerboard__evolution_only__r12",
     "checkerboard__evolution_only__r14",
@@ -65,7 +62,6 @@
     "checkerboard__evolution_only__r28",
     "checkerboard__evolution_only__r29",
     "checkerboard__evolution_only__r30",
-    "checkerboard__fixed_mlp_mixed_matched__r10",
     "checkerboard__fixed_mlp_mixed_matched__r11",
     "checkerboard__fixed_mlp_mixed_matched__r12",
     "checkerboard__fixed_mlp_mixed_matched__r14",
@@ -125,8 +121,6 @@
     "checkerboard__fixed_mlp_tanh_ha__r28",
     "checkerboard__fixed_mlp_tanh_ha__r29",
     "checkerboard__fixed_mlp_tanh_ha__r30",
-    "checkerboard__fixed_mlp_tanh_matched__r07",
-    "checkerboard__fixed_mlp_tanh_matched__r08",
     "checkerboard__fixed_mlp_tanh_matched__r10",
     "checkerboard__fixed_mlp_tanh_matched__r11",
     "checkerboard__fixed_mlp_tanh_matched__r12",
@@ -147,12 +141,9 @@
     "checkerboard__fixed_mlp_tanh_matched__r28",
     "checkerboard__fixed_mlp_tanh_matched__r29",
     "checkerboard__fixed_mlp_tanh_matched__r30",
-    "checkerboard__homogeneous_tanh__r07",
-    "checkerboard__homogeneous_tanh__r08",
     "checkerboard__homogeneous_tanh__r10",
     "checkerboard__homogeneous_tanh__r11",
     "checkerboard__homogeneous_tanh__r12",
-    "checkerboard__homogeneous_tanh__r13",
     "checkerboard__homogeneous_tanh__r14",
     "checkerboard__homogeneous_tanh__r15",
     "checkerboard__homogeneous_tanh__r16",
@@ -170,12 +161,9 @@
     "checkerboard__homogeneous_tanh__r28",
     "checkerboard__homogeneous_tanh__r29",
     "checkerboard__homogeneous_tanh__r30",
-    "checkerboard__random_search_matched__r07",
-    "checkerboard__random_search_matched__r08",
     "checkerboard__random_search_matched__r10",
     "checkerboard__random_search_matched__r11",
     "checkerboard__random_search_matched__r12",
-    "checkerboard__random_search_matched__r13",
     "checkerboard__random_search_matched__r14",
     "checkerboard__random_search_matched__r15",
     "checkerboard__random_search_matched__r16",
@@ -435,12 +423,12 @@
     "spiral3__random_search_matched__r30"
   ],
   "planned": 1920,
-  "present": 1512,
+  "present": 1524,
   "protocol_version": "v3",
   "test_evaluated": false,
   "this_shard": {
-    "completed": 352,
-    "skipped": 12
+    "completed": 374,
+    "skipped": 14
   },
   "unexpected": []
 }
