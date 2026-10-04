@@ -1,0 +1,37 @@
+{
+  "complete": true,
+  "elapsed_seconds": 21043.517482042313,
+  "failed": [],
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ]
+  },
+  "missing": [],
+  "planned": 1920,
+  "present": 1920,
+  "protocol_version": "v3",
+  "test_evaluated": true,
+  "this_shard": {
+    "completed": 456,
+    "skipped": 12
+  },
+  "unexpected": []
+}

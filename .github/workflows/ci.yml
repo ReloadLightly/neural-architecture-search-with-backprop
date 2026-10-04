@@ -55,6 +55,15 @@ jobs:
         run: bpneat verify --dir results/backprop-neat-v2/track-a
       - name: Track B
         run: bpneat verify --dir results/backprop-neat-v2/track-b
+      # v3 is verified once its release exists. Guarded rather than added
+      # later, so the check cannot be forgotten at release time.
+      - name: Track v3
+        run: |
+          if [ -d results/backprop-neat-v3/raw/runs ]; then
+            python -m bpneat.v3.verify --dir results/backprop-neat-v3
+          else
+            echo "no v3 release yet — skipping"
+          fi
 
   lint:
     name: lint

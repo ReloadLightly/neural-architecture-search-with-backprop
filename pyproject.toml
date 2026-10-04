@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "bpneat"
 dynamic = ["version"]
-description = "Backprop-NEAT (Ha 2016) reconstructed as a preregistered experiment"
+description = "Neural networks that evolve their own structure — the calibration experiment for a research line on trusting search to design what cannot be checked by hand"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -38,8 +38,8 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/ReloadLightly/backprop-neat-summer"
-Release = "https://github.com/ReloadLightly/backprop-neat-summer/tree/main/results/backprop-neat-v2"
+Homepage = "https://github.com/ReloadLightly/neural-architecture-search-with-backprop"
+Release = "https://github.com/ReloadLightly/neural-architecture-search-with-backprop/tree/main/results/backprop-neat-v2"
 
 [project.scripts]
 bpneat = "bpneat.cli:main"

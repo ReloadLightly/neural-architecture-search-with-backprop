@@ -1,0 +1,6 @@
+claim,statement,task,v2 as run,v3 re-run,budget-matched tanh,sin control,mixed control,candidate-matched
+C1,Backprop-NEAT beats a fixed MLP on spirals,spiral,supported,n/a,reversed,reversed,reversed,n/a
+C2,Gradient learning is complementary to topology search,spiral,not significant,supported,n/a,n/a,n/a,n/a
+C3,Operator diversity contributes,spiral,not significant,supported,n/a,n/a,n/a,n/a
+C4,Few causal nodes beat a 65-unit MLP,spiral,supported,n/a,reversed,reversed,reversed,n/a
+C5,Evolutionary selection beats random sampling,spiral,not significant,n/a,n/a,n/a,n/a,not significant

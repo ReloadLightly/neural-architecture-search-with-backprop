@@ -36,18 +36,27 @@ for selecting which runs to report.
 
 ## Where this reconstruction currently lands
 
-Measured on track A (Ha's exact break rule), `backprop_neat`, mean over
-completed replicates:
+> The table below was stale: it reported means over *partially completed*
+> replicates taken mid-run. It is now recomputed from the finished release.
 
-| Task | Nodes (ref) | Nodes (here) | Conns (ref) | Conns (here) | Accuracy (ref, test) | Accuracy (here, validation) |
+Track A (`ha2016`, Ha's exact break rule), `backprop_neat`, ten paired
+replicates, from `results/backprop-neat-v2/track-a/`:
+
+| Task | Nodes (ref) | Nodes (here) | Conns (ref) | Conns (here) | Accuracy (ref, test) | Accuracy (here, **sealed test**) |
 |---|---|---|---|---|---|---|
-| XOR | 8 | 6.1 | 12 | 7.3 | 94.3% | 77.8% |
-| Circles | 11 | 7.9 | 20 | 11.4 | 96.3% | 96.3% |
-| Spirals | 34 | 8.0 | 96 | 12.0 | 81.5% | 72.8% |
+| XOR | 8 | 5.8 | 12 | 7.5 | 94.3% | 75.1% |
+| Circles | 11 | 7.6 | 20 | 11.0 | 96.3% | 92.9% |
+| Spirals | 34 | 9.2 | 96 | 14.9 | 81.5% | 73.8% |
 
-Circles land on the reference accuracy. XOR and spirals undershoot, and every
-task undershoots on network size — spirals badly (8 nodes against 34, 12
-connections against 96).
+Every task undershoots on size, spirals badly: 9.2 nodes against 34, 14.9
+connections against 96. On accuracy, circles come closest (92.9% against
+96.3%); XOR undershoots most, and its 75.1% is a **bimodal mixture** — three of
+ten champions collapse to the logistic floor and the other seven reach
+0.630–1.000 — so the mean does not describe any individual run.
+
+For comparison, track B (`settled` propagation, validation fitness) reaches
+0.996 / 0.986 / 0.787 on the same tasks. Neither track reproduces the
+reference *champion sizes*.
 
 ## The size discrepancy is understood, and unresolved
 

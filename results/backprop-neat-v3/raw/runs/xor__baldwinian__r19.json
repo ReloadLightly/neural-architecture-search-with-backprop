@@ -1,0 +1,271 @@
+{
+  "blocks": [
+    "D"
+  ],
+  "champion": {
+    "active": [
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      3,
+      4,
+      3,
+      4,
+      4,
+      5,
+      3,
+      5
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      0,
+      5,
+      2,
+      4,
+      1,
+      11,
+      10,
+      9
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "mult",
+      "add"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      7,
+      9
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      3,
+      2,
+      4,
+      0,
+      1,
+      0,
+      5,
+      4
+    ],
+    "weights": [
+      -0.5477412265536961,
+      -0.07717524936320996,
+      0.8399409278172694,
+      -1.282506623488643,
+      0.9894107043832645,
+      -3.154914012629241,
+      -0.5633233075758862,
+      1.4892759662596369,
+      -1.560339320342618,
+      -0.45929295615195587,
+      1.701256237531148
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1100,
+    "gradient_steps": 156333,
+    "selection_intensity": 0.47196714101769555,
+    "wall_time_seconds": 38.477476835250854
+  },
+  "condition": "baldwinian",
+  "config": {
+    "backprop": true,
+    "builder": null,
+    "fitness_split": "validation",
+    "generations": 10,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "lamarckian": false,
+    "matched_steps": null,
+    "n_activations": 9,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "settled",
+    "restarts": null,
+    "selector": "roulette_s0.01",
+    "success_threshold": 0.9
+  },
+  "dataset_seed": 30127,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.7286599723495261,
+      "candidates": 100,
+      "champion_fitness": -0.7286599723495261,
+      "generation": 0,
+      "gradient_steps": 6220,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "selection_intensity": 0.025884289938901885
+    },
+    {
+      "best_fitness": -0.6434507592901546,
+      "candidates": 200,
+      "champion_fitness": -0.6434507592901546,
+      "generation": 1,
+      "gradient_steps": 13180,
+      "mean_connections": 3.63,
+      "mean_nodes": 4.25,
+      "selection_intensity": 0.024919801817173938
+    },
+    {
+      "best_fitness": -0.514253090221988,
+      "candidates": 300,
+      "champion_fitness": -0.514253090221988,
+      "generation": 2,
+      "gradient_steps": 20980,
+      "mean_connections": 4.21,
+      "mean_nodes": 4.43,
+      "selection_intensity": 0.08492051920902785
+    },
+    {
+      "best_fitness": -0.136554223382825,
+      "candidates": 400,
+      "champion_fitness": -0.136554223382825,
+      "generation": 3,
+      "gradient_steps": 30080,
+      "mean_connections": 5.32,
+      "mean_nodes": 5.03,
+      "selection_intensity": 0.3852678588013041
+    },
+    {
+      "best_fitness": -0.06952234764807214,
+      "candidates": 500,
+      "champion_fitness": -0.06952234764807214,
+      "generation": 4,
+      "gradient_steps": 42739,
+      "mean_connections": 6.6,
+      "mean_nodes": 5.56,
+      "selection_intensity": 0.3055905664899985
+    },
+    {
+      "best_fitness": -0.019122772181924694,
+      "candidates": 600,
+      "champion_fitness": -0.019122772181924694,
+      "generation": 5,
+      "gradient_steps": 58799,
+      "mean_connections": 8.03,
+      "mean_nodes": 6.02,
+      "selection_intensity": 0.8602133952017759
+    },
+    {
+      "best_fitness": -0.008985226944564146,
+      "candidates": 700,
+      "champion_fitness": -0.008985226944564146,
+      "generation": 6,
+      "gradient_steps": 80835,
+      "mean_connections": 8.7,
+      "mean_nodes": 6.17,
+      "selection_intensity": 0.6499958255085068
+    },
+    {
+      "best_fitness": -0.0077516159273434485,
+      "candidates": 800,
+      "champion_fitness": -0.0077516159273434485,
+      "generation": 7,
+      "gradient_steps": 100013,
+      "mean_connections": 8.68,
+      "mean_nodes": 5.72,
+      "selection_intensity": 0.8173722418772735
+    },
+    {
+      "best_fitness": -0.0027335714974003685,
+      "candidates": 900,
+      "champion_fitness": -0.0027335714974003685,
+      "generation": 8,
+      "gradient_steps": 120093,
+      "mean_connections": 8.57,
+      "mean_nodes": 5.76,
+      "selection_intensity": 0.7518953502467063
+    },
+    {
+      "best_fitness": -0.005933125099809618,
+      "candidates": 1000,
+      "champion_fitness": -0.0027335714974003685,
+      "generation": 9,
+      "gradient_steps": 137613,
+      "mean_connections": 8.99,
+      "mean_nodes": 5.72,
+      "selection_intensity": 0.8136115610862868
+    },
+    {
+      "best_fitness": -0.003831163033793226,
+      "candidates": 1100,
+      "champion_fitness": -0.0027335714974003685,
+      "generation": 10,
+      "gradient_steps": 156333,
+      "mean_connections": 9.24,
+      "mean_nodes": 5.79
+    }
+  ],
+  "metrics": {
+    "causal_connections": 9,
+    "causal_hidden_nodes": 2,
+    "causal_nodes": 6,
+    "causal_operators": {
+      "add": 1,
+      "mult": 1
+    },
+    "collapsed": false,
+    "generalization_gap": -0.0050000000000000044,
+    "represented_connections": 9,
+    "represented_nodes": 6,
+    "success": true,
+    "train_accuracy": 0.98,
+    "train_loss": 0.04930819713572324,
+    "validation_accuracy": 0.985,
+    "validation_loss": 0.0508215378534037
+  },
+  "protocol_version": "v3",
+  "replicate": 19,
+  "run_id": "xor__baldwinian__r19",
+  "search_seed": 40127,
+  "task": "xor",
+  "test_evaluated": false
+}

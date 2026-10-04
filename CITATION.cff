@@ -5,7 +5,7 @@ message: >-
   paper — "After 2022: Japan's Search for a Novel Foreign Policy", of which this
   repository is the Chapter-4 evidence — is published, please cite that instead
   and this repository in addition.
-title: "Backprop-NEAT — Summer"
+title: "Neural Architecture Search with Backprop: a reconstruction of Backprop-NEAT as a preregistered experiment"
 abstract: >-
   A NumPy reconstruction of David Ha's Backprop-NEAT (2016), audited against
   hardmaru/backprop-neat-js and run as a frozen, preregistered two-track
@@ -19,7 +19,7 @@ authors:
 version: v2
 date-released: "2026-08-15"
 license: Apache-2.0
-repository-code: "https://github.com/ReloadLightly/backprop-neat-summer"
+repository-code: "https://github.com/ReloadLightly/neural-architecture-search-with-backprop"
 keywords:
   - neuroevolution
   - neat

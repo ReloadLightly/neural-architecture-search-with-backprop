@@ -1,0 +1,258 @@
+{
+  "blocks": [
+    "C"
+  ],
+  "champion": {
+    "active": [
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      3,
+      4,
+      3,
+      4,
+      4,
+      4
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      0,
+      3,
+      2,
+      1,
+      5,
+      4
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "mult"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      7
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      3,
+      1,
+      4,
+      2,
+      3,
+      0
+    ],
+    "weights": [
+      1.8057708850042142,
+      -0.2180660247349344,
+      -0.15469740212451016,
+      -0.3358743287159761,
+      3.878029582497617,
+      2.065302481931094,
+      1.8678779094850042,
+      -2.9397825461041425,
+      -3.76008427799704
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1100,
+    "gradient_steps": 118729,
+    "selection_intensity": 0.15051950395013855,
+    "wall_time_seconds": 30.911715745925903
+  },
+  "condition": "sel_roulette_s1.0",
+  "config": {
+    "backprop": true,
+    "builder": null,
+    "fitness_split": "validation",
+    "generations": 10,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "lamarckian": true,
+    "matched_steps": null,
+    "n_activations": 9,
+    "noise": 0.5,
+    "population": 100,
+    "propagation": "settled",
+    "restarts": null,
+    "selector": "roulette_s1.0",
+    "success_threshold": 0.9
+  },
+  "dataset_seed": 30050,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.7279358800574706,
+      "candidates": 100,
+      "champion_fitness": -0.7279358800574706,
+      "generation": 0,
+      "gradient_steps": 6580,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "selection_intensity": 0.00790809407525977
+    },
+    {
+      "best_fitness": -0.467541270427579,
+      "candidates": 200,
+      "champion_fitness": -0.467541270427579,
+      "generation": 1,
+      "gradient_steps": 11080,
+      "mean_connections": 3.75,
+      "mean_nodes": 4.2,
+      "selection_intensity": 0.015243580909901156
+    },
+    {
+      "best_fitness": -0.0181839942939706,
+      "candidates": 300,
+      "champion_fitness": -0.0181839942939706,
+      "generation": 2,
+      "gradient_steps": 16780,
+      "mean_connections": 4.58,
+      "mean_nodes": 4.63,
+      "selection_intensity": 0.10171781383566492
+    },
+    {
+      "best_fitness": -0.003613915210912234,
+      "candidates": 400,
+      "champion_fitness": -0.003613915210912234,
+      "generation": 3,
+      "gradient_steps": 25300,
+      "mean_connections": 5.47,
+      "mean_nodes": 4.9,
+      "selection_intensity": 0.16430954420459276
+    },
+    {
+      "best_fitness": -0.001638313324965624,
+      "candidates": 500,
+      "champion_fitness": -0.001638313324965624,
+      "generation": 4,
+      "gradient_steps": 40318,
+      "mean_connections": 7.25,
+      "mean_nodes": 5.56,
+      "selection_intensity": 0.1897828017425686
+    },
+    {
+      "best_fitness": -0.0023759185123021108,
+      "candidates": 600,
+      "champion_fitness": -0.001638313324965624,
+      "generation": 5,
+      "gradient_steps": 55557,
+      "mean_connections": 7.83,
+      "mean_nodes": 5.58,
+      "selection_intensity": 0.1930257053622818
+    },
+    {
+      "best_fitness": -0.0007568452600035894,
+      "candidates": 700,
+      "champion_fitness": -0.0007568452600035894,
+      "generation": 6,
+      "gradient_steps": 65656,
+      "mean_connections": 8.93,
+      "mean_nodes": 5.93,
+      "selection_intensity": 0.19633100614235172
+    },
+    {
+      "best_fitness": -0.0009030861382598599,
+      "candidates": 800,
+      "champion_fitness": -0.0007568452600035894,
+      "generation": 7,
+      "gradient_steps": 78376,
+      "mean_connections": 9.13,
+      "mean_nodes": 5.87,
+      "selection_intensity": 0.19366267695763056
+    },
+    {
+      "best_fitness": -0.0007686279840612924,
+      "candidates": 900,
+      "champion_fitness": -0.0007568452600035894,
+      "generation": 8,
+      "gradient_steps": 91576,
+      "mean_connections": 9.39,
+      "mean_nodes": 5.96,
+      "selection_intensity": 0.22776868466656147
+    },
+    {
+      "best_fitness": -0.0016422138354460396,
+      "candidates": 1000,
+      "champion_fitness": -0.0007568452600035894,
+      "generation": 9,
+      "gradient_steps": 104755,
+      "mean_connections": 9.33,
+      "mean_nodes": 6.02,
+      "selection_intensity": 0.21544513160457282
+    },
+    {
+      "best_fitness": -0.0007663601289540376,
+      "candidates": 1100,
+      "champion_fitness": -0.0007568452600035894,
+      "generation": 10,
+      "gradient_steps": 118729,
+      "mean_connections": 9.31,
+      "mean_nodes": 5.7
+    }
+  ],
+  "metrics": {
+    "causal_connections": 8,
+    "causal_hidden_nodes": 1,
+    "causal_nodes": 5,
+    "causal_operators": {
+      "mult": 1
+    },
+    "collapsed": false,
+    "generalization_gap": 0.0,
+    "represented_connections": 8,
+    "represented_nodes": 5,
+    "success": true,
+    "train_accuracy": 1.0,
+    "train_loss": 3.7201735873889287e-06,
+    "validation_accuracy": 1.0,
+    "validation_loss": 0.0006943534495445774
+  },
+  "protocol_version": "v3",
+  "replicate": 8,
+  "run_id": "xor__sel_roulette_s1.0__r08",
+  "search_seed": 40050,
+  "task": "xor",
+  "test_evaluated": false
+}
