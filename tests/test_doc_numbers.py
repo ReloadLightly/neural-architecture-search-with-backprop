@@ -86,7 +86,9 @@ def test_headline_accuracy_matches_release(release, task, condition):
 def test_errata_gradient_steps_match_release(release, task, condition, doc):
     by, _, _ = release["b"]
     steps = st.mean(r["compute"]["gradient_steps"] for r in by[(task, condition)].values())
-    assert f"{steps:,.0f}" in _text(doc), f"{doc}: {task}/{condition} steps should read {steps:,.0f}"
+    assert f"{steps:,.0f}" in _text(doc), (
+        f"{doc}: {task}/{condition} steps should read {steps:,.0f}"
+    )
 
 
 def test_starvation_ratio_is_stated_correctly(release):
