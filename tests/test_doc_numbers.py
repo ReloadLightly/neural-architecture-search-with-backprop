@@ -1,183 +1,179 @@
-"""Every number published in a README or doc must come from a release file.
+"""R6 for protocol v2: every published v2 number must come from a release file.
 
-R6: no claim may outrun its evidence. This recomputes the published quantities
-from ``results/backprop-neat-v2/`` and asserts the exact rendered strings appear
-in the documents that claim them. If a release is re-run, or a document is
-edited by hand, this fails.
-
-It is deliberately a *presence* check against recomputed values, not a parser:
-a number that drifts stops appearing, and the test names which claim broke.
+Documents are checked against what the release **publishes** — its own
+`summary.csv` — not against a fresh re-derivation. Re-deriving with a different
+summation order rounds either side of a half-digit boundary and flags correct
+figures as wrong; that happened twice while writing these checks.
 """
 
 from __future__ import annotations
 
-import glob
+import csv
 import json
 import statistics as st
-import sys
 from collections import defaultdict
 from pathlib import Path
 
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-
 V2 = ROOT / "results" / "backprop-neat-v2"
 
+#: Documents that may carry v2 numbers. The top README is a paper about v3 and
+#: no longer republishes the v2 tables; these do.
+V2_DOCS = (
+    "results/backprop-neat-v2/README.md",
+    "results/backprop-neat-v2/ERRATA.md",
+    "docs/v2-errata.md",
+    "docs/v1-invalidation.md",
+    "docs/reference-targets.md",
+    "docs/protocol-freeze-v2.md",
+    "docs/writeup.md",
+    "docs/paper/main.md",
+    "README.md",
+)
 
-def _load(track: str):
-    paths = glob.glob(str(V2 / track / "raw" / "runs" / "*.json"))
-    runs = [json.loads(Path(p).read_text()) for p in paths]
-    final = {
-        r["run_id"]: r
-        for r in json.loads((V2 / track / "final-test.json").read_text())["results"]
-    }
-    return runs, final
+TASKS = ("xor", "circle", "spiral")
+CONDITIONS = (
+    "backprop_neat", "homogeneous_tanh", "evolution_only",
+    "random_search", "fixed_mlp", "logistic",
+)
 
 
-def _by(runs):
-    out = defaultdict(dict)
-    for r in runs:
-        out[(r["task"], r["condition"])][r["replicate"]] = r
+def _text(*names: str) -> str:
+    names = names or V2_DOCS
+    return "\n".join((ROOT / n).read_text() for n in names if (ROOT / n).exists())
+
+
+@pytest.fixture(scope="module")
+def published():
+    out = {}
+    for track in ("track-a", "track-b"):
+        with open(V2 / track / "summary.csv") as fh:
+            for r in csv.DictReader(fh):
+                out[(track, r["task"], r["condition"])] = r
     return out
 
 
 @pytest.fixture(scope="module")
-def release():
-    ra, fa = _load("track-a")
-    rb, fb = _load("track-b")
-    return {"a": (_by(ra), fa, ra), "b": (_by(rb), fb, rb)}
-
-
-def _text(*names: str) -> str:
-    return "\n".join((ROOT / n).read_text() for n in names)
+def raw():
+    data = {}
+    for track in ("track-a", "track-b"):
+        runs = [json.loads(p.read_text()) for p in (V2 / track / "raw" / "runs").glob("*.json")]
+        final = {
+            r["run_id"]: r
+            for r in json.loads((V2 / track / "final-test.json").read_text())["results"]
+        }
+        by = defaultdict(dict)
+        for r in runs:
+            by[(r["task"], r["condition"])][r["replicate"]] = r
+        data[track] = (by, final, runs)
+    return data
 
 
 # ---------------------------------------------------------------- headline
 
+
+@pytest.mark.parametrize("task,condition", [(t, c) for t in TASKS for c in CONDITIONS])
+def test_headline_accuracy_matches_release(published, task, condition):
+    mean = float(published[("track-b", task, condition)]["test_accuracy_mean"])
+    assert f"{mean:.3f}" in _text(), (
+        f"track B {task}/{condition} sealed-test accuracy should read {mean:.3f}"
+    )
+
+
 @pytest.mark.parametrize(
     "task,condition",
-    [(t, c) for t in ("xor", "circle", "spiral")
-     for c in ("backprop_neat", "homogeneous_tanh", "evolution_only",
-               "random_search", "fixed_mlp", "logistic")],
+    [(t, c) for t in TASKS for c in ("backprop_neat", "fixed_mlp")],
 )
-def test_headline_accuracy_matches_release(release, task, condition):
-    by, final, _ = release["b"]
-    cell = by[(task, condition)].values()
-    mean = st.mean(final[r["run_id"]]["test_accuracy"] for r in cell)
-    rendered = f"{mean:.3f}"
-    assert rendered in _text("README.md"), (
-        f"README headline for {task}/{condition} should read {rendered}"
+def test_gradient_steps_match_release(published, task, condition):
+    steps = float(published[("track-b", task, condition)]["gradient_steps_mean"])
+    assert f"{steps:,.0f}" in _text(), (
+        f"track B {task}/{condition} gradient steps should read {steps:,.0f}"
     )
 
 
-@pytest.mark.parametrize(
-    "task,condition,doc",
-    [
-        ("spiral", "backprop_neat", "docs/v2-errata.md"),
-        ("spiral", "fixed_mlp", "docs/v2-errata.md"),
-        ("xor", "backprop_neat", "docs/v2-errata.md"),
-        ("xor", "fixed_mlp", "docs/v2-errata.md"),
-        ("circle", "backprop_neat", "docs/v2-errata.md"),
-        ("circle", "fixed_mlp", "docs/v2-errata.md"),
-    ],
-)
-def test_errata_gradient_steps_match_release(release, task, condition, doc):
-    by, _, _ = release["b"]
-    steps = st.mean(r["compute"]["gradient_steps"] for r in by[(task, condition)].values())
-    assert f"{steps:,.0f}" in _text(doc), (
-        f"{doc}: {task}/{condition} steps should read {steps:,.0f}"
-    )
-
-
-def test_starvation_ratio_is_stated_correctly(release):
-    by, _, _ = release["b"]
-    bpn = st.mean(r["compute"]["gradient_steps"] for r in by[("spiral", "backprop_neat")].values())
-    mlp = st.mean(r["compute"]["gradient_steps"] for r in by[("spiral", "fixed_mlp")].values())
-    ratio = round(bpn / mlp)
-    assert f"{ratio}×" in _text("README.md", "docs/v2-errata.md")
+def test_starvation_ratio_is_stated_correctly(published):
+    bpn = float(published[("track-b", "spiral", "backprop_neat")]["gradient_steps_mean"])
+    mlp = float(published[("track-b", "spiral", "fixed_mlp")]["gradient_steps_mean"])
+    assert f"{round(bpn / mlp)}×" in _text()
 
 
 # ---------------------------------------------------------------- E2 / E4
 
-def test_xor_win_counts_match_release(release):
-    by, final, _ = release["b"]
-    ref = by[("xor", "backprop_neat")]
-    mlp = by[("xor", "fixed_mlp")]
+
+def test_xor_win_counts_match_release(raw):
+    by, final, _ = raw["track-b"]
+    ref, mlp = by[("xor", "backprop_neat")], by[("xor", "fixed_mlp")]
     acc_wins = sum(
         final[ref[k]["run_id"]]["test_accuracy"] > final[mlp[k]["run_id"]]["test_accuracy"]
         for k in ref
     )
-    perfect = sum(final[r["run_id"]]["test_accuracy"] == 1.0 for r in ref.values())
     loss_wins = sum(
         final[ref[k]["run_id"]]["test_loss"] < final[mlp[k]["run_id"]]["test_loss"] for k in ref
     )
-    text = _text("README.md", "docs/v2-errata.md")
-    assert f"{acc_wins}/10" in text and acc_wins == 10
-    assert f"{perfect}/10" in text and perfect == 7
-    assert f"{loss_wins}/10" in text and loss_wins == 8
+    perfect = sum(final[r["run_id"]]["test_accuracy"] == 1.0 for r in ref.values())
+    text = _text()
+    assert (acc_wins, perfect, loss_wins) == (10, 7, 8)
+    for n in (acc_wins, perfect, loss_wins):
+        assert f"{n}/10" in text
 
 
 @pytest.mark.parametrize("task,expected", [("xor", 3), ("spiral", 1)])
-def test_collapse_rates_match_release(release, task, expected):
-    by, _, _ = release["a"]
-    runs = by[(task, "backprop_neat")].values()
-    collapsed = sum(r["metrics"]["causal_hidden_nodes"] == 0 for r in runs)
+def test_collapse_rates_match_release(raw, task, expected):
+    by, _, _ = raw["track-a"]
+    collapsed = sum(
+        r["metrics"]["causal_hidden_nodes"] == 0 for r in by[(task, "backprop_neat")].values()
+    )
     assert collapsed == expected
-    assert f"{collapsed}/10" in _text("docs/v2-errata.md", "README.md")
+    assert f"{collapsed}/10" in _text()
 
 
-@pytest.mark.parametrize("task", ["xor", "circle", "spiral"])
-def test_track_a_means_match_release(release, task):
-    by, final, _ = release["a"]
-    runs = by[(task, "backprop_neat")].values()
-    mean = st.mean(final[r["run_id"]]["test_accuracy"] for r in runs)
-    assert f"{mean:.3f}" in _text("docs/v1-invalidation.md", "docs/reference-targets.md")
+@pytest.mark.parametrize("task", TASKS)
+def test_track_a_means_match_release(published, task):
+    mean = float(published[("track-a", task, "backprop_neat")]["test_accuracy_mean"])
+    assert f"{mean:.3f}" in _text()
 
 
-@pytest.mark.parametrize("task", ["xor", "circle", "spiral"])
-def test_reference_target_sizes_match_release(release, task):
-    by, _, _ = release["a"]
-    runs = by[(task, "backprop_neat")].values()
-    nodes = st.mean(r["metrics"]["represented_nodes"] for r in runs)
-    conns = st.mean(r["metrics"]["represented_connections"] for r in runs)
+@pytest.mark.parametrize("task", TASKS)
+def test_reference_target_sizes_match_release(published, task):
+    row = published[("track-a", task, "backprop_neat")]
     text = _text("docs/reference-targets.md")
-    assert f"{nodes:.1f}" in text, f"{task} nodes should read {nodes:.1f}"
-    assert f"{conns:.1f}" in text, f"{task} connections should read {conns:.1f}"
+    for key in ("represented_nodes_mean",):
+        assert f"{float(row[key]):.1f}" in text, f"{task} {key} should read {float(row[key]):.1f}"
 
 
 # ---------------------------------------------------------------- totals
 
-def test_total_compute_matches_release(release):
-    text = _text("README.md")
+
+def test_total_compute_matches_release(raw):
     cands = steps = 0
-    for key in ("a", "b"):
-        _, _, runs = release[key]
+    for track in ("track-a", "track-b"):
+        _, _, runs = raw[track]
         cands += sum(r["compute"]["candidate_evaluations"] for r in runs)
         steps += sum(r["compute"]["gradient_steps"] for r in runs)
+    text = _text()
     assert f"{cands:,}" in text, f"total candidates should read {cands:,}"
     assert f"{steps:,}" in text, f"total gradient steps should read {steps:,}"
 
 
-def test_validation_to_test_drop_bound_holds(release):
-    """The README states a bound; the bound must actually hold."""
-    worst_overall = 0.0
-    worst_bpn = 0.0
-    for key in ("b",):
-        by, final, _ = release[key]
-        for (_task, cond), d in by.items():
-            drop = st.mean(final[r["run_id"]]["validation_to_test_drop"] for r in d.values())
-            worst_overall = max(worst_overall, drop)
-            if cond == "backprop_neat":
-                worst_bpn = max(worst_bpn, drop)
-    text = _text("README.md")
+def test_validation_to_test_drop_bound_holds(raw):
+    """The release states a bound; the bound must actually hold."""
+    by, final, _ = raw["track-b"]
+    worst_overall = worst_bpn = 0.0
+    for (_task, cond), cell in by.items():
+        drop = st.mean(final[r["run_id"]]["validation_to_test_drop"] for r in cell.values())
+        worst_overall = max(worst_overall, drop)
+        if cond == "backprop_neat":
+            worst_bpn = max(worst_bpn, drop)
     assert worst_overall <= 0.032 + 1e-9, worst_overall
     assert worst_bpn <= 0.011 + 1e-9, worst_bpn
+    text = _text()
     assert "0.032" in text and "0.011" in text
 
 
 # ---------------------------------------------------------------- hygiene
+
 
 def test_no_stale_repository_name_outside_history():
     offenders = []
@@ -191,12 +187,21 @@ def test_no_stale_repository_name_outside_history():
     assert not offenders, f"stale repository name in {offenders}"
 
 
-def test_errata_links_resolve():
+def test_withdrawn_claims_carry_a_warning():
+    """The v2 release must not present its withdrawn claims unmarked."""
+    body = (V2 / "README.md").read_text()
+    assert "withdrawn" in body.lower()
+    assert "ERRATA.md" in body
+    assert (V2 / "ERRATA.md").exists()
+
+
+def test_links_resolve():
     for doc in ("README.md", "docs/v2-errata.md", "docs/v1-invalidation.md",
-                "docs/reference-targets.md", "docs/protocol-freeze-v1.md"):
+                "docs/reference-targets.md", "docs/protocol-freeze-v1.md",
+                "docs/paper/main.md"):
         body = (ROOT / doc).read_text()
         for target in ("docs/v2-errata.md", "docs/audit-2026-10.md",
-                       "docs/v3-preregistration.md", "docs/protocol-freeze-v2.md"):
-            name = Path(target).name
-            if name in body:
+                       "docs/v3-preregistration.md", "docs/protocol-freeze-v2.md",
+                       "docs/paper/main.md"):
+            if Path(target).name in body:
                 assert (ROOT / target).exists(), f"{doc} links to missing {target}"

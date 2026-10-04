@@ -33,7 +33,13 @@ runs, 30 paired replicates, and five 2-D geometries, and report a *conclusion
 stability matrix*: which of the five v2 headline claims survives which
 evaluator setting.
 
-<!-- RESULTS-SUMMARY -->
+Three of our five preregistered hypotheses failed. The headline one did not
+merely fail: given a matched gradient budget, the fixed network that v2 beat on
+the deceptive geometry **beats Backprop-NEAT instead**, and a fixed network
+with a sinusoidal activation beats it by 0.175 accuracy while losing none of 30
+paired replicates. Two of v2's five claims reverse under every fairly trained
+control; the other three were never supported by v2's own data at the
+correction level it should have used.
 
 We argue that for evolution-with-learning algorithms, where an inner learner
 and an outer search interact, the evaluator is not a neutral measuring device
@@ -311,7 +317,133 @@ fall back to the genome path.
 
 # 6 Results
 
-<!-- V3-RESULTS -->
+## 6.1 The headline: one rule, 0.261 accuracy
+
+On spirals, the identical 32×32 tanh network scores **0.635** under v2's
+evaluator and **0.896** under a matched budget. Nothing about the architecture
+changes; only the learner's stopping rule does. That 0.261 swing is larger than
+any difference v2 reported between any two conditions.
+
+Sealed-test accuracy, 30 paired replicates:
+
+| Condition | XOR | Circles | Spirals | Checkerboard | 3-arm spiral |
+|---|---|---|---|---|---|
+| Backprop-NEAT | 0.995 | 0.986 | 0.791 | 0.662 | 0.614 |
+| Fixed MLP tanh, *v2's learner* | 0.985 | 0.977 | 0.635 | 0.590 | 0.536 |
+| Fixed MLP tanh, matched | 0.990 | 0.982 | **0.896** | 0.700 | 0.589 |
+| Fixed MLP sin, matched | 0.972 | 0.982 | **0.962** | 0.693 | 0.746 |
+| Fixed MLP mixed, matched | 0.982 | 0.984 | **0.966** | **0.728** | **0.773** |
+| Random arch., candidate-matched | 0.996 | 0.988 | 0.768 | 0.698 | 0.604 |
+| Homogeneous tanh | 0.996 | 0.931 | 0.715 | 0.541 | 0.542 |
+| Evolution only | 0.792 | 0.803 | 0.623 | 0.546 | 0.536 |
+
+Paired differences on spirals (Backprop-NEAT − control), Wilcoxon with Holm
+correction over the pre-declared family of 35:
+
+| Control | Median diff | 95% CI | Wins | Holm *p* |
+|---|---|---|---|---|
+| Fixed MLP mixed, matched | −0.182 | [−0.197, −0.152] | 0/30 | 6.0e-05 |
+| Fixed MLP sin, matched | −0.175 | [−0.195, −0.145] | 0/30 | 6.0e-05 |
+| Fixed MLP tanh, matched | −0.110 | [−0.120, −0.090] | 1/30 | 6.3e-05 |
+| Random arch., candidate-matched | +0.025 | [+0.003, +0.045] | 20/30 | 0.385 |
+| Homogeneous tanh | +0.085 | [+0.043, +0.117] | 23/30 | 0.018 |
+| Fixed MLP tanh, *Ha learner* | +0.158 | [+0.125, +0.190] | 30/30 | 6.0e-05 |
+| Evolution only | +0.170 | [+0.140, +0.188] | 30/30 | 6.0e-05 |
+
+The pattern holds on the two harder geometries we added. On the 3-arm spiral,
+the budget-matched *tanh* network is worse than Backprop-NEAT (0.589 vs 0.614)
+while the *sin* and *mixed* networks are far better (0.746, 0.773). The
+operative variable is the operator prior, not the search: give a fixed
+architecture the right activation and the evolved advantage disappears.
+
+## 6.2 The conclusion stability matrix
+
+| | Claim | v2 as run | v3 re-run | matched tanh | sin | mixed | cand.-matched |
+|---|---|---|---|---|---|---|---|
+| C1 | Beats a fixed MLP on spirals | supported | — | **reversed** | **reversed** | **reversed** | — |
+| C2 | Gradient learning complements search | n.s. | supported | — | — | — | — |
+| C3 | Operator diversity contributes | n.s. | supported | — | — | — | — |
+| C4 | Few causal nodes beat a 65-unit MLP | supported | — | **reversed** | **reversed** | **reversed** | — |
+| C5 | Selection beats random sampling | n.s. | — | — | — | — | n.s. |
+
+Read down the first column: under Holm correction over its own analogous
+family, v2's data supports only C1 and C4 — exactly the two that reverse. Read
+across: the claims v2 stated most confidently are the ones that do not survive,
+while the two that do survive (C2, C3) needed v3's 30 replicates to reach
+significance at all.
+
+## 6.3 Propagation and fitness split are not separable
+
+Sealed-test accuracy / collapse rate, where *collapse* means a champion with
+zero causally active hidden nodes:
+
+| Propagation | Fitness | XOR | Circles | Spirals |
+|---|---|---|---|---|
+| `ha2016` | train | 0.811 / **0.17** | 0.940 / 0.03 | 0.720 / **0.20** |
+| `ha2016` | validation | 0.951 / 0.00 | 0.959 / 0.00 | 0.726 / 0.03 |
+| `settled` | train | 0.993 / 0.00 | 0.984 / 0.00 | 0.796 / 0.00 |
+| `settled` | validation | 0.995 / 0.00 | 0.986 / 0.00 | 0.791 / 0.00 |
+
+**H3 is wrong.** It predicted collapse would depend on propagation and not on
+the fitness split. Collapse requires *both*: Ha's propagation rule with
+training-loss fitness. Either factor alone produces almost none. This is why v2
+could not attribute its propagation result — the two factors interact, and v2
+varied them together.
+
+## 6.4 Selection pressure does not cause collapse
+
+| Selector | Intensity | Collapse | Causal nodes | Test acc (spirals) |
+|---|---|---|---|---|
+| `roulette_s1.0` | 0.021 | 0.00 | 4.5 | 0.797 |
+| `roulette_s0.1` | 0.046 | 0.00 | 4.4 | 0.812 |
+| `roulette_s0.001` | 0.053 | 0.00 | 4.7 | 0.803 |
+| `roulette_s0.01` (Ha's) | 0.054 | 0.00 | 4.3 | 0.791 |
+| `tournament_k2` | 0.495 | 0.00 | 4.0 | 0.796 |
+| `v1_truncation` | 0.690 | 0.00 | 4.3 | 0.809 |
+| `tournament_k4` | 0.802 | 0.00 | 4.8 | 0.833 |
+
+**H4 is wrong, and its failure corrects our own earlier correction.** Collapse
+is zero at every level of selection pressure, on both tasks, and causal size is
+flat at 4.0–4.8. Protocol v1 was invalidated because its selection operator was
+unfaithful to the reference, and we attributed the collapse v1 reported to that
+infidelity. Here v1's own truncation operator collapses nothing and scores
+*above* Ha's setting (0.809 vs 0.791). The operator was unfaithful; it was not
+the cause. The cause was the propagation × fitness interaction of §6.3, which
+v1 also had and which survived into v2's track A at a rate of 3/10 and 1/10.
+
+We therefore reversed a conclusion, and then reversed our explanation of why we
+had reversed it. Both corrections were only possible because the invalidated
+records were retained.
+
+## 6.5 Inherited weights are load-bearing
+
+| Task | Lamarckian | Baldwinian |
+|---|---|---|
+| XOR | 0.995 | 0.726 |
+| Circles | 0.986 | 0.567 |
+| Spirals | 0.791 | 0.532 |
+
+**H5 answers decisively**, and not through effort: the Baldwinian condition
+spent *more* gradient steps on spirals (159,083 against 134,449) and still
+landed near chance. Benito et al. [2026] find Baldwinian and Lamarckian
+evolution both beating Darwinian on combinatorial graph problems; our setting
+differs in that the structure being searched is rewired every generation, so a
+topology's learned weights are the only channel by which its learnability
+reaches its descendants.
+
+## 6.6 Hypotheses
+
+| | Prediction | Outcome |
+|---|---|---|
+| H1 | matched MLP's spirals deficit disappears or reverses | **reverses** |
+| H2 | sin MLP matches or beats on spirals | **holds** |
+| H3 | collapse depends on propagation, not fitness split | **fails** — interaction |
+| H4 | collapse/size vary with selection intensity | **fails** — flat |
+| H5 | Lamarckian vs Baldwinian, two-sided | **Lamarckian** |
+
+Three of five failed. Had H1 and H2 failed instead, v2's claims would have been
+restored and this paper would report that; the preregistration was written to
+make either outcome publishable.
 
 # 7 Limitations
 

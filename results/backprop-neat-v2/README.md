@@ -1,7 +1,28 @@
 # Backprop-NEAT — result release v2
 
-Protocol `v2`, frozen before execution (`docs/protocol-freeze.md`). Sealed test
-evaluated exactly once, after the suite completed and the blind review passed.
+> ### ⚠️ Two of the claims below are withdrawn
+>
+> An October 2026 audit, reproduced in
+> [`../../docs/audit-2026-10.md`](../../docs/audit-2026-10.md), showed that the
+> fixed-MLP and random-architecture controls were starved of gradient budget:
+> 2,506 realized steps on spirals against Backprop-NEAT's 132,138, because Ha's
+> rollback rule halts a 69-node network after ~42 updates. Protocol v3 re-ran
+> the comparison with matched budgets and the result **reverses** — the same
+> network scores 0.896 instead of 0.635 and beats Backprop-NEAT's 0.791.
+>
+> Read [`ERRATA.md`](ERRATA.md) and
+> [`../../docs/v2-errata.md`](../../docs/v2-errata.md) before citing anything
+> here. The runs are correct and regenerate byte-identically; what was wrong is
+> what was claimed about them. Superseded by
+> [`../backprop-neat-v3/`](../backprop-neat-v3/).
+
+Protocol `v2`, frozen before execution
+([`../../docs/protocol-freeze-v2.md`](../../docs/protocol-freeze-v2.md)).
+Sealed test evaluated exactly once, after the suite completed and the blind
+review passed.
+
+Validation-based selection did not overfit: the mean validation-to-test drop is
+at most **0.032** in any condition and at most **0.011** for Backprop-NEAT.
 
 ## What was run
 
