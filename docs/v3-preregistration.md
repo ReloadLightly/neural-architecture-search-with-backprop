@@ -184,3 +184,17 @@ Evaluated exactly once, by `bpneat.v3.finaltest`, after the suite is complete
 and both fingerprints match. Champions are loaded as validation selected them
 and are never retrained or reselected. Test results may change the
 interpretation; they may not trigger retuning under this version.
+
+---
+
+## Freeze record
+
+This preregistration was committed and pushed as
+**`a343c665b37ddb0d5a7ae97b0bc562c6fce73d34`** on `main`, before any
+confirmatory run started. That commit is the freeze.
+
+An annotated tag `v3-freeze` exists locally but could not be published: this
+session's GitHub proxy refuses both tag pushes and writes to the git-refs API.
+The commit SHA is the stronger record in any case — a tag can be moved, a
+commit hash cannot — and every v3 record carries the v3 fingerprint that binds
+it to this contract.
