@@ -282,3 +282,46 @@ def test_v3_suite_resume_is_exact(tmp_path, monkeypatch):
     m = _tiny_release(tmp_path, monkeypatch)
     assert m["this_shard"]["skipped"] == 1
     assert path.read_bytes() == before
+
+
+# ---------------------------------------------------------------- release
+
+
+def test_v3_release_seals_checksums_last(tmp_path, monkeypatch):
+    """The v2 packaging bug must not recur: tables, then figures, then hashes."""
+    from bpneat.v3.release import verify_checksums, write_checksums
+
+    _tiny_release(tmp_path, monkeypatch)
+    from bpneat.v3.analysis import build
+
+    build(tmp_path, progress=lambda *_: None)
+    write_checksums(tmp_path)
+    assert verify_checksums(tmp_path) == []
+
+    # Regenerating a table after sealing must be detected, not tolerated.
+    (tmp_path / "summary.csv").write_text("task,condition\nxor,evolution_only\n")
+    assert "summary.csv" in verify_checksums(tmp_path)
+
+
+def test_v3_checksums_flag_unlisted_files(tmp_path, monkeypatch):
+    from bpneat.v3.release import verify_checksums, write_checksums
+
+    _tiny_release(tmp_path, monkeypatch)
+    write_checksums(tmp_path)
+    (tmp_path / "stray.csv").write_text("x\n")
+    assert any("stray.csv" in b for b in verify_checksums(tmp_path))
+
+
+def test_v3_tables_are_deterministic(tmp_path, monkeypatch):
+    """Bootstrap and Wilcoxon are seeded, so resealing cannot move a number."""
+    from bpneat.record import sha256_file
+    from bpneat.v3.analysis import build
+
+    _tiny_release(tmp_path, monkeypatch)
+    build(tmp_path, progress=lambda *_: None)
+    names = [f for f in ("summary.csv", "summary.json", "operator-usage.csv")
+             if (tmp_path / f).exists()]
+    assert names
+    first = {f: sha256_file(tmp_path / f) for f in names}
+    build(tmp_path, progress=lambda *_: None)
+    assert first == {f: sha256_file(tmp_path / f) for f in names}
