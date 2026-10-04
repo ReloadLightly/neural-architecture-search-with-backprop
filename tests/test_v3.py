@@ -325,3 +325,86 @@ def test_v3_tables_are_deterministic(tmp_path, monkeypatch):
     first = {f: sha256_file(tmp_path / f) for f in names}
     build(tmp_path, progress=lambda *_: None)
     assert first == {f: sha256_file(tmp_path / f) for f in names}
+
+
+# ---------------------------------------------------------------- statistics
+
+
+def _fake_runs(n_rep, cond_values):
+    """Synthetic paired runs: {condition: [value per replicate]}."""
+    runs = []
+    for cond, vals in cond_values.items():
+        for i, v in enumerate(vals[:n_rep], start=1):
+            runs.append({
+                "run_id": f"xor__{cond}__r{i:02d}", "task": "xor", "condition": cond,
+                "replicate": i, "blocks": ["A"],
+                "metrics": {"validation_accuracy": v, "validation_loss": 1 - v,
+                            "causal_hidden_nodes": 3, "represented_nodes": 7,
+                            "collapsed": False, "causal_operators": {}},
+                "compute": {"candidate_evaluations": 1100, "gradient_steps": 1000,
+                            "wall_time_seconds": 1.0, "selection_intensity": 0.1},
+                "config": {"selector": "roulette_s0.01", "propagation": "settled"},
+            })
+    final = {r["run_id"]: {"test_accuracy": r["metrics"]["validation_accuracy"],
+                           "test_loss": 1 - r["metrics"]["validation_accuracy"],
+                           "validation_to_test_drop": 0.0}
+             for r in runs}
+    return runs, final
+
+
+def test_paired_effects_pair_within_replicate():
+    from bpneat.v3.analysis import paired_effects
+
+    runs, final = _fake_runs(4, {
+        "backprop_neat": [0.90, 0.60, 0.80, 0.70],
+        "fixed_mlp_tanh_matched": [0.80, 0.70, 0.70, 0.80],
+    })
+    (row,) = paired_effects(runs, final, "test_accuracy", "backprop_neat",
+                            ("fixed_mlp_tanh_matched",))
+    assert row["n_pairs"] == 4
+    # diffs +0.10, -0.10, +0.10, -0.10 -> mean 0
+    assert row["mean_difference"] == pytest.approx(0.0, abs=1e-12)
+    assert row["wins"] == 2
+    assert row["ci95_low"] <= row["median_difference"] <= row["ci95_high"]
+
+
+def test_holm_is_monotone_and_scales_by_family():
+    """Holm: sorted p times (m - rank), made non-decreasing."""
+    from bpneat.v3.analysis import paired_effects
+
+    # Three controls with clearly different separations.
+    runs, final = _fake_runs(8, {
+        "backprop_neat": [0.90] * 8,
+        "evolution_only": [0.50] * 8,          # large, consistent gap
+        "homogeneous_tanh": [0.89] * 8,        # small but consistent
+        "fixed_mlp_tanh_matched": [0.90] * 8,  # no gap at all
+    })
+    rows = paired_effects(
+        runs, final, "test_accuracy", "backprop_neat",
+        ("evolution_only", "homogeneous_tanh", "fixed_mlp_tanh_matched"),
+        holm_family=35,
+    )
+    assert all("holm_p" in r for r in rows)
+    ordered = sorted(rows, key=lambda r: r["wilcoxon_p"])
+    holm = [r["holm_p"] for r in ordered]
+    assert holm == sorted(holm), "Holm-adjusted p must be non-decreasing in rank"
+    assert all(r["holm_p"] >= r["wilcoxon_p"] - 1e-12 for r in rows)
+    assert all(r["holm_p"] <= 1.0 for r in rows)
+    # The identical-value comparison must not come out significant.
+    tie = next(r for r in rows if r["condition"] == "fixed_mlp_tanh_matched")
+    assert not tie["holm_significant"]
+
+
+def test_holm_family_matches_block_a_size():
+    from bpneat.v3.protocol import BLOCKS, PRIMARY_FAMILY_SIZE
+
+    a = next(b for b in BLOCKS if b.name == "A")
+    assert PRIMARY_FAMILY_SIZE == (len(a.conditions) - 1) * len(a.tasks) == 35
+
+
+def test_clipped_mean_ignores_the_tails():
+    from bpneat.v3.analysis import _clipped_mean
+
+    x = np.array([0.0] * 18 + [100.0, 200.0])
+    assert _clipped_mean(x) < 20.0
+    assert _clipped_mean(np.array([1.0, 2.0])) == pytest.approx(1.5)
