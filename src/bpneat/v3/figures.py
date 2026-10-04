@@ -120,6 +120,14 @@ def stability(matrix: list[dict], out: Path) -> Path | None:
     ax.tick_params(length=0)
     ax.set_title("Conclusion stability: which v2 claims survive which evaluator",
                  color=INK, fontsize=12, pad=14)
+    # C2 and C3 compare against ablations that share the candidate budget by
+    # construction, so their row is identical across control definitions. That
+    # invariance is the point, not a rendering artifact.
+    fig.text(0.30, 0.055,
+             "Columns are control definitions. Rows C2 and C3 compare against "
+             "budget-matched ablations,\nso they are invariant across columns by "
+             "construction — that invariance is the finding.",
+             fontsize=8, color=INK2, ha="left")
     return _save(fig, out / "stability-matrix.png", bottom=0.30, left=0.30, top=0.88, right=0.99)
 
 
