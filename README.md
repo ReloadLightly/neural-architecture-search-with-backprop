@@ -195,12 +195,31 @@ was invalidated for it rather than patched
 
 ## Verify and reproduce
 
+Everything below has one entry point. `make setup` once, then:
+
 ```bash
 git clone https://github.com/ReloadLightly/neural-architecture-search-with-backprop
 cd neural-architecture-search-with-backprop
-python -m venv .venv && . .venv/bin/activate
-pip install -e ".[dev]"
 
+make setup     # venv + editable install
+make gates     # every correctness gate
+make verify    # both v2 tracks regenerate byte-identically
+make audit     # reproduce the October 2026 audit from the release
+```
+
+| Target | What it does |
+|---|---|
+| `make gates` | the full test suite and ruff |
+| `make verify` | proves the committed v2 release rebuilds from its raw records |
+| `make audit` | recomputes audit findings F1–F4 and re-runs the learner probe |
+| `make v3-run` | launches the v3 suite, sharded and resumable, in the background |
+| `make v3-status` | progress, failures and missing runs |
+| `make v3-finaltest` | the one-shot sealed-test evaluation |
+| `make v3-release` | rebuilds tables, then figures, then seals checksums |
+
+The underlying commands are also available directly:
+
+```bash
 pytest -q                                               # correctness gates
 bpneat verify --dir results/backprop-neat-v2/track-a    # the release regenerates
 bpneat verify --dir results/backprop-neat-v2/track-b    #   byte-identically
