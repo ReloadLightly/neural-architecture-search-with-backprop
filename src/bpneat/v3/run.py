@@ -2,16 +2,35 @@
 
 ``make v3-run`` launches every shard in the background; this module is what
 each shard executes, and what reports on them.
+
+Thread pinning happens here, before NumPy is imported, and deliberately not in
+the Makefile. Each shard is single-threaded Python doing many tiny matrix
+products, so a BLAS thread pool buys nothing — but with one pool per shard,
+four shards oversubscribe a four-core machine four-fold. Measured on this
+container: 16 threads on 4 cores ran each shard about 4x slower than running
+one shard alone. Setting it in code means the pinning cannot be lost by
+invoking the module directly.
 """
 
 from __future__ import annotations
 
-import argparse
-import json
-from pathlib import Path
+import os
 
-from .protocol import cells, planned_runs
-from .suite import run_cells
+for _var in (
+    "OMP_NUM_THREADS",
+    "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS",
+    "NUMEXPR_NUM_THREADS",
+    "VECLIB_MAXIMUM_THREADS",
+):
+    os.environ.setdefault(_var, "1")
+
+import argparse  # noqa: E402
+import json  # noqa: E402
+from pathlib import Path  # noqa: E402
+
+from .protocol import cells, planned_runs  # noqa: E402
+from .suite import run_cells  # noqa: E402
 
 
 def _status(out_dir: Path) -> int:
