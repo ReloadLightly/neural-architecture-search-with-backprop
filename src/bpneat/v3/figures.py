@@ -262,7 +262,7 @@ def build_all(release_dir: Path, progress=print) -> list[Path]:
     effects = block_effects(runs, final)
     written = [task_geometries(out), budget_vs_accuracy(summary, out)]
     for fn in (
-        lambda: stability(stability_matrix(runs, final) if final else [], out),
+        lambda: stability(stability_matrix(runs, final, release_dir) if final else [], out),
         lambda: block_a_effects(effects, out),
         lambda: dose_response(selection_dose_response(runs, final), out),
         lambda: propagation_grid(summary, out),

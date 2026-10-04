@@ -8,7 +8,6 @@ than bolted on after the results are known — which is the point.
 from __future__ import annotations
 
 import json
-import statistics as st
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -49,6 +48,21 @@ def release():
     return by, final, runs
 
 
+@pytest.fixture(scope="module")
+def published():
+    """The release's own summary table.
+
+    Documents must agree with what the release *publishes*, not with a fresh
+    re-derivation: a NumPy mean and `statistics.mean` sum in different orders
+    and can round either side of a .0005 boundary, which is how this check
+    first failed on a figure that was correct to the data.
+    """
+    import csv
+
+    with open(V3 / "summary.csv") as fh:
+        return {(r["task"], r["condition"]): r for r in csv.DictReader(fh)}
+
+
 def test_suite_is_complete_and_clean(release):
     _, _, runs = release
     manifest = json.loads((V3 / "manifest.json").read_text())
@@ -79,10 +93,8 @@ def test_frozen_v2_modules_never_moved(release):
         ("spiral", "homogeneous_tanh"),
     ],
 )
-def test_published_accuracies_match_release(release, task, condition):
-    by, final, _ = release
-    cell = by[(task, condition)].values()
-    mean = st.mean(final[r["run_id"]]["test_accuracy"] for r in cell)
+def test_published_accuracies_match_release(published, task, condition):
+    mean = float(published[(task, condition)]["test_accuracy_mean"])
     assert f"{mean:.3f}" in _text(), (
         f"{task}/{condition} sealed-test accuracy should read {mean:.3f}"
     )
@@ -90,9 +102,8 @@ def test_published_accuracies_match_release(release, task, condition):
 
 @pytest.mark.parametrize("condition", ["backprop_neat", "fixed_mlp_tanh_ha",
                                        "fixed_mlp_tanh_matched"])
-def test_published_budgets_match_release(release, condition):
-    by, _, _ = release
-    steps = st.mean(r["compute"]["gradient_steps"] for r in by[("spiral", condition)].values())
+def test_published_budgets_match_release(published, condition):
+    steps = float(published[("spiral", condition)]["gradient_steps_mean"])
     assert f"{steps:,.0f}" in _text(), (
         f"spiral/{condition} gradient steps should read {steps:,.0f}"
     )

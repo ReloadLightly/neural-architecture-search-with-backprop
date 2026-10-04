@@ -1,6 +1,6 @@
 {
-  "complete": false,
-  "elapsed_seconds": 20611.745785713196,
+  "complete": true,
+  "elapsed_seconds": 21043.517482042313,
   "failed": [],
   "fingerprints": {
     "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
@@ -24,36 +24,13 @@
       "selection.py"
     ]
   },
-  "missing": [
-    "spiral3__backprop_neat__r28",
-    "spiral3__backprop_neat__r30",
-    "spiral3__evolution_only__r28",
-    "spiral3__evolution_only__r30",
-    "spiral3__fixed_mlp_mixed_matched__r28",
-    "spiral3__fixed_mlp_mixed_matched__r29",
-    "spiral3__fixed_mlp_mixed_matched__r30",
-    "spiral3__fixed_mlp_sin_matched__r28",
-    "spiral3__fixed_mlp_sin_matched__r29",
-    "spiral3__fixed_mlp_sin_matched__r30",
-    "spiral3__fixed_mlp_tanh_ha__r28",
-    "spiral3__fixed_mlp_tanh_ha__r29",
-    "spiral3__fixed_mlp_tanh_ha__r30",
-    "spiral3__fixed_mlp_tanh_matched__r28",
-    "spiral3__fixed_mlp_tanh_matched__r29",
-    "spiral3__fixed_mlp_tanh_matched__r30",
-    "spiral3__homogeneous_tanh__r28",
-    "spiral3__homogeneous_tanh__r29",
-    "spiral3__homogeneous_tanh__r30",
-    "spiral3__random_search_matched__r28",
-    "spiral3__random_search_matched__r29",
-    "spiral3__random_search_matched__r30"
-  ],
+  "missing": [],
   "planned": 1920,
-  "present": 1898,
+  "present": 1920,
   "protocol_version": "v3",
-  "test_evaluated": false,
+  "test_evaluated": true,
   "this_shard": {
-    "completed": 448,
+    "completed": 456,
     "skipped": 12
   },
   "unexpected": []

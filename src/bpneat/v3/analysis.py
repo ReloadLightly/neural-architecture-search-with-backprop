@@ -244,45 +244,164 @@ def selection_dose_response(runs: list[dict], final: dict[str, dict]) -> list[di
     return sorted(rows, key=lambda r: (r["task"], r["selection_intensity_mean"] or 0))
 
 
-#: The five v2 headline claims, as the stability matrix tests them.
+#: The five v2 headline claims, each with the control it actually rests on.
+#: ``controls`` maps an evaluator setting to the condition that instantiates
+#: the claim's control under that setting. ``v2`` draws on the committed v2
+#: release; every other column draws on v3.
 V2_CLAIMS = (
-    ("C1", "Backprop-NEAT beats a fixed MLP on spirals", "spiral", "fixed_mlp_tanh_matched"),
-    ("C2", "Gradient learning is complementary to topology search", "spiral", "evolution_only"),
-    ("C3", "Operator diversity contributes", "spiral", "homogeneous_tanh"),
-    ("C4", "Few causal nodes beat a 65-unit MLP", "spiral", "fixed_mlp_tanh_matched"),
-    ("C5", "Evolutionary selection beats random sampling", "spiral", "random_search_matched"),
+    {
+        "claim": "C1",
+        "statement": "Backprop-NEAT beats a fixed MLP on spirals",
+        "task": "spiral",
+        "kind": "accuracy",
+        "controls": {
+            "v2 as run": ("v2", "fixed_mlp"),
+            "budget-matched tanh": ("v3", "fixed_mlp_tanh_matched"),
+            "sin control": ("v3", "fixed_mlp_sin_matched"),
+            "mixed control": ("v3", "fixed_mlp_mixed_matched"),
+        },
+    },
+    {
+        "claim": "C2",
+        "statement": "Gradient learning is complementary to topology search",
+        "task": "spiral",
+        "kind": "accuracy",
+        "controls": {
+            "v2 as run": ("v2", "evolution_only"),
+            "v3 re-run": ("v3", "evolution_only"),
+        },
+    },
+    {
+        "claim": "C3",
+        "statement": "Operator diversity contributes",
+        "task": "spiral",
+        "kind": "accuracy",
+        "controls": {
+            "v2 as run": ("v2", "homogeneous_tanh"),
+            "v3 re-run": ("v3", "homogeneous_tanh"),
+        },
+    },
+    {
+        "claim": "C4",
+        "statement": "Few causal nodes beat a 65-unit MLP",
+        "task": "spiral",
+        "kind": "efficiency",
+        "controls": {
+            "v2 as run": ("v2", "fixed_mlp"),
+            "budget-matched tanh": ("v3", "fixed_mlp_tanh_matched"),
+            "sin control": ("v3", "fixed_mlp_sin_matched"),
+            "mixed control": ("v3", "fixed_mlp_mixed_matched"),
+        },
+    },
+    {
+        "claim": "C5",
+        "statement": "Evolutionary selection beats random sampling",
+        "task": "spiral",
+        "kind": "accuracy",
+        "controls": {
+            "v2 as run": ("v2", "random_search"),
+            "candidate-matched": ("v3", "random_search_matched"),
+        },
+    },
+)
+
+MATRIX_COLUMNS = (
+    "v2 as run",
+    "v3 re-run",
+    "budget-matched tanh",
+    "sin control",
+    "mixed control",
+    "candidate-matched",
 )
 
 
-def stability_matrix(runs: list[dict], final: dict[str, dict]) -> list[dict]:
-    """Rows: v2 headline claims. Columns: evaluator settings. Cells: verdict."""
-    settings = {
-        "v2 as run (Ha learner)": "fixed_mlp_tanh_ha",
-        "budget-matched tanh": "fixed_mlp_tanh_matched",
-        "sin-operator control": "fixed_mlp_sin_matched",
-        "mixed-operator control": "fixed_mlp_mixed_matched",
-        "candidate-matched random": "random_search_matched",
-        "evolution only": "evolution_only",
-        "homogeneous tanh": "homogeneous_tanh",
+#: The v2 release is located from the installed package, not from the release
+#: directory being analysed. `verify` rebuilds tables in a scratch copy whose
+#: parent has no v2 release beside it, so a relative lookup would silently drop
+#: the "v2 as run" column and make the output non-reproducible.
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def _load_v2_track_b(_root: Path | None = None) -> tuple[list[dict], dict[str, dict]]:
+    """The committed v2 release, for the 'v2 as run' column."""
+    v2 = REPO_ROOT / "results" / "backprop-neat-v2" / "track-b"
+    if not (v2 / "final-test.json").exists():
+        return [], {}
+    runs = [json.loads(q.read_text()) for q in (v2 / "raw" / "runs").glob("*.json")]
+    final = {
+        r["run_id"]: r for r in json.loads((v2 / "final-test.json").read_text())["results"]
     }
+    return runs, final
+
+
+def _verdict(runs, final, task, control, kind, family: int) -> str:
+    """Does the claim hold against this control, paired within replicate?
+
+    Significance uses the **Holm-corrected** p over the source's own
+    pre-declared family, not the raw Wilcoxon p. The difference is not
+    cosmetic: on spirals, Backprop-NEAT beats candidate-matched random search
+    at raw p < 0.05 and fails at Holm-corrected p = 0.385.
+    """
+    conds = tuple(sorted({r["condition"] for r in runs} - {REFERENCE}))
+    eff = paired_effects(
+        [r for r in runs if r["task"] == task], final, "test_accuracy",
+        REFERENCE, conds, holm_family=family,
+    )
+    eff = [e for e in eff if e["condition"] == control]
+    if not eff:
+        return "n/a"
+    e = eff[0]
+    p_value = e.get("holm_p", e["wilcoxon_p"])
+    if kind == "efficiency":
+        # The claim is that fewer causal nodes do at least as well. It fails if
+        # the reference is significantly *worse* on accuracy, regardless of size.
+        if p_value < 0.05 and e["median_difference"] < 0:
+            return "reversed"
+        ref_sz = np.mean([
+            r["metrics"]["causal_hidden_nodes"]
+            for r in runs if r["task"] == task and r["condition"] == REFERENCE
+        ])
+        ctl_sz = np.mean([
+            r["metrics"]["causal_hidden_nodes"]
+            for r in runs if r["task"] == task and r["condition"] == control
+        ])
+        if ref_sz >= ctl_sz:
+            return "reversed"
+        return "supported" if p_value < 0.05 else "not significant"
+    if p_value >= 0.05:
+        return "not significant"
+    return "supported" if e["median_difference"] > 0 else "reversed"
+
+
+def stability_matrix(runs: list[dict], final: dict[str, dict],
+                     release_dir: Path | None = None) -> list[dict]:
+    """Rows: v2 headline claims. Columns: evaluator settings. Cells: verdict.
+
+    Each claim is tested against *its own* control, re-instantiated under each
+    setting. Columns that do not bear on a claim are ``n/a``; the matrix is
+    deliberately sparse rather than repeating one comparison five times.
+    """
+    v2_runs, v2_final = _load_v2_track_b()
     out = []
-    for cid, label, task, _default in V2_CLAIMS:
-        row = {"claim": cid, "statement": label, "task": task}
-        for colname, cond in settings.items():
-            eff = paired_effects(
-                [r for r in runs if r["task"] == task], final,
-                "test_accuracy", REFERENCE, (cond,),
-            )
-            if not eff:
-                row[colname] = "n/a"
+    for spec in V2_CLAIMS:
+        row = {"claim": spec["claim"], "statement": spec["statement"], "task": spec["task"]}
+        for col in MATRIX_COLUMNS:
+            entry = spec["controls"].get(col)
+            if entry is None:
+                row[col] = "n/a"
                 continue
-            e = eff[0]
-            if e["wilcoxon_p"] >= 0.05:
-                row[colname] = "not significant"
-            elif e["median_difference"] > 0:
-                row[colname] = "supported"
+            source, control = entry
+            if source == "v2":
+                # v2's analogous family: its five core controls on three tasks.
+                row[col] = (
+                    _verdict(v2_runs, v2_final, spec["task"], control, spec["kind"], 15)
+                    if v2_runs else "n/a"
+                )
             else:
-                row[colname] = "reversed"
+                row[col] = _verdict(
+                    runs, final, spec["task"], control, spec["kind"],
+                    PRIMARY_FAMILY_SIZE,
+                )
         out.append(row)
     return out
 
@@ -313,7 +432,7 @@ def build(release_dir: Path, progress=print) -> dict:
     effects = block_effects(runs, final)
     dose = selection_dose_response(runs, final)
     ops = operator_usage(runs)
-    matrix = stability_matrix(runs, final) if final else []
+    matrix = stability_matrix(runs, final, release_dir) if final else []
 
     write_csv(release_dir / "summary.csv", summary)
     write_csv(release_dir / "paired-effects.csv", effects)
