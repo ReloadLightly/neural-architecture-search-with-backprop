@@ -27,7 +27,8 @@ V2 = ROOT / "results" / "backprop-neat-v2"
 
 
 def _load(track: str):
-    runs = [json.loads(Path(p).read_text()) for p in glob.glob(str(V2 / track / "raw" / "runs" / "*.json"))]
+    paths = glob.glob(str(V2 / track / "raw" / "runs" / "*.json"))
+    runs = [json.loads(Path(p).read_text()) for p in paths]
     final = {
         r["run_id"]: r
         for r in json.loads((V2 / track / "final-test.json").read_text())["results"]
@@ -63,7 +64,8 @@ def _text(*names: str) -> str:
 )
 def test_headline_accuracy_matches_release(release, task, condition):
     by, final, _ = release["b"]
-    mean = st.mean(final[r["run_id"]]["test_accuracy"] for r in by[(task, condition)].values())
+    cell = by[(task, condition)].values()
+    mean = st.mean(final[r["run_id"]]["test_accuracy"] for r in cell)
     rendered = f"{mean:.3f}"
     assert rendered in _text("README.md"), (
         f"README headline for {task}/{condition} should read {rendered}"
@@ -127,7 +129,8 @@ def test_collapse_rates_match_release(release, task, expected):
 @pytest.mark.parametrize("task", ["xor", "circle", "spiral"])
 def test_track_a_means_match_release(release, task):
     by, final, _ = release["a"]
-    mean = st.mean(final[r["run_id"]]["test_accuracy"] for r in by[(task, "backprop_neat")].values())
+    runs = by[(task, "backprop_neat")].values()
+    mean = st.mean(final[r["run_id"]]["test_accuracy"] for r in runs)
     assert f"{mean:.3f}" in _text("docs/v1-invalidation.md", "docs/reference-targets.md")
 
 
@@ -161,7 +164,7 @@ def test_validation_to_test_drop_bound_holds(release):
     worst_bpn = 0.0
     for key in ("b",):
         by, final, _ = release[key]
-        for (task, cond), d in by.items():
+        for (_task, cond), d in by.items():
             drop = st.mean(final[r["run_id"]]["validation_to_test_drop"] for r in d.values())
             worst_overall = max(worst_overall, drop)
             if cond == "backprop_neat":
