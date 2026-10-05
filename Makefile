@@ -9,7 +9,7 @@ V4_OUT  ?= results/backprop-neat-v4
         v4-run v4-status v4-bridge v4-sensitivity v4-finaltest v4-release clean-logs
 
 setup:
-	uv venv .venv && uv pip install --python $(PY) -e ".[dev]" scipy
+	uv venv .venv && uv pip install --python $(PY) -e ".[dev]"
 
 gates:
 	$(PY) -m pytest tests/ -q && .venv/bin/ruff check .

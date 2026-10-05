@@ -29,6 +29,12 @@ classifiers = [
 dependencies = [
     "numpy",
     "matplotlib",
+    # The analysis pipeline uses scipy.stats.wilcoxon. It was previously
+    # installed only by `make setup`, which made every local run green while CI
+    # — which installs from this list — could not import bpneat.v3.analysis at
+    # all. `test_every_third_party_import_is_declared` now enforces the
+    # correspondence rather than leaving it to be noticed.
+    "scipy",
 ]
 
 [project.optional-dependencies]

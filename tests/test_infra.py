@@ -7,6 +7,7 @@ a safe path from calibration to a finished study.
 from __future__ import annotations
 
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -221,3 +222,56 @@ def test_suite_skips_completed_runs(tmp_path):
     # Second invocation must not have re-run anything: the record is unchanged.
     rec = json.loads(next((tmp_path / "raw" / "runs").glob("*.json")).read_text())
     assert rec["environment"]["code_fingerprint"] == code_fingerprint()["combined"]
+
+
+# --------------------------------------------------------------------------
+# Packaging: the declared dependencies must be enough to import the package
+# --------------------------------------------------------------------------
+
+
+def test_every_third_party_import_is_declared():
+    """A dependency installed only by `make setup` is not a dependency.
+
+    This gate exists because it was needed. `scipy.stats.wilcoxon` was imported
+    by the v3 analysis module but declared nowhere except the Makefile, so every
+    local run was green while CI — which installs from `[project] dependencies`
+    — could not import the module at all: six gates failed and the v3 release
+    verification failed, for five days, while the README claimed CI asserted
+    byte-identity on every push.
+    """
+    import ast
+    import tomllib
+
+    root = Path(__file__).resolve().parents[1]
+    with open(root / "pyproject.toml", "rb") as fh:
+        cfg = tomllib.load(fh)
+    declared = set()
+    for group in (
+        cfg["project"]["dependencies"],
+        *cfg["project"].get("optional-dependencies", {}).values(),
+    ):
+        for spec in group:
+            declared.add(re.split(r"[<>=!\[;\s]", spec, maxsplit=1)[0].lower())
+
+    stdlib = set(sys.stdlib_module_names)
+    found: dict[str, str] = {}
+    for path in sorted((root / "src" / "bpneat").rglob("*.py")):
+        tree = ast.parse(path.read_text())
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Import):
+                names = [a.name.split(".")[0] for a in node.names]
+            elif isinstance(node, ast.ImportFrom):
+                if node.level:  # relative import, inside the package
+                    continue
+                names = [(node.module or "").split(".")[0]]
+            else:
+                continue
+            for name in names:
+                if name and name not in stdlib and name != "bpneat":
+                    found.setdefault(name, str(path.relative_to(root)))
+
+    missing = {n: where for n, where in found.items() if n.lower() not in declared}
+    assert not missing, (
+        "imported but not declared in pyproject.toml: "
+        + ", ".join(f"{n} (from {w})" for n, w in sorted(missing.items()))
+    )
