@@ -108,12 +108,12 @@ def _test_or_val(row) -> float:
 def fig_sign_matrix(signs: list[dict], out: Path) -> Path:
     """The headline: the sign of search-vs-fixed, per algorithm and protocol."""
     algos = [a["algorithm"] for a in ALGORITHMS]
-    cols = [("vs_unmatched", "vs. unmatched\ncontrol"),
-            ("vs_matched_tanh", "vs. matched\ntanh"),
-            ("vs_matched_mixed", "vs. matched\nmixed")]
+    cols = [("vs_unmatched", "unmatched"),
+            ("vs_matched_tanh", "matched\ntanh"),
+            ("vs_matched_mixed", "matched\nmixed")]
     by = {(r["algorithm"], r["task"]): r for r in signs}
 
-    fig, axes = _fig(1, len(algos), figsize=(11, 4.6))
+    fig, axes = _fig(1, len(algos), figsize=(9, 5.0))
     for ax, algo in zip(np.atleast_1d(axes).ravel(), algos):
         ax.grid(False)
         for ci, (key, _) in enumerate(cols):
@@ -134,13 +134,17 @@ def fig_sign_matrix(signs: list[dict], out: Path) -> Path:
         ax.set_yticks(range(len(ALL_TASKS)))
         ax.set_yticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
         ax.set_title(algo, color=INK, fontsize=10)
+        # Square cells: without this the panel stretches three columns across
+        # its full width and the matrix reads as a scatter of distant blocks.
+        ax.set_aspect("equal")
         for s in ax.spines.values():
             s.set_visible(False)
     fig.suptitle(
-        "Sealed-test accuracy: which side wins, by algorithm and by budget protocol",
+        "Sealed-test accuracy: which side wins against each control,\n"
+        "by algorithm and by budget protocol",
         color=INK, fontsize=11,
     )
-    return _save(fig, out, top=0.84, bottom=0.14, left=0.11, right=0.98, wspace=0.35)
+    return _save(fig, out, top=0.86, bottom=0.1, left=0.1, right=0.98, wspace=0.05)
 
 
 def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:

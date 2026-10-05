@@ -357,68 +357,85 @@ def hypotheses(runs: list[dict], final: dict[str, dict]) -> list[dict]:
     n_tasks = len(ALL_TASKS)
     out: list[dict] = []
 
-    def add(h, statement, rule, got, holds):
+    def add(h, statement, rule, got, holds, complete=True):
+        # A hypothesis is only scored where the evidence for it exists. Without
+        # this, a task with no data makes two "n/a" verdicts compare equal and
+        # scores agreement, so an incomplete suite would report H4 as holding.
         out.append(
             {
                 "hypothesis": h,
                 "statement": statement,
                 "decision_rule": rule,
-                "observed": got,
-                "verdict": "holds" if holds else "fails",
+                "observed": got if complete else f"{got} (incomplete)",
+                "verdict": ("holds" if holds else "fails") if complete else "incomplete",
             }
         )
 
     # H1: matched beats unmatched, within the same architecture.
     h1 = 0
+    h1_seen = 0
     for task in ALL_TASKS:
         a = summary.get((task, "fixed_tanh_matched_bpneat"))
         b = summary.get((task, "fixed_tanh_ha"))
-        if a and b and a.get("test_accuracy_mean", 0) > b.get("test_accuracy_mean", 0):
-            h1 += 1
+        if not a or not b:
+            continue
+        av, bv = a.get("test_accuracy_mean"), b.get("test_accuracy_mean")
+        if av in (None, "") or bv in (None, ""):
+            continue
+        h1_seen += 1
+        h1 += int(float(av) > float(bv))
     add("H1", "the unmatched control is starved, not weak",
-        "matched beats unmatched on >=4 of 5 tasks", f"{h1}/{n_tasks}", h1 >= 4)
+        "matched beats unmatched on >=4 of 5 tasks", f"{h1}/{n_tasks}", h1 >= 4,
+        complete=h1_seen == n_tasks)
 
     # H2/H3: the reversal, per algorithm.
     for h, algo in (("H2", "Backprop-NEAT"), ("H3", "CGP")):
-        beats_un = sum(
-            1 for t in ALL_TASKS if signs.get((algo, t), {}).get("vs_unmatched") == "search>fixed"
-        )
-        loses_ma = sum(
-            1 for t in ALL_TASKS
-            if signs.get((algo, t), {}).get("vs_matched_tanh") == "fixed>search"
-        )
+        rows = [signs.get((algo, t), {}) for t in ALL_TASKS]
+        beats_un = sum(1 for r in rows if r.get("vs_unmatched") == "search>fixed")
+        loses_ma = sum(1 for r in rows if r.get("vs_matched_tanh") == "fixed>search")
         add(h, f"{algo}'s advantage reverses under a matched budget",
             "search>unmatched on >=4 tasks and matched>search on >=3 tasks",
             f"beats unmatched {beats_un}/{n_tasks}, loses to matched {loses_ma}/{n_tasks}",
-            beats_un >= 4 and loses_ma >= 3)
+            beats_un >= 4 and loses_ma >= 3,
+            complete=all(
+                r.get("vs_unmatched") not in (None, "n/a")
+                and r.get("vs_matched_tanh") not in (None, "n/a")
+                for r in rows
+            ))
 
-    # H4: the two algorithms agree in sign.
-    agree = sum(
-        1 for t in ALL_TASKS
-        if signs.get(("Backprop-NEAT", t), {}).get("vs_unmatched")
-        == signs.get(("CGP", t), {}).get("vs_unmatched")
-        and signs.get(("Backprop-NEAT", t), {}).get("vs_matched_tanh")
-        == signs.get(("CGP", t), {}).get("vs_matched_tanh")
-    )
+    # H4: the two algorithms agree in sign, on tasks where both have a verdict.
+    agree = scored = 0
+    for t in ALL_TASKS:
+        bp = signs.get(("Backprop-NEAT", t), {})
+        cg = signs.get(("CGP", t), {})
+        pairs = [
+            (bp.get("vs_unmatched"), cg.get("vs_unmatched")),
+            (bp.get("vs_matched_tanh"), cg.get("vs_matched_tanh")),
+        ]
+        if any(a in (None, "n/a") or b in (None, "n/a") for a, b in pairs):
+            continue
+        scored += 1
+        agree += int(all(a == b for a, b in pairs))
     add("H4", "the sign is set by the budget protocol, not the algorithm",
         "both signs agree across the two algorithms on >=4 of 5 tasks",
-        f"{agree}/{n_tasks}", agree >= 4)
+        f"{agree}/{n_tasks}", agree >= 4, complete=scored == n_tasks)
 
     # H5: between-algorithm gap is small relative to the protocol effect.
     h5 = sum(1 for t in ALL_TASKS if cross.get(t, {}).get("h5_holds"))
     add("H5", "the algorithms differ less than the protocol does",
         "|median(cgp-bpneat)| < 0.5x the matching effect on >=3 of 5 tasks",
-        f"{h5}/{n_tasks}", h5 >= 3)
+        f"{h5}/{n_tasks}", h5 >= 3, complete=len(cross) == n_tasks)
 
     # H6: CGP's selection vs its own null.
+    null_effects = [_effect(effects, "cgp", t, "cgp_random_matched") for t in ALL_TASKS]
     beats_null = sum(
-        1 for t in ALL_TASKS
-        if (e := _effect(effects, "cgp", t, "cgp_random_matched")) is not None
-        and e.get("holm_p", e["wilcoxon_p"]) < 0.05
+        1 for e in null_effects
+        if e is not None and e.get("holm_p", e["wilcoxon_p"]) < 0.05
         and e["median_difference"] > 0
     )
     add("H6", "CGP's selection adds little over its candidate-matched null",
-        "CGP beats its null on <=2 of 5 tasks", f"{beats_null}/{n_tasks}", beats_null <= 2)
+        "CGP beats its null on <=2 of 5 tasks", f"{beats_null}/{n_tasks}",
+        beats_null <= 2, complete=all(e is not None for e in null_effects))
     return out
 
 

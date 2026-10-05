@@ -552,3 +552,102 @@ def test_fixed_baselines_are_the_v3_builders():
     b = make_mlp(V3_HIDDEN, np.random.default_rng(1))
     assert a.ops == b.ops and a.src == b.src and a.dst == b.dst
     assert np.allclose(a.weight, b.weight)
+
+
+# --------------------------------------------------------------------------
+# Hypothesis scoring must not reward missing evidence
+# --------------------------------------------------------------------------
+
+
+def _synthetic_release(tmp_path, tasks, ref_better: bool):
+    """Records for the given tasks only. No compute: analysis reads dicts."""
+    from bpneat.v4.protocol import REPLICATES
+
+    runs = tmp_path / "raw" / "runs"
+    runs.mkdir(parents=True)
+    results = []
+    for task in tasks:
+        for rep in REPLICATES:
+            for cond in CONDITIONS:
+                is_ref = cond in ("bpneat", "cgp")
+                acc = (0.9 if is_ref else 0.5) if ref_better else (0.5 if is_ref else 0.9)
+                acc += 0.001 * rep.replicate  # break ties so Wilcoxon has signal
+                rid = f"{task}__{cond}__r{rep.replicate:02d}"
+                rec = {
+                    "run_id": rid, "task": task, "condition": cond,
+                    "replicate": rep.replicate, "dataset_seed": rep.dataset_seed,
+                    "search_seed": rep.search_seed,
+                    "blocks": list(CONDITIONS[cond].blocks),
+                    "config": {
+                        "kind": CONDITIONS[cond].kind, "restarts": None,
+                        "matched_to": None, "matched_steps": None,
+                        "candidate_budget": 1100,
+                    },
+                    "metrics": {
+                        "validation_accuracy": acc, "validation_loss": 1 - acc,
+                        "causal_hidden_nodes": 4, "represented_nodes": 9,
+                        "collapsed": False, "causal_operators": {},
+                    },
+                    "compute": {
+                        "candidate_evaluations": 1100, "gradient_steps": 1000,
+                        "wall_time_seconds": 1.0,
+                    },
+                    "test_evaluated": False,
+                }
+                (runs / f"{rid}.json").write_text(json.dumps(rec))
+                results.append(
+                    {
+                        "run_id": rid, "task": task, "condition": cond,
+                        "replicate": rep.replicate, "blocks": rec["blocks"],
+                        "validation_accuracy": acc, "validation_loss": 1 - acc,
+                        "test_accuracy": acc, "test_loss": 1 - acc,
+                        "test_success": True, "validation_to_test_drop": 0.0,
+                        "collapsed": False, "causal_hidden_nodes": 4,
+                        "gradient_steps": 1000, "candidate_evaluations": 1100,
+                        "matched_to": None, "cgp_active_nodes": None,
+                    }
+                )
+    (tmp_path / "final-test.json").write_text(json.dumps({"results": results}))
+    return tmp_path
+
+
+def test_hypotheses_report_incomplete_rather_than_holding_on_missing_tasks(tmp_path):
+    """The gate for a real bug: two absent verdicts compared equal and scored.
+
+    With four of five tasks missing, H4's sign comparison saw "n/a" on both
+    sides, counted that as the two algorithms agreeing, and reported H4 as
+    holding 5/5 on 54 runs. A hypothesis is now only scored where the evidence
+    for it exists.
+    """
+    from bpneat.v4.analysis import build
+
+    payload = build(_synthetic_release(tmp_path, ("xor",), True), progress=lambda *_: None)
+    assert payload["hypotheses"], "no hypotheses scored"
+    for h in payload["hypotheses"]:
+        assert h["verdict"] == "incomplete", h
+        assert "(incomplete)" in h["observed"]
+
+
+def test_hypotheses_are_scored_when_every_task_is_present(tmp_path):
+    from bpneat.v4.analysis import build
+
+    payload = build(_synthetic_release(tmp_path, ALL_TASKS, True), progress=lambda *_: None)
+    verdicts = {h["hypothesis"]: h["verdict"] for h in payload["hypotheses"]}
+    assert set(verdicts) == {"H1", "H2", "H3", "H4", "H5", "H6"}
+    assert "incomplete" not in verdicts.values(), verdicts
+    # Reference better than every control on every task: both algorithms beat
+    # the unmatched control and neither loses to a matched one, so the reversal
+    # hypotheses must fail rather than quietly pass.
+    assert verdicts["H2"] == "fails" and verdicts["H3"] == "fails"
+
+
+def test_sign_matrix_flips_with_the_data(tmp_path):
+    """The matrix must read the data, not a constant."""
+    from bpneat.v4.analysis import build
+
+    a = build(_synthetic_release(tmp_path / "a", ALL_TASKS, True), progress=lambda *_: None)
+    b = build(_synthetic_release(tmp_path / "b", ALL_TASKS, False), progress=lambda *_: None)
+    signs_a = {(r["algorithm"], r["task"]): r["vs_matched_tanh"] for r in a["sign_matrix"]}
+    signs_b = {(r["algorithm"], r["task"]): r["vs_matched_tanh"] for r in b["sign_matrix"]}
+    assert set(signs_a.values()) == {"search>fixed"}, signs_a
+    assert set(signs_b.values()) == {"fixed>search"}, signs_b
