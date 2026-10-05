@@ -45,7 +45,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/ReloadLightly/neural-architecture-search-with-backprop"
-Release = "https://github.com/ReloadLightly/neural-architecture-search-with-backprop/tree/main/results/backprop-neat-v2"
+Release = "https://github.com/ReloadLightly/neural-architecture-search-with-backprop/tree/main/results/backprop-neat-v3"
 
 [project.scripts]
 bpneat = "bpneat.cli:main"
