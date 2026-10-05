@@ -256,3 +256,62 @@ def test_no_withdrawn_v2_claim_reappears():
         "using about 5 active units",
     ):
         assert banned not in text, f"withdrawn claim present: {banned}"
+
+
+# --------------------------------------------------------------------------
+# Evaluator consistency: what selected a champion must be what reports it
+# --------------------------------------------------------------------------
+
+
+def test_no_cgp_champion_exceeds_the_settling_bound(release):
+    """CGP is selected on the dense path but *recorded* through the frozen one.
+
+    The frozen evaluator settles for at most ``SETTLE_MAX_TICK = 16`` ticks. A
+    48-node CGP row can in principle decode to a deeper chain, and a champion
+    that did would have its metrics taken before its deepest nodes had run —
+    reporting a different network from the one validation selected. The
+    preregistration says the dense path removes that hazard; this asserts it on
+    every champion rather than on the pilot sample it was argued from.
+    """
+    from bpneat.genome import SETTLE_MAX_TICK
+    from bpneat.record import deserialise_genome
+    from bpneat.v3 import dense
+
+    _, _, runs = release
+    deepest = 0
+    checked = 0
+    for r in runs:
+        if r["condition"] not in ("cgp", "cgp_random_matched"):
+            continue
+        g, _ = deserialise_genome(r["champion"])
+        depth = len(dense.plan(g).groups)
+        deepest = max(deepest, depth)
+        checked += 1
+        assert depth < SETTLE_MAX_TICK, f"{r['run_id']}: depth {depth}"
+    assert checked == 2 * 5 * 30, checked
+    print(f"deepest CGP champion: {deepest} of {SETTLE_MAX_TICK} ticks")
+
+
+def test_cgp_champion_metrics_agree_between_the_two_evaluators(release):
+    """The recorded accuracy must be the accuracy the search was selecting on."""
+    import numpy as np
+
+    from bpneat.learn import accuracy
+    from bpneat.record import deserialise_genome
+    from bpneat.v3 import dense
+    from bpneat.v3.datasets import make_bundle
+    from bpneat.v4.learners import dense_accuracy
+
+    _, _, runs = release
+    worst = 0.0
+    for r in runs:
+        if r["condition"] not in ("cgp", "cgp_random_matched"):
+            continue
+        g, w = deserialise_genome(r["champion"])
+        b = make_bundle(r["task"], seed=r["dataset_seed"])
+        frozen = accuracy(g, w, b.validation.X, b.validation.y, True)
+        densev = dense_accuracy(dense.plan(g), w, b.validation.X, b.validation.y)
+        assert frozen == r["metrics"]["validation_accuracy"]
+        worst = max(worst, abs(frozen - densev))
+    assert worst == 0.0, f"the two evaluators disagree on {worst:.3e} of the labels"
+    assert np.isfinite(worst)
