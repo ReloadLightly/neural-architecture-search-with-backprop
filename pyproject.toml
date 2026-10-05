@@ -70,6 +70,11 @@ force-exclude = true
 # `bench/` holds the feasibility probes that sized the compute budget. They are
 # historical artifacts, retained exactly as they were run, and are excluded for
 # the same reason `run_shard.sh` is left untouched.
+# v3's and v4's science modules are bound to their releases the same way, by
+# `v3_fingerprint` and `v4_fingerprint`, so the same exclusion applies to them
+# once their release is frozen. They were ruff-clean when they were frozen;
+# excluding them changes nothing today and removes the possibility that a future
+# lint rule creates pressure to edit a file a committed result depends on.
 extend-exclude = [
     "bench",
     "src/bpneat/baselines.py",
@@ -79,6 +84,18 @@ extend-exclude = [
     "src/bpneat/genome.py",
     "src/bpneat/learn.py",
     "src/bpneat/protocol.py",
+    "src/bpneat/v3/conditions.py",
+    "src/bpneat/v3/datasets.py",
+    "src/bpneat/v3/dense.py",
+    "src/bpneat/v3/learners.py",
+    "src/bpneat/v3/protocol.py",
+    "src/bpneat/v3/search.py",
+    "src/bpneat/v3/selection.py",
+    "src/bpneat/v4/cgp.py",
+    "src/bpneat/v4/conditions.py",
+    "src/bpneat/v4/learners.py",
+    "src/bpneat/v4/protocol.py",
+    "src/bpneat/v4/search.py",
 ]
 
 [tool.ruff.lint]
