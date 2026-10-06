@@ -14,7 +14,7 @@ about four active units where the published demonstration shows thirty-four.**
 <td align="center" width="20%"><a href="docs/figures/champion-networks.png"><img src="docs/figures/champion-networks.png" alt="champion networks"></a><br><sub>The evolved graphs themselves</sub></td>
 <td align="center" width="20%"><a href="docs/figures/does-search-pay.png"><img src="docs/figures/does-search-pay.png" alt="search versus random sampling"></a><br><sub>Search against not searching</sub></td>
 <td align="center" width="20%"><a href="docs/figures/mechanism-boundaries.png"><img src="docs/figures/mechanism-boundaries.png" alt="NEAT mechanisms"></a><br><sub>What each NEAT mechanism changes</sub></td>
-<td align="center" width="20%"><a href="docs/figures/plate-i-forms.png"><img src="docs/figures/plate-i-forms.png" alt="a plate of evolved champion genomes"></a><br><sub>The champions, as a naturalist's plate</sub></td>
+<td align="center" width="20%"><a href="docs/figures/plate-ii-complexification.png"><img src="docs/figures/plate-ii-complexification.png" alt="a plate of evolved champion genomes"></a><br><sub>The champions, as a naturalist's plate</sub></td>
 </tr>
 </table>
 
