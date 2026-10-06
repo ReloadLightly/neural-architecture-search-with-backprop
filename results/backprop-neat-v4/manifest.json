@@ -46,7 +46,7 @@
   "planned": 1200,
   "present": 1200,
   "protocol_version": "v4",
-  "test_evaluated": false,
+  "test_evaluated": true,
   "this_shard": {
     "completed": 0,
     "skipped": 1200
