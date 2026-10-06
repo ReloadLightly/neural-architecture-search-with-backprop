@@ -1,0 +1,182 @@
+{
+  "blocks": [
+    "F"
+  ],
+  "champion": {
+    "active": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      4,
+      4,
+      4,
+      5,
+      5,
+      5,
+      6,
+      6,
+      6,
+      7,
+      3,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sin",
+      "sin",
+      "square",
+      "add"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      5,
+      5,
+      8,
+      9
+    ],
+    "src": [
+      0,
+      2,
+      0,
+      0,
+      1,
+      2,
+      0,
+      4,
+      5,
+      0,
+      6,
+      7
+    ],
+    "weights": [
+      1.261188462882382,
+      1.613308960491285,
+      0.4222372803801531,
+      0.4481973703908234,
+      -1.0042557568019,
+      -0.44257032649300776,
+      0.17884322142401854,
+      -0.8289666151665762,
+      -1.2441675811226836,
+      -0.648797513258015,
+      0.8997279625500559,
+      1.1557886800023776
+    ]
+  },
+  "compute": {
+    "active_fraction": 0.0625,
+    "active_nodes": 3,
+    "candidate_evaluations": 2100,
+    "cgp_active_nodes": 3,
+    "gradient_steps": 133300,
+    "n_func": 48,
+    "output_is_terminal": false,
+    "wall_time_seconds": 42.7938494682312
+  },
+  "condition": "cgp_random_matched",
+  "config": {
+    "batch_size": 10,
+    "builder": null,
+    "candidate_budget": 2100,
+    "cgp_lambda": null,
+    "cgp_n_func": 48,
+    "generations": null,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "cgp_random",
+    "matched_steps": null,
+    "matched_to": null,
+    "noise": 0.5,
+    "population": null,
+    "restarts": null,
+    "success_threshold": 0.8
+  },
+  "dataset_seed": 50276,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ],
+    "v4": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v4_modules": [
+      "cgp.py",
+      "conditions.py",
+      "learners.py",
+      "protocol.py",
+      "search.py"
+    ]
+  },
+  "history": [],
+  "metrics": {
+    "causal_connections": 12,
+    "causal_hidden_nodes": 4,
+    "causal_nodes": 8,
+    "causal_operators": {
+      "add": 1,
+      "sin": 2,
+      "square": 1
+    },
+    "collapsed": false,
+    "generalization_gap": -0.020000000000000018,
+    "represented_connections": 12,
+    "represented_nodes": 8,
+    "success": false,
+    "train_accuracy": 0.725,
+    "train_loss": 0.5408026903647488,
+    "validation_accuracy": 0.745,
+    "validation_loss": 0.5383786074965652
+  },
+  "protocol_version": "v4",
+  "replicate": 26,
+  "run_id": "spiral__cgp_random_matched__r26",
+  "search_seed": 60276,
+  "task": "spiral",
+  "test_evaluated": false
+}
