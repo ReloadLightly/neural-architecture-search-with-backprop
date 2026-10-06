@@ -16,6 +16,18 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
+from ..style import (  # noqa: E402
+    BAD,
+    DPI,
+    GOOD,
+    GRID,
+    INK,
+    INK2,
+    NEUTRAL,
+    SERIES,
+    SURFACE,
+    style_axes,
+)
 from .analysis import (  # noqa: E402
     REFERENCE_CHAMPION,
     complexity,
@@ -25,10 +37,6 @@ from .analysis import (  # noqa: E402
     summarise,
 )
 from .protocol import ALL_CONDITIONS, ALL_TASKS, REFERENCE  # noqa: E402
-
-SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e3e2df"
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
-GOOD, BAD, NEUTRAL = "#1baf7a", "#e34948", "#c9c8c3"
 
 LABEL = {
     "neat_reference": "NEAT (reference)",
@@ -40,7 +48,7 @@ LABEL = {
     "neat_deep_narrow": "deep & narrow",
     "fixed_mixed_matched": "fixed net (matched budget)",
 }
-TASK_LABEL = {"spiral": "Spirals", "checkerboard": "Checkerboard", "spiral3": "3-arm spiral"}
+from ..style import TASK_LABEL  # noqa: E402
 
 #: One (hue, marker, linestyle) per condition. Eight series over a six-hue
 #: palette, so the two repeats are separated by shape and dash, never by hue
@@ -58,14 +66,7 @@ STYLE = {
 
 
 def _style(ax):
-    ax.set_facecolor(SURFACE)
-    for s in ("top", "right"):
-        ax.spines[s].set_visible(False)
-    for s in ("left", "bottom"):
-        ax.spines[s].set_color(GRID)
-    ax.tick_params(colors=INK2, labelsize=8, length=0)
-    ax.grid(axis="y", color=GRID, linewidth=0.8)
-    ax.set_axisbelow(True)
+    style_axes(ax)
 
 
 def _fig(nrows=1, ncols=1, figsize=(10, 4.2)):
@@ -81,7 +82,7 @@ def _save(fig, path: Path, **kw):
         fig.subplots_adjust(**kw)
     else:
         fig.tight_layout()
-    fig.savefig(path, dpi=170, facecolor=SURFACE)
+    fig.savefig(path, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     return path
 
@@ -122,12 +123,16 @@ def fig_complexification(runs: list[dict], out: Path) -> Path:
         ax.set_xlabel("generation", fontsize=8, color=INK2)
         if task == ALL_TASKS[0]:
             ax.set_ylabel("mean nodes in the population", fontsize=8, color=INK2)
-    axes[0].legend(fontsize=7, frameon=False, loc="upper left")
+    # A per-axes legend here lands on the reference line and its label, so the
+    # key moves below the panels and every panel stays readable.
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, fontsize=8, frameon=False, ncol=7,
+               loc="lower center")
     fig.suptitle(
         "Do the topologies augment? Population size over the run, by mechanism",
         color=INK, fontsize=11,
     )
-    return _save(fig, out, top=0.85, bottom=0.13, left=0.06, right=0.99, wspace=0.16)
+    return _save(fig, out, top=0.85, bottom=0.23, left=0.055, right=0.99, wspace=0.16)
 
 
 def fig_size_vs_accuracy(comp: list[dict], out: Path) -> Path:

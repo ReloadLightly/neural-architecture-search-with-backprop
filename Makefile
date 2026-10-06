@@ -13,8 +13,11 @@ V5_OUT  ?= results/backprop-neat-v5
 setup:
 	uv venv .venv && uv pip install --python $(PY) -e ".[dev]"
 
+## Exactly what CI runs. `python -m pytest` would also put the working
+## directory on sys.path, which bare `pytest` does not — running a different
+## command locally is how an import error reached main twice.
 gates:
-	$(PY) -m pytest tests/ -q && .venv/bin/ruff check .
+	.venv/bin/pytest -q && .venv/bin/ruff check .
 
 ## Every committed release must regenerate from its own raw records.
 verify:

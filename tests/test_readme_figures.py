@@ -18,6 +18,12 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+# `bench/` is a directory of scripts, not an installed package, so importing it
+# needs the repository root on the path. `python -m pytest` puts the working
+# directory there and bare `pytest` does not — which is how this file passed
+# locally and failed in CI. Insert it explicitly rather than depend on the
+# invocation.
+sys.path.insert(0, str(ROOT))
 
 V3 = ROOT / "results" / "backprop-neat-v3"
 V4 = ROOT / "results" / "backprop-neat-v4"
@@ -146,3 +152,48 @@ def test_the_readme_does_not_claim_an_unpublished_budget():
     assert len(quoted) >= 4, f"only {len(quoted)} compute counts quoted; check not exercised"
     for q in quoted:
         assert q in published, f"{q} appears in no committed release"
+
+
+def test_the_operator_claims_match_the_published_tables():
+    """§2's operator fractions must come from each release's operator-usage.csv.
+
+    This block compares a 30-replicate distribution with a qualitative reading of
+    the published demo champions, so the numbers carrying it are bound here
+    individually rather than left to prose.
+    """
+    text = README.read_text()
+    reference_of = {"v3": "backprop_neat", "v4": "bpneat"}
+    quoted = {
+        ("circle", "square"), ("circle", "abs"),
+        ("xor", "mult"), ("spiral", "sin"), ("spiral3", "sin"),
+    }
+    checked = 0
+    for tag, cond in reference_of.items():
+        path = ROOT / "results" / f"backprop-neat-{tag}" / "operator-usage.csv"
+        with open(path) as fh:
+            for r in csv.DictReader(fh):
+                if r["condition"] != cond:
+                    continue
+                if (r["task"], r["operator"]) not in quoted:
+                    continue
+                val = f"{float(r['fraction']):.2f}"
+                assert val in text, (
+                    f"{tag} {r['task']}/{r['operator']} fraction {val} is claimed "
+                    "but not published at that precision"
+                )
+                checked += 1
+    assert checked == 2 * len(quoted), f"only {checked} operator fractions bound"
+
+
+def test_the_readme_does_not_misreport_the_predicted_operators():
+    """The published reading names specific operators; quote it as it stands."""
+    from bench.portrait_figures import PREDICTED
+
+    targets = (ROOT / "docs" / "reference-targets.md").read_text()
+    for task, ops in PREDICTED.items():
+        for op in ops:
+            # `sin` is written "sine" in the book's prose; accept either spelling.
+            assert op in targets or op.replace("sin", "sine") in targets, (
+                f"{task}: the figure marks {op} as predicted, but "
+                "docs/reference-targets.md does not record that prediction"
+            )
