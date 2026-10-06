@@ -223,3 +223,30 @@ def test_the_readme_does_not_misreport_the_predicted_operators():
                 f"{task}: the figure marks {op} as predicted, but "
                 "docs/reference-targets.md does not record that prediction"
             )
+
+
+def test_no_committed_figure_is_wider_than_the_page():
+    """The pixels, not the figsize literal.
+
+    ``savefig.bbox="tight"`` crops to the ink and so also *grows* a saved image
+    past its figsize when an artist sits outside the figure. The earlier gate
+    read the figsize literal and was therefore satisfied by files that were an
+    inch and a half wider than they claimed. GitHub renders every README image
+    at about the same width, so an over-wide figure arrives with smaller type:
+    this is measured where it matters, on the committed file.
+    """
+    from PIL import Image
+
+    from bpneat.style import DPI, MAX_FIGURE_WIDTH_IN
+
+    ceiling = int(MAX_FIGURE_WIDTH_IN * DPI) + 10  # the fitter's own tolerance
+    too_wide = {}
+    for path in sorted(FIGURES.iterdir()):
+        if path.suffix.lower() not in (".png", ".gif"):
+            continue
+        with Image.open(path) as im:
+            if im.size[0] > ceiling:
+                too_wide[path.name] = f"{im.size[0]}px ({im.size[0] / DPI:.2f}in)"
+    assert not too_wide, (
+        f"wider than {MAX_FIGURE_WIDTH_IN}in at {DPI} dpi: {too_wide}"
+    )

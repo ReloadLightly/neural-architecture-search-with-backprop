@@ -49,6 +49,7 @@ from ..style import (  # noqa: E402
     role_of,
     save,
     style_axes,
+    suptitle,
     title,
     vparity,
 )
@@ -193,7 +194,7 @@ def fig_sign_matrix(signs: list[dict], out: Path) -> Path:
         for s in ax.spines.values():
             s.set_visible(False)
     # The headline is a sentence, flush left like every other title here.
-    fig.suptitle(
+    suptitle(fig,
         "Sealed-test accuracy: which side wins against each control,\n"
         "by algorithm and by budget protocol",
         x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
@@ -271,7 +272,7 @@ def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
             ha="left", va="center", fontsize=ANNOT_SIZE, color=colour,
             annotation_clip=False,
         )
-    fig.suptitle(
+    suptitle(fig,
         "Sealed-test accuracy by condition.\n"
         "A cool hue was found by a search; a warm one was fixed before the run.\n"
         "* marks a search algorithm.",
@@ -343,7 +344,7 @@ def fig_reversal(effects: list[dict], out: Path) -> Path:
         ax.set_ylabel("median paired difference\n(search − fixed)",
                       fontsize=LABEL_SIZE, color=INK2)
         title(ax, spec["algorithm"])
-    fig.suptitle(
+    suptitle(fig,
         "The reversal, both algorithms. A hollow bar did not reach\n"
         "significance after Holm correction in that algorithm's own family.",
         x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
@@ -522,7 +523,7 @@ def fig_cgp_structure(runs: list[dict], out: Path) -> Path:
                   color=INK2)
     title(ax, "Neutral drift, per run")
 
-    fig.suptitle(
+    suptitle(fig,
         "CGP's genotype-phenotype map in use: small phenotypes,\n"
         "and how often neutral offspring were accepted",
         x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,

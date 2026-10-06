@@ -424,7 +424,7 @@ def champion_boundaries(release_dir: Path, out: Path, track_dir: str = "track-b"
     np.atleast_1d(axes).ravel()[0].legend(
         frameon=False, fontsize=s.LEGEND_SIZE, labelcolor=s.INK2, loc="upper left",
     )
-    fig.suptitle(
+    s.suptitle(fig,
         "Track B Backprop-NEAT champions: decision boundary over the training points",
         x=0.0, ha="left", color=s.INK, fontsize=s.TITLE_SIZE, y=0.99,
     )
@@ -517,7 +517,7 @@ def champion_topologies(release_dir: Path, out: Path, track_dir: str = "track-b"
         for side in ("left", "bottom"):
             ax.spines[side].set_visible(False)
 
-    fig.suptitle(
+    s.suptitle(fig,
         "Track B Backprop-NEAT champion topologies: what is represented against "
         "what computes",
         x=0.0, ha="left", color=s.INK, fontsize=s.TITLE_SIZE, y=0.99,
@@ -590,7 +590,7 @@ def paired_test_loss(release_dir: Path, out: Path, track_dir: str = "track-b") -
         "paired difference in sealed-test loss\n"
         "(Backprop-NEAT − control; negative favours Backprop-NEAT)"
     )
-    fig.suptitle(
+    s.suptitle(fig,
         f"Track {track_name}: paired within-replicate sealed-test loss, "
         "95% bootstrap interval, wins out of pairs",
         x=0.0, ha="left", color=s.INK, fontsize=s.TITLE_SIZE, y=0.99,

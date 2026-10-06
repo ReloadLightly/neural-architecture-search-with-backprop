@@ -49,6 +49,7 @@ from ..style import (  # noqa: E402
     parity,
     save,
     style_axes,
+    suptitle,
     title,
     vparity,
 )
@@ -224,7 +225,7 @@ def budget_vs_accuracy(summary: list[dict], out: Path) -> Path:
     axes[0].set_ylabel("sealed-test accuracy", color=INK2, fontsize=LABEL_SIZE)
     fig.legend(handles.values(), handles.keys(), fontsize=LEGEND_SIZE,
                labelcolor=INK2, ncol=4, loc="lower center", bbox_to_anchor=(0.5, -0.02))
-    fig.suptitle(
+    suptitle(fig,
         "Block A: accuracy against realized compute — v2's starved control sits "
         "at the left edge",
         x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
@@ -277,7 +278,7 @@ def block_a_effects(effects: list[dict], out: Path) -> Path | None:
         title(ax, TASK_LABEL[task])
         ax.grid(axis="y", visible=False)
         ax.grid(axis="x", color=GRID, linewidth=0.8)
-    fig.suptitle("Block A: median paired difference in sealed-test accuracy "
+    suptitle(fig, "Block A: median paired difference in sealed-test accuracy "
                  "(Backprop-NEAT − control).\nBlue: the search is ahead. "
                  "Red: the fixed control is. Grey: not significant after Holm.",
                  x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE)
@@ -325,7 +326,7 @@ def dose_response(dose: list[dict], out: Path) -> Path | None:
             ax.set_xlabel("realized selection intensity", color=INK2, fontsize=LABEL_SIZE)
             ax.set_ylabel(lab, color=INK2, fontsize=LABEL_SIZE)
             title(ax, f"{TASK_LABEL[task]} — {lab}")
-    fig.suptitle("Block C: selection pressure against collapse and causal size",
+    suptitle(fig, "Block C: selection pressure against collapse and causal size",
                  x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE)
     # Each row carries its own x axis, so the gap has to clear a tick row and
     # the next panel's heading.
@@ -391,7 +392,7 @@ def propagation_grid(summary: list[dict], out: Path) -> Path | None:
         title(ax, TASK_LABEL[task])
     np.atleast_1d(axes)[0].set_ylabel(
         "sealed-test accuracy", color=INK2, fontsize=LABEL_SIZE)
-    fig.suptitle(
+    suptitle(fig,
         "Block B: propagation rule x fitness split, separated. Colour is the "
         "propagation rule; the pair is the split it was scored on.\n"
         "The red figure under a bar is the share of that cell's runs that "

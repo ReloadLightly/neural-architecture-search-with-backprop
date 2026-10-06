@@ -45,23 +45,24 @@ from .conditions import CORE_CONDITIONS, SUCCESS_THRESHOLD  # noqa: E402
 
 from .style import (  # noqa: E402
     ANNOT_SIZE,
+    colour_of,
     CONTROL_MATCHED,
     GRID,
     INK,
     INK2,
     OP_COLOUR,
+    parity,
     RULE,
+    save,
     SEARCH_PRIMARY,
     SEARCH_SECONDARY,
+    style_axes,
+    suptitle,
     SURFACE,
     TASK_LABEL,
     TICK_SIZE,
-    TITLE_SIZE,
-    colour_of,
-    parity,
-    save,
-    style_axes,
     title,
+    TITLE_SIZE,
     vparity,
 )
 
@@ -109,7 +110,7 @@ def _fig(nrows=1, ncols=1, figsize=(6.6, 4.2)):
 def _headline(fig, text: str) -> None:
     """The figure-level title, set like every other title here: a sentence,
     flush left, in the shared size."""
-    fig.suptitle(text, x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE)
+    suptitle(fig, text, x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE)
 
 
 def _shared_ylabel(axes, text: str) -> None:

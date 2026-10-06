@@ -49,6 +49,7 @@ OUT = ROOT / "docs" / "figures"
 
 from bpneat.style import (  # noqa: E402
     ANNOT_SIZE,
+    boundary_cmap,
     CLASS_COLOURS,
     GRID,
     INK,
@@ -57,19 +58,20 @@ from bpneat.style import (  # noqa: E402
     LEGEND_SIZE,
     NEUTRAL,
     OP_COLOUR,
+    panel,
+    ramp,
     REFERENCE,
+    save,
+    style_axes,
+    suptitle,
     SURFACE,
     TASK_LABEL,
     TICK_SIZE,
+    title,
     TITLE_SIZE,
     WEIGHT_NEG,
     WEIGHT_POS,
-    boundary_cmap,
-    panel,
-    ramp,
-    save,
-    style_axes,
-    title,
+    wrap_to,
 )
 
 #: Class 0 -> cool, class 1 -> warm, through a near-white midpoint. Two hues
@@ -142,11 +144,17 @@ def boundary_key(fig, y: float = 0.05) -> None:
              fontsize=LABEL_SIZE, color=INK2)
     fig.text(0.605, mid, "predicts class 1", ha="left", va="center",
              fontsize=LABEL_SIZE, color=INK2)
-    fig.text(0.5, y - 0.19 / height,
-             "the near-white middle of the ramp is the model undecided; the dark "
-             "line is the 0.5 contour; dots are training points, coloured by "
-             "their true class",
-             ha="center", va="center", fontsize=ANNOT_SIZE, color=INK2)
+    # Wrapped to the figure, not to a character count: this one line was the
+    # last artist still pushing a tight-cropped figure past the page.
+    caption = wrap_to(
+        "the near-white middle of the ramp is the model undecided; the dark "
+        "line is the 0.5 contour; dots are training points, coloured by "
+        "their true class",
+        fig.get_size_inches()[0] - 0.3, ANNOT_SIZE, fig,
+    )
+    fig.text(0.5, y - 0.19 / height, caption,
+             ha="center", va="center", fontsize=ANNOT_SIZE, color=INK2,
+             linespacing=1.45)
 
 
 def _draw_boundary(ax, champ: Champion, show_points: bool = True):
@@ -201,7 +209,7 @@ def fig_decision_boundaries(out: Path) -> Path:
                 ax.set_ylabel(TASK_LABEL[task], fontsize=LABEL_SIZE, color=INK,
                               labelpad=7)
     # The headline is a sentence, flush left like every other title here.
-    fig.suptitle(
+    suptitle(fig,
         "What the search actually built — the median champion's decision boundary\n"
         "Sealed-test accuracy under each panel. Median replicate of 30, never the best.",
         x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
@@ -293,14 +301,24 @@ def fig_champion_networks(out: Path) -> Path:
         plt.Line2D([], [], color=GRID, linewidth=1.2,
                    label="represented but never reaches the output"),
     ]
-    fig.legend(handles=handles, fontsize=LEGEND_SIZE, frameon=False, ncol=6,
-               loc="lower center")
-    fig.suptitle(
+    # Columns chosen by measurement, not by eye: at six columns this legend
+    # was 7.7 inches wide on a 6.6-inch figure, and a tight crop grows the page
+    # to fit a legend rather than wrapping it.
+    for ncol in range(6, 1, -1):
+        legend = fig.legend(handles=handles, fontsize=LEGEND_SIZE, frameon=False,
+                            ncol=ncol, loc="lower center")
+        fig.canvas.draw()
+        if legend.get_window_extent().width / fig.dpi <= fig.get_size_inches()[0] - 0.2:
+            break
+        legend.remove()
+    suptitle(fig,
         "The networks themselves. Edge width is |weight|; a hollow node and a pale\n"
         "edge are structure the genome carries that never reaches the output.",
         x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    return _save(fig, out, top=0.80, bottom=0.17, left=0.02, right=0.98,
+    # The networks draw their own axes, whose tick labels sit outside the
+    # panel; the margins have to hold them or the tight crop grows the page.
+    return _save(fig, out, top=0.80, bottom=0.17, left=0.10, right=0.90,
                  wspace=0.05, hspace=0.30)
 
 
@@ -339,13 +357,13 @@ def fig_mechanism_boundaries(out: Path) -> Path:
             if ci == 0:
                 ax.set_ylabel(TASK_LABEL[task], fontsize=LABEL_SIZE, color=INK,
                               labelpad=7)
-    fig.suptitle(
+    suptitle(fig,
         "What each NEAT mechanism changes about the function it finds\n"
         "Median champion of 30 replicates; accuracy under each panel.",
         x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
     boundary_key(fig)
-    return _save(fig, out, top=0.78, bottom=0.17, left=0.06, right=0.99,
+    return _save(fig, out, top=0.78, bottom=0.17, left=0.09, right=0.96,
                  wspace=0.07, hspace=0.30)
 
 
@@ -440,7 +458,7 @@ def fig_operator_usage(out: Path) -> Path:
                for t, (c, m) in style.items()]
     fig.legend(handles=handles, fontsize=LEGEND_SIZE, frameon=False, ncol=3,
                loc="lower center", bbox_to_anchor=(0.5, -0.005))
-    fig.suptitle(
+    suptitle(fig,
         "Which operators the search selects — and what the published description "
         "predicts (*)\n"
         "Fraction of causally active hidden nodes. Three protocols, disjoint seeds, "

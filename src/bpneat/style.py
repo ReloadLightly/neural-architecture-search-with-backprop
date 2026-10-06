@@ -225,9 +225,45 @@ def figure(nrows: int = 1, ncols: int = 1, figsize=(6.6, 3.4), grid_axis="y") ->
     return fig, axes
 
 
+def wrap_to(text: str, inches: float, size: float, fig) -> str:
+    """``text`` broken to fit ``inches``, measured in this figure's renderer.
+
+    Counting characters does not work: the same 90 characters are 6.0 inches
+    of lowercase and 10.4 of capitals at this size. So the string is drawn
+    once, invisibly, and its real width per character decides the wrap.
+    """
+    import textwrap
+
+    flat = " ".join(text.split())
+    if not flat:
+        return text
+    probe = fig.text(0.0, 0.0, flat, fontsize=size)
+    try:
+        renderer = fig.canvas.get_renderer()
+    except AttributeError:  # pragma: no cover - non-Agg backends
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+    per_char = probe.get_window_extent(renderer).width / fig.dpi / len(flat)
+    probe.remove()
+    columns = max(12, int(max(inches, 0.5) / max(per_char, 1e-6)))
+    lines: list[str] = []
+    for paragraph in text.split("\n"):
+        lines.extend(textwrap.wrap(paragraph.strip(), columns) or [""])
+    return "\n".join(lines)
+
+
 def title(ax, text: str) -> None:
-    """A title is a left-aligned sentence that says what the panel shows."""
-    ax.set_title(text, loc="left", color=INK, fontsize=TITLE_SIZE)
+    """A title is a left-aligned sentence that says what the panel shows.
+
+    Wrapped to the width of its own axes. A left-aligned axes title runs
+    rightwards from the axes' left edge with nothing to stop it, so a long one
+    used to push the tight-cropped figure past the page — the same defect as an
+    over-long figure title, in a different place.
+    """
+    fig = ax.get_figure()
+    width = ax.get_position().width * fig.get_size_inches()[0]
+    ax.set_title(wrap_to(text, width, TITLE_SIZE, fig), loc="left", color=INK,
+                 fontsize=TITLE_SIZE)
 
 
 def parity(ax, y: float = 0.0, label: str | None = None) -> None:
@@ -289,11 +325,131 @@ def save(fig, path, **adjust) -> Any:
 
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    needed = getattr(fig, "_bpneat_title_top", None)
+    if needed is not None:
+        adjust["top"] = min(adjust.get("top", 1.0), needed)
     if adjust:
         fig.subplots_adjust(**adjust)
+    _fit_to_the_page(fig, path)
     fig.savefig(path, dpi=DPI, facecolor=SURFACE, bbox_inches="tight")
     plt.close(fig)
     return path
+
+
+#: The widest a figure may be saved. GitHub renders a README image at about
+#: 870 px whatever its real width, so a figure saved at 8 inches arrives with
+#: its 7.5pt tick labels at about 2pt. 6.8 inches at 200 dpi is 1360 px, which
+#: is the sister project's register and the one this repository keeps.
+MAX_FIGURE_WIDTH_IN = 6.8
+
+
+def _tight_width(fig) -> float:
+    try:
+        renderer = fig.canvas.get_renderer()
+    except AttributeError:  # pragma: no cover - non-Agg backends
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+    bbox = fig.get_tightbbox(renderer)
+    return float("nan") if bbox is None else bbox.width
+
+
+def _fit_to_the_page(fig, path) -> None:
+    """Pull the panels in until the whole figure fits the page, or say why not.
+
+    ``savefig.bbox="tight"`` crops to the ink, which means it also *grows* the
+    saved image when an artist sits outside the figure — a long row label, a
+    key, a title line four characters too long. The figsize literal then says
+    6.6 inches while the file is 7.9, and nothing notices until a reader cannot
+    read it. GitHub then renders both at the same 870 px, so the wider one
+    arrives with smaller type: this is one of the two reasons the figures here
+    were once illegible, and the other was colour.
+
+    So the tight box is measured before the write, and when it overflows, the
+    overflow is taken out of the panel area rather than added to the page. Only
+    a figure that still does not fit once its margins have been widened three
+    times raises, and then the message says by how much and where from.
+    """
+    width = fig.get_size_inches()[0]
+    for _ in range(3):
+        tight = _tight_width(fig)
+        if not tight == tight or tight <= MAX_FIGURE_WIDTH_IN + 0.02:
+            return
+        over = (tight - min(width, MAX_FIGURE_WIDTH_IN)) / width
+        sp = fig.subplotpars
+        left = min(0.45, sp.left + over * 0.6)
+        right = max(0.55, sp.right - over * 0.4)
+        if left >= right:
+            break
+        fig.subplots_adjust(left=left, right=right)
+    # Some overflow is not in the panel area at all — a key or a caption placed
+    # in figure coordinates does not move when the panels do. Shrinking the
+    # canvas moves it in proportion, so that is the second thing tried.
+    for _ in range(3):
+        tight = _tight_width(fig)
+        if not tight == tight or tight <= MAX_FIGURE_WIDTH_IN + 0.02:
+            return
+        w, h = fig.get_size_inches()
+        fig.set_size_inches(w * (MAX_FIGURE_WIDTH_IN / tight), h)
+
+    tight = _tight_width(fig)
+    if tight == tight and tight > MAX_FIGURE_WIDTH_IN + 0.02:
+        raise ValueError(
+            f"{path}: {tight:.2f}in wide once tight-cropped, over the "
+            f"{MAX_FIGURE_WIDTH_IN}in page, and widening its margins did not "
+            f"recover it. The figsize is {width:.2f}in, so {tight - width:.2f}in "
+            "of it is an artist outside the figure — a row label, a key or a "
+            "title. Give it fewer columns or a shorter label."
+        )
+
+
+def suptitle(fig, text: str, color: str = INK, fontsize: float | None = None, **kw):
+    """A left-aligned figure title that cannot be wider than its figure.
+
+    The defect this replaces: titles were broken into lines by hand, by
+    counting characters. A line that was four characters too long made
+    ``savefig.bbox="tight"`` grow the saved image past the figure width, and a
+    figure saved at 8 inches and rendered by GitHub at the same 870 px as one
+    saved at 6.6 arrives with its tick labels a fifth smaller. That is one of
+    the two reasons the figures in this repository were once illegible, and
+    counting characters is not a fix — measuring is.
+
+    So the text is measured in the figure's own renderer, at the size it will
+    actually be drawn, and wrapped to fit. Explicit newlines are kept as hard
+    breaks, so a title that is already laid out the way its author wants keeps
+    that layout unless a line of it genuinely does not fit.
+    """
+    import textwrap
+
+    size = TITLE_SIZE if fontsize is None else fontsize
+    kw.pop("x", None)
+    kw.pop("ha", None)
+    flat = " ".join(text.split())
+    probe = fig.text(0.0, 0.0, flat, fontsize=size)
+    try:
+        renderer = fig.canvas.get_renderer()
+    except AttributeError:  # pragma: no cover - non-Agg backends
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+    per_char = probe.get_window_extent(renderer).width / fig.dpi / max(len(flat), 1)
+    probe.remove()
+    usable = fig.get_size_inches()[0] - 0.22
+    columns = max(24, int(usable / max(per_char, 1e-6)))
+
+    lines: list[str] = []
+    for paragraph in text.split("\n"):
+        lines.extend(textwrap.wrap(paragraph.strip(), columns) or [""])
+    artist = fig.suptitle("\n".join(lines), color=color, fontsize=size,
+                          x=0.0, ha="left", **kw)
+    # However many lines that came to, the panels have to start below them.
+    # Stored rather than applied, because a caller's `save(..., top=...)` runs
+    # after this and would otherwise overwrite it; `save` takes whichever of
+    # the two leaves more room.
+    # 0.98 is where matplotlib hangs a suptitle from; the 0.26in below it is
+    # room for a panel title, which is drawn above its axes and so sits in the
+    # gap rather than inside it.
+    height = artist.get_window_extent(renderer).height / fig.dpi
+    fig._bpneat_title_top = 0.98 - (height + 0.26) / fig.get_size_inches()[1]
+    return artist
 
 
 def pale(colour: str, amount: float = 0.74):

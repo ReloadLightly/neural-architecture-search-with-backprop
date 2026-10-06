@@ -42,6 +42,7 @@ from ..style import (  # noqa: E402
     dot,
     parity,
     save,
+    suptitle,
     title,
     vparity,
     within,
@@ -182,7 +183,7 @@ def fig_complexification(runs: list[dict], out: Path) -> Path:
     # seven put "fixed net (matched budget)" half outside the figure.
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, ncol=3, loc="lower center")
-    fig.suptitle(
+    suptitle(fig,
         "Do the topologies augment? Mean population size over the run,\n"
         "at one shared evaluation budget.\n"
         f"{_BAND_NAME[SEARCH_PRIMARY].capitalize()}: both brakes on, the "
@@ -242,7 +243,7 @@ def fig_size_vs_accuracy(comp: list[dict], out: Path) -> Path:
             h2.append(h)
             l2.append(lab)
     fig.legend(h2, l2, ncol=3, loc="lower center")
-    fig.suptitle("Bigger is not better: champion size against what it scored",
+    suptitle(fig, "Bigger is not better: champion size against what it scored",
                  color=INK, fontsize=TITLE_SIZE, x=left, ha="left")
     return save(fig, out, top=0.912, bottom=0.135, left=left, right=0.985,
                 hspace=0.46)
@@ -391,7 +392,7 @@ def fig_accuracy(summary: list[dict], out: Path) -> Path:
         ax.set_xlim(chance - 0.02, 1.05)
         ax.set_xticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
         title(ax, TASK_LABEL[task])
-    fig.suptitle(
+    suptitle(fig,
         "Sealed-test accuracy by condition.\n"
         f"{_BAND_NAME[SEARCH_PRIMARY].capitalize()} is the reference, with both "
         f"brakes on; {_BAND_NAME[SEARCH_SECONDARY]} released a brake\n"
