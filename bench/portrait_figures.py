@@ -38,26 +38,29 @@ V4 = ROOT / "results" / "backprop-neat-v4"
 V5 = ROOT / "results" / "backprop-neat-v5"
 OUT = ROOT / "docs" / "figures"
 
-SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e3e2df"
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
+from bpneat.style import (  # noqa: E402
+    CLASS_COLOURS,
+    DPI,
+    GRID,
+    INK,
+    INK2,
+    OP_COLOUR,
+    SERIES,
+    SURFACE,
+    boundary_cmap,
+    panel,
+    style_axes,
+)
 
 #: Class 0 -> blue, class 1 -> orange, through a near-neutral midpoint. Two
 #: hues with a neutral middle is the diverging rule; the midpoint is the
 #: decision boundary, so it has to read as "undecided" rather than as a colour.
-BOUNDARY_CMAP = LinearSegmentedColormap.from_list(
-    "bpneat_boundary", ["#2a78d6", "#dcdcd8", "#eb6834"]
-)
+BOUNDARY_CMAP = boundary_cmap()
 
-TASK_LABEL = {"xor": "XOR", "circle": "Circles", "spiral": "Spirals",
-              "checkerboard": "Checkerboard", "spiral3": "3-arm spiral"}
+from bpneat.style import TASK_LABEL  # noqa: E402
 
 #: Operators get their own fixed hue order, never cycled; structural nodes are
 #: grey because they are not an operator choice.
-OP_COLOUR = {
-    "tanh": SERIES[0], "relu": SERIES[1], "sigmoid": SERIES[2],
-    "gaussian": SERIES[3], "sin": SERIES[4], "abs": SERIES[5],
-    "square": "#7b5cd6", "mult": "#b0531f", "add": "#3f8f8f", "null": "#9a9a95",
-}
 
 
 def _load(release: Path) -> tuple[list[dict], dict[str, dict]]:
@@ -113,7 +116,7 @@ def _draw_boundary(ax, champ: Champion, show_points: bool = True):
                colors=[INK], linewidths=1.1, alpha=0.75)
     if show_points:
         X, y = field["train_X"], field["train_y"]
-        for cls, colour in ((0.0, "#1b4f8f"), (1.0, "#8f3a12")):
+        for cls, colour in zip((0.0, 1.0), CLASS_COLOURS):
             m = y == cls
             ax.scatter(X[m, 0], X[m, 1], s=5.5, c=colour, linewidths=0.4,
                        edgecolors="white", alpha=0.9, zorder=3)
@@ -157,7 +160,7 @@ def fig_decision_boundaries(out: Path) -> Path:
     OUT.mkdir(parents=True, exist_ok=True)
     fig.subplots_adjust(top=0.86, bottom=0.05, left=0.055, right=0.99,
                         wspace=0.07, hspace=0.16)
-    fig.savefig(out, dpi=170, facecolor=SURFACE)
+    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
     return out
@@ -243,7 +246,7 @@ def fig_champion_networks(out: Path) -> Path:
     fig.subplots_adjust(top=0.84, bottom=0.17, left=0.02, right=0.98,
                         wspace=0.05, hspace=0.30)
     OUT.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out, dpi=170, facecolor=SURFACE)
+    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
     return out
@@ -291,7 +294,7 @@ def fig_mechanism_boundaries(out: Path) -> Path:
     fig.subplots_adjust(top=0.86, bottom=0.05, left=0.06, right=0.99,
                         wspace=0.07, hspace=0.16)
     OUT.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out, dpi=170, facecolor=SURFACE)
+    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
     return out
@@ -304,7 +307,7 @@ def fig_task_geometries(out: Path) -> Path:
                              facecolor=SURFACE)
     for ax, task in zip(axes, tasks):
         b = make_bundle(task, seed=50001)
-        for cls, colour in ((0.0, "#1b4f8f"), (1.0, "#8f3a12")):
+        for cls, colour in zip((0.0, 1.0), CLASS_COLOURS):
             m = b.train.y == cls
             ax.scatter(b.train.X[m, 0], b.train.X[m, 1], s=9, c=colour,
                        linewidths=0.3, edgecolors="white", alpha=0.95)
@@ -315,7 +318,7 @@ def fig_task_geometries(out: Path) -> Path:
                  color=INK, fontsize=11.5)
     fig.subplots_adjust(top=0.76, bottom=0.04, left=0.01, right=0.99, wspace=0.08)
     OUT.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out, dpi=170, facecolor=SURFACE)
+    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
     return out
@@ -402,7 +405,7 @@ def fig_operator_usage(out: Path) -> Path:
     )
     fig.subplots_adjust(top=0.84, bottom=0.14, left=0.085, right=0.99, wspace=0.42)
     OUT.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out, dpi=170, facecolor=SURFACE)
+    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
     return out

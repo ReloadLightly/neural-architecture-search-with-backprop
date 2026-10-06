@@ -43,16 +43,20 @@ from bpneat.v5.conditions import config_for  # noqa: E402
 from bpneat.v5.search import _reproduce  # noqa: E402
 
 OUT = ROOT / "docs" / "figures"
-SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e3e2df"
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
-BOUNDARY_CMAP = LinearSegmentedColormap.from_list(
-    "bpneat_boundary", ["#2a78d6", "#dcdcd8", "#eb6834"]
+from bpneat.style import (  # noqa: E402
+    CLASS_COLOURS,
+    DPI,
+    GRID,
+    INK,
+    INK2,
+    OP_COLOUR,
+    SERIES,
+    SURFACE,
+    boundary_cmap,
+    panel,
+    style_axes,
 )
-OP_COLOUR = {
-    "tanh": SERIES[0], "relu": SERIES[1], "sigmoid": SERIES[2],
-    "gaussian": SERIES[3], "sin": SERIES[4], "abs": SERIES[5],
-    "square": "#7b5cd6", "mult": "#b0531f", "add": "#3f8f8f", "null": "#9a9a95",
-}
+BOUNDARY_CMAP = boundary_cmap()
 
 DATASET_SEED = 9003
 SEARCH_SEED = 19003
@@ -130,7 +134,7 @@ def render(bundle, frames, out: Path, fps: int = 3) -> Path:
             ax_b.contour(field["xx"], field["yy"], field["prob"], levels=[0.5],
                          colors=[INK], linewidths=1.1, alpha=0.75)
             X, y = field["train_X"], field["train_y"]
-            for cls, colour in ((0.0, "#1b4f8f"), (1.0, "#8f3a12")):
+            for cls, colour in zip((0.0, 1.0), CLASS_COLOURS):
                 m = y == cls
                 ax_b.scatter(X[m, 0], X[m, 1], s=6, c=colour, linewidths=0.4,
                              edgecolors="white", alpha=0.9, zorder=3)

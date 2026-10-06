@@ -15,6 +15,18 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
+from ..style import (  # noqa: E402
+    BAD,
+    DPI,
+    GOOD,
+    GRID,
+    INK,
+    INK2,
+    NEUTRAL,
+    SERIES,
+    SURFACE,
+    style_axes,
+)
 from .analysis import (  # noqa: E402
     REFERENCE,
     block_effects,
@@ -24,10 +36,6 @@ from .analysis import (  # noqa: E402
     summarise,
 )
 from .datasets import TASKS, make_bundle  # noqa: E402
-
-SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e3e2df"
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
-GOOD, BAD, NEUTRAL = "#1baf7a", "#e34948", "#c9c8c3"
 
 LABEL = {
     "backprop_neat": "Backprop-NEAT",
@@ -43,19 +51,11 @@ LABEL = {
     "prop_settled_fit_train": "settled / train",
     "baldwinian": "Baldwinian",
 }
-TASK_LABEL = {"xor": "XOR", "circle": "Circles", "spiral": "Spirals",
-              "checkerboard": "Checkerboard", "spiral3": "3-arm spiral"}
+from ..style import TASK_LABEL  # noqa: E402
 
 
 def _style(ax):
-    ax.set_facecolor(SURFACE)
-    for s in ("top", "right"):
-        ax.spines[s].set_visible(False)
-    for s in ("left", "bottom"):
-        ax.spines[s].set_color(GRID)
-    ax.tick_params(colors=INK2, labelsize=8, length=0)
-    ax.grid(axis="y", color=GRID, linewidth=0.8)
-    ax.set_axisbelow(True)
+    style_axes(ax)
 
 
 def _fig(nrows=1, ncols=1, figsize=(10, 4.2)):
@@ -71,7 +71,7 @@ def _save(fig, path: Path, **kw):
         fig.subplots_adjust(**kw)
     else:
         fig.tight_layout()
-    fig.savefig(path, dpi=170, facecolor=SURFACE)
+    fig.savefig(path, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     return path
 

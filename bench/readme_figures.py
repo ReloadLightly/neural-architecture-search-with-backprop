@@ -34,12 +34,22 @@ V3 = ROOT / "results" / "backprop-neat-v3"
 V4 = ROOT / "results" / "backprop-neat-v4"
 OUT = ROOT / "docs" / "figures"
 
-SURFACE, INK, INK2, GRID = "#fcfcfb", "#0b0b0b", "#52514e", "#e3e2df"
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
+from bpneat.style import (  # noqa: E402
+    CLASS_COLOURS,
+    DPI,
+    GRID,
+    INK,
+    INK2,
+    OP_COLOUR,
+    SERIES,
+    SURFACE,
+    boundary_cmap,
+    panel,
+    style_axes,
+)
 
 TASKS = ("xor", "circle", "spiral", "checkerboard", "spiral3")
-TASK_LABEL = {"xor": "XOR", "circle": "Circles", "spiral": "Spirals",
-              "checkerboard": "Checkerboard", "spiral3": "3-arm spiral"}
+from bpneat.style import TASK_LABEL  # noqa: E402
 
 #: Ha (2016), Figure 10.3, spirals champion. A published target, never pooled
 #: with anything measured here.
@@ -70,7 +80,7 @@ def _save(fig, name: str, **kw):
         fig.subplots_adjust(**kw)
     else:
         fig.tight_layout()
-    fig.savefig(path, dpi=180, facecolor=SURFACE)
+    fig.savefig(path, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {path.relative_to(ROOT)}")
     return path

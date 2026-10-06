@@ -24,13 +24,9 @@ from .analysis import load_final_test, load_runs, operation_usage, paired_effect
 from .conditions import CORE_CONDITIONS, SUCCESS_THRESHOLD  # noqa: E402
 from .datasets import make_bundle  # noqa: E402
 
-SURFACE = "#fcfcfb"
-INK = "#0b0b0b"
-INK_2 = "#52514e"
-GRID = "#e3e2df"
-
-# Validated categorical order (light mode).
-SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
+from .style import DPI, GRID, INK, SERIES, SURFACE  # noqa: E402
+from .style import INK2 as INK_2  # noqa: E402  (this module's long-standing name)
+from .style import style_axes  # noqa: E402
 CONDITION_COLOR = dict(zip(CORE_CONDITIONS, SERIES))
 LABEL = {
     "backprop_neat": "Backprop-NEAT",
@@ -40,19 +36,12 @@ LABEL = {
     "fixed_mlp": "Fixed MLP",
     "logistic": "Logistic",
 }
-TASK_LABEL = {"xor": "XOR", "circle": "Circles", "spiral": "Spirals"}
+from .style import TASK_LABEL  # noqa: E402
 TASKS = ("xor", "circle", "spiral")
 
 
 def _style(ax) -> None:
-    ax.set_facecolor(SURFACE)
-    for side in ("top", "right"):
-        ax.spines[side].set_visible(False)
-    for side in ("left", "bottom"):
-        ax.spines[side].set_color(GRID)
-    ax.tick_params(colors=INK_2, labelsize=9, length=0)
-    ax.grid(axis="y", color=GRID, linewidth=0.8)
-    ax.set_axisbelow(True)
+    style_axes(ax)
 
 
 def _cat_axis(ax, x, conds) -> None:
@@ -80,7 +69,7 @@ def _save(fig, path: Path, bottom: float | None = None) -> Path:
         # Rotated category labels overflow the axes, so reserve the margin
         # explicitly instead of letting tight_layout fight the annotations.
         fig.subplots_adjust(bottom=bottom, top=0.84, left=0.075, right=0.985, wspace=0.22)
-    fig.savefig(path, dpi=170, facecolor=SURFACE)
+    fig.savefig(path, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     return path
 
