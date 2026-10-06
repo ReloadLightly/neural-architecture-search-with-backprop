@@ -445,7 +445,108 @@ Three of five failed. Had H1 and H2 failed instead, v2's claims would have been
 restored and this paper would report that; the preregistration was written to
 make either outcome publishable.
 
-# 7 Limitations
+# 7 Protocol v4: is it the algorithm, or the protocol?
+
+§6 is a result about one algorithm, and it invites one objection above all
+others: that Backprop-NEAT is simply weak, or unusually dependent on an
+undertrained control, and that a better topology search would not behave this
+way. The objection is reasonable. It is also testable, and v4 tests it.
+
+v4 asks a single question. **Is the sign of a search-versus-fixed comparison set
+by the budget protocol, or by the search algorithm?** If the protocol sets it,
+then a second, independently derived search put through the same controls
+reverses in the same places. If the algorithm sets it, the two disagree.
+
+## 7.1 The second algorithm
+
+We use Cartesian Genetic Programming (Miller & Thomson 2000; Miller 2020) with
+gradient-trained candidates. CGP was chosen because it differs from
+Backprop-NEAT in both of the places an evolutionary algorithm can differ — how a
+solution is represented, and how the population moves — rather than in one.
+
+| | Backprop-NEAT | CGP |
+|---|---|---|
+| Genotype | variable length, grows by mutation | fixed length, 48 function nodes |
+| Phenotype | the whole genome | the subgraph the output gene reaches |
+| Structural history | innovation numbers | none |
+| Recombination | crossover within species | none |
+| Population | 100, five species, whole-population replacement | 1 parent + 4 offspring |
+| Selection | fitness-proportionate roulette, slack 0.01 | best offspring replaces parent on `>=` |
+| Drift mechanism | weak selection on a large population | neutral acceptance of equal-fitness offspring |
+| Seed | logistic regression | a uniform random graph |
+
+The `>=` in that table is the mechanism, not a detail. An offspring whose active
+phenotype is unchanged but whose inactive genes have moved scores exactly the
+same and is accepted, so the genotype random-walks through neutral space at
+constant fitness and a single later mutation can switch on a region that took
+many mutations to assemble. This is CGP's answer to the problem NEAT solves with
+innovation numbers and weak selection, and it is a different answer: the
+genotype-phenotype map leaves most genes inactive by design (Goldman & Punch
+2015), and the drift through them measurably aids escape from local optima
+(Turner & Miller 2015). Attaching a weight to every connection gene follows the
+CGPANN line (Khan et al. 2013), and makes the weights part of the genotype, so an
+offspring inherits its parent's *trained* weights for every gene it does not
+mutate — the direct analogue of Backprop-NEAT's Lamarckian inheritance.
+
+Everything that is not the search algorithm is held identical to §6's reference
+condition: the five geometries, the inner learner (RMSProp under Ha's rollback
+rule, 600 nominal updates, batch 10), the penalised validation fitness, weight
+inheritance, and the candidate budget — `population × (generations + 1)`, which
+is 1100 on XOR and circles and 2100 on the three hard geometries. CGP spends
+exactly λ = 4 candidate evaluations per generation and never re-evaluates its
+parent, so the budgets are comparable rather than nominally equal.
+
+Two restrictions, declared in the preregistration rather than discovered
+afterwards. CGP's operator set is the eight operators our dense evaluator can
+express, excluding `mult`, which aggregates by product; this matters because a
+48-node CGP row can decode to a chain deeper than the frozen evaluator's
+16-tick settling bound, where it would silently return a value taken before the
+deepest nodes had run, and the dense evaluator is exact at any depth. And every
+v4 condition is evaluated under settled propagation, as §6's reference is. We do
+not assume Ha's asynchronous rule would be safe here: on 300 random genotypes,
+11 decoded phenotypes return a constant zero under it and all 300 are alive
+under settling.
+
+## 7.2 Design, and why the test data is new
+
+Eight conditions, five geometries, thirty replicates: **1200 runs across 150
+cells**, where a cell is one (task, replicate) and is the unit of sharding,
+because the matched arms need the budget a reference actually spent in that same
+cell.
+
+| Condition | Role |
+|---|---|
+| `bpneat` | the released v3 Backprop-NEAT, re-run unchanged. Reference 1 |
+| `cgp` | CGP (1+4) with neutral drift. Reference 2 |
+| `fixed_tanh_ha` | 32×32 tanh MLP, 60 restarts, Ha's rollback rule — the unmatched control of §4.2. Shared |
+| `fixed_tanh_matched_bpneat` | the same MLP at `bpneat`'s realized budget, no rollback |
+| `fixed_mixed_matched_bpneat` | heterogeneous operators at `bpneat`'s realized budget |
+| `fixed_tanh_matched_cgp` | the same MLP at `cgp`'s realized budget |
+| `fixed_mixed_matched_cgp` | heterogeneous operators at `cgp`'s realized budget |
+| `cgp_random_matched` | CGP genotypes drawn rather than selected, matched on candidates |
+
+Each algorithm gets **its own** matched arms. The two do not spend the same
+gradient budget, and a single shared matched arm would quietly favour whichever
+algorithm spent less — the same class of mistake as §4.2, one level up.
+
+v3's sealed test was opened once, on the splits its dataset seeds generate.
+Reusing them here would make v4's test numbers a second look at data already
+spent confirming a result, so v4 draws thirty entirely new replicates and the
+burned-seed set now contains every seed v1, v2 and v3 spent. The cost is real
+and we accept it explicitly: **v4 and v3 are not paired, and no v4 number may be
+compared with a v3 number by a statistical test.** Every v4 claim is a within-v4
+paired contrast. The comparison to v3 is qualitative — does the same thing
+happen — and is written that way throughout. The benefit is that v4's headline is
+an out-of-sample replication rather than a reanalysis.
+
+Inference is pre-declared as two families, Holm-corrected within each and never
+pooled: 35 tests anchored on `bpneat`, 25 anchored on `cgp`. A reproducibility
+bridge re-runs v3's `backprop_neat` on the first ten v3 replicates of every task
+under v4's code and compares champion topology, champion weights, realized
+gradient steps and every validation metric to the committed records. The bridge
+reads no test split, enters no table, and is a gate rather than a result.
+
+# 8 Limitations
 
 **Two-dimensional synthetic tasks.** All five geometries are 2-D binary
 classification. The genome encoding fixes two input nodes in a module frozen by
@@ -472,7 +573,7 @@ characterise tails. Collapse rates in particular are proportions estimated from
 It is a demonstration that the operator prior, not the search, can account for
 a result that was attributed to search.
 
-# 8 Conclusion
+# 9 Conclusion
 
 We set out to measure a neuroevolution algorithm and twice measured our own
 evaluator instead. Both times the responsible choice — a selection operator, a
@@ -501,16 +602,27 @@ answer the question.
 - Engstrom, L., Ilyas, A., Santurkar, S., Tsipras, D., Janoos, F., Rudolph, L.,
   & Madry, A. (2020). *Implementation Matters in Deep Policy Gradients: A Case
   Study on PPO and TRPO.* ICLR 2020. arXiv:2005.12729.
+- Goldman, B. W., & Punch, W. F. (2015). *Analysis of Cartesian Genetic
+  Programming's Evolutionary Mechanisms.* IEEE Transactions on Evolutionary
+  Computation 19(3), 359–373.
 - Ha, D. (2016). *Neural Network Evolution Playground with Backprop NEAT.*
   blog.otoro.net. Source: `github.com/hardmaru/backprop-neat-js`.
 - Henderson, P., Islam, R., Bachman, P., Pineau, J., Precup, D., & Meger, D.
   (2018). *Deep Reinforcement Learning that Matters.* AAAI 2018.
+- Khan, M. M., Ahmad, A. M., Khan, G. M., & Miller, J. F. (2013). *Fast learning
+  neural networks using Cartesian genetic programming.* Neurocomputing 121,
+  274–289. doi:10.1016/j.neucom.2013.04.005
 - Löchli, R. (2026). *Competitive coevolution of slimes.*
   `github.com/ReloadLightly/competitive-coevolution-of-slimes`. Cited only from
   that repository's own release files.
 - Merry, M., Riddle, P., & Warren, J. (2024). *PropNEAT — Efficient
   GPU-Compatible Backpropagation over Neuroevolutionary Augmenting Topology
   Networks.* arXiv:2411.03726.
+- Miller, J. F. (2020). *Cartesian Genetic Programming: its status and future.*
+  Genetic Programming and Evolvable Machines 21(1–2), 129–168.
+  doi:10.1007/s10710-019-09360-6
+- Miller, J. F., & Thomson, P. (2000). *Cartesian Genetic Programming.* EuroGP
+  2000, LNCS 1802, 121–132. doi:10.1007/978-3-540-46239-2_9
 - Oved, T., Pony, R., Naparstek, O., & Barzelay, U. (2026). *Evolution or
   Illusion? Rethinking Evaluation in LLM Evolutionary Search.* IBM Research.
   arXiv:2609.19799.
@@ -518,3 +630,6 @@ answer the question.
   Harnessing Creativity in AI Agent Design*, §10.1. neuroevolutionbook.com.
 - Stanley, K. O., & Miikkulainen, R. (2002). *Evolving Neural Networks through
   Augmenting Topologies.* Evolutionary Computation 10(2), 99–127.
+- Turner, A. J., & Miller, J. F. (2015). *Neutral genetic drift: an investigation
+  using Cartesian Genetic Programming.* Genetic Programming and Evolvable
+  Machines 16(4), 531–558. doi:10.1007/s10710-015-9244-6

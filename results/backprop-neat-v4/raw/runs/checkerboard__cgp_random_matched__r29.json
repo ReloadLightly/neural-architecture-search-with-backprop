@@ -1,0 +1,164 @@
+{
+  "blocks": [
+    "F"
+  ],
+  "champion": {
+    "active": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      4,
+      4,
+      4,
+      5,
+      5,
+      5,
+      6,
+      3,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "add",
+      "sin",
+      "add"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      9,
+      5,
+      9
+    ],
+    "src": [
+      0,
+      1,
+      0,
+      0,
+      2,
+      4,
+      0,
+      5,
+      6
+    ],
+    "weights": [
+      -1.1364093666032038,
+      0.972689836384278,
+      0.11308071739411257,
+      -0.2899193380655947,
+      -1.1292394655569138,
+      1.0140123732814945,
+      -0.05662794695495494,
+      -1.1426934285766612,
+      0.11898074249803166
+    ]
+  },
+  "compute": {
+    "active_fraction": 0.041666666666666664,
+    "active_nodes": 2,
+    "candidate_evaluations": 2100,
+    "cgp_active_nodes": 2,
+    "gradient_steps": 134720,
+    "n_func": 48,
+    "output_is_terminal": false,
+    "wall_time_seconds": 40.869566202163696
+  },
+  "condition": "cgp_random_matched",
+  "config": {
+    "batch_size": 10,
+    "builder": null,
+    "candidate_budget": 2100,
+    "cgp_lambda": null,
+    "cgp_n_func": 48,
+    "generations": null,
+    "generator": "v3",
+    "inner_steps": 600,
+    "kind": "cgp_random",
+    "matched_steps": null,
+    "matched_to": null,
+    "noise": 0.5,
+    "population": null,
+    "restarts": null,
+    "success_threshold": 0.8
+  },
+  "dataset_seed": 50309,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ],
+    "v4": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v4_modules": [
+      "cgp.py",
+      "conditions.py",
+      "learners.py",
+      "protocol.py",
+      "search.py"
+    ]
+  },
+  "history": [],
+  "metrics": {
+    "causal_connections": 9,
+    "causal_hidden_nodes": 3,
+    "causal_nodes": 7,
+    "causal_operators": {
+      "add": 2,
+      "sin": 1
+    },
+    "collapsed": false,
+    "generalization_gap": 0.014999999999999902,
+    "represented_connections": 9,
+    "represented_nodes": 7,
+    "success": false,
+    "train_accuracy": 0.695,
+    "train_loss": 0.6044251985352644,
+    "validation_accuracy": 0.68,
+    "validation_loss": 0.5894840272237856
+  },
+  "protocol_version": "v4",
+  "replicate": 29,
+  "run_id": "checkerboard__cgp_random_matched__r29",
+  "search_seed": 60309,
+  "task": "checkerboard",
+  "test_evaluated": false
+}

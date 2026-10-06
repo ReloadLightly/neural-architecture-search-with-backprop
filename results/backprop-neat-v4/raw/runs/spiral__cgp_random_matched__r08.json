@@ -1,0 +1,164 @@
+{
+  "blocks": [
+    "F"
+  ],
+  "champion": {
+    "active": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      4,
+      4,
+      4,
+      5,
+      5,
+      5,
+      6,
+      3,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sin",
+      "sin",
+      "add"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      5,
+      5,
+      9
+    ],
+    "src": [
+      0,
+      1,
+      1,
+      0,
+      4,
+      2,
+      0,
+      5,
+      6
+    ],
+    "weights": [
+      -0.14472759373181582,
+      -1.193141104690873,
+      -0.812387449784474,
+      0.015699836277747764,
+      1.4900265514162325,
+      0.3328833877947469,
+      -0.015059002988887418,
+      1.5882040476059949,
+      0.6988912076667304
+    ]
+  },
+  "compute": {
+    "active_fraction": 0.041666666666666664,
+    "active_nodes": 2,
+    "candidate_evaluations": 2100,
+    "cgp_active_nodes": 2,
+    "gradient_steps": 132780,
+    "n_func": 48,
+    "output_is_terminal": false,
+    "wall_time_seconds": 41.93869233131409
+  },
+  "condition": "cgp_random_matched",
+  "config": {
+    "batch_size": 10,
+    "builder": null,
+    "candidate_budget": 2100,
+    "cgp_lambda": null,
+    "cgp_n_func": 48,
+    "generations": null,
+    "generator": "ha2016",
+    "inner_steps": 600,
+    "kind": "cgp_random",
+    "matched_steps": null,
+    "matched_to": null,
+    "noise": 0.5,
+    "population": null,
+    "restarts": null,
+    "success_threshold": 0.8
+  },
+  "dataset_seed": 50078,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ],
+    "v4": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v4_modules": [
+      "cgp.py",
+      "conditions.py",
+      "learners.py",
+      "protocol.py",
+      "search.py"
+    ]
+  },
+  "history": [],
+  "metrics": {
+    "causal_connections": 9,
+    "causal_hidden_nodes": 3,
+    "causal_nodes": 7,
+    "causal_operators": {
+      "add": 1,
+      "sin": 2
+    },
+    "collapsed": false,
+    "generalization_gap": 0.020000000000000018,
+    "represented_connections": 9,
+    "represented_nodes": 7,
+    "success": false,
+    "train_accuracy": 0.76,
+    "train_loss": 0.5268608675698057,
+    "validation_accuracy": 0.74,
+    "validation_loss": 0.5367355017279923
+  },
+  "protocol_version": "v4",
+  "replicate": 8,
+  "run_id": "spiral__cgp_random_matched__r08",
+  "search_seed": 60078,
+  "task": "spiral",
+  "test_evaluated": false
+}

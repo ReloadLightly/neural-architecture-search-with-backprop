@@ -1,0 +1,55 @@
+{
+  "complete": true,
+  "conditions": [
+    "bpneat",
+    "cgp",
+    "cgp_random_matched",
+    "fixed_mixed_matched_bpneat",
+    "fixed_mixed_matched_cgp",
+    "fixed_tanh_ha",
+    "fixed_tanh_matched_bpneat",
+    "fixed_tanh_matched_cgp"
+  ],
+  "elapsed_seconds": 1.2608728408813477,
+  "failed": [],
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ],
+    "v4": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v4_modules": [
+      "cgp.py",
+      "conditions.py",
+      "learners.py",
+      "protocol.py",
+      "search.py"
+    ]
+  },
+  "missing": [],
+  "planned": 1200,
+  "present": 1200,
+  "protocol_version": "v4",
+  "test_evaluated": true,
+  "this_shard": {
+    "completed": 0,
+    "skipped": 1200
+  },
+  "unexpected": []
+}
