@@ -167,7 +167,7 @@ def fig_sign_matrix(signs: list[dict], out: Path) -> Path:
         "by algorithm and by budget protocol",
         color=INK, fontsize=11,
     )
-    return _save(fig, out, top=0.86, bottom=0.1, left=0.1, right=0.98, wspace=0.05)
+    return _save(fig, out, top=0.80, bottom=0.1, left=0.1, right=0.98, wspace=0.05)
 
 
 def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
@@ -323,7 +323,9 @@ def fig_budget(budgets: list[dict], out: Path) -> Path:
     ax.set_xticks(range(len(ALL_TASKS)))
     ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
     ax.set_ylabel("gradient updates per run (log)", fontsize=8, color=INK2)
-    ax.legend(fontsize=7, frameon=False, ncol=3, loc="upper left")
+    # The decades below 10^3 are empty on every panel; the key goes there
+    # rather than on top of the bars.
+    ax.legend(fontsize=8, frameon=False, ncol=3, loc="lower center")
     ax.set_title(
         "Realized gradient budget. The unmatched control spends about two orders of "
         "magnitude less than the searches it is compared against.",

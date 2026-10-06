@@ -185,8 +185,11 @@ def budget_vs_accuracy(summary: list[dict], out: Path) -> Path:
             marker = BLOCK_A_STYLE[c]
             x = max(r["gradient_steps_mean"], 1)
             y = r["test_accuracy_mean"]
-            (h,) = ax.plot(x, y, marker, markersize=9, color=colour_of(c),
-                           markeredgecolor=SURFACE, markeredgewidth=1.5)
+            # A star's ink sits inside its bounding box, so at a shared size
+            # it renders about half the weight of a filled circle.
+            (h,) = ax.plot(x, y, marker, markersize=14 if marker == "*" else 9,
+                           color=colour_of(c), markeredgecolor=SURFACE,
+                           markeredgewidth=1.5)
             handles.setdefault(LABEL[c], h)
             if c in ("fixed_mlp_tanh_ha", best_matched):
                 ax.annotate(

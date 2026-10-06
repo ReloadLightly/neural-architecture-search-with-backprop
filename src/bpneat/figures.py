@@ -231,8 +231,10 @@ def operator_usage(runs: list[dict], out: Path, track: str) -> Path:
     for op in ops:
         colour = OP_COLOUR[op]
         vals = np.array([frac[t].get(op, 0.0) for t in TASKS])
+        # A segment's own outline rather than the surface's: the yellow slot
+        # is below 3:1 against the surface and needs relief to be seen at all.
         ax.bar(x, vals, width=0.6, bottom=bottom, color=colour, label=op,
-               edgecolor=SURFACE, linewidth=2)
+               edgecolor=INK_2, linewidth=0.8)
         for xi, (v, b0) in enumerate(zip(vals, bottom)):
             if v > 0.07:
                 ax.text(xi, b0 + v / 2, op, ha="center", va="center", fontsize=8, color=INK)

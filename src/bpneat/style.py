@@ -67,13 +67,43 @@ CLASS_COLOURS = ("#1b4f8f", "#8f3a12")
 WEIGHT_POS = BOUNDARY_COLOURS[0]
 WEIGHT_NEG = BOUNDARY_COLOURS[2]
 
-#: Operators get their own fixed hue order, never cycled. Structural nodes are
-#: grey because bias, input and output are not an operator choice.
+#: Operators are the one genuinely nominal set in this project: nine names with
+#: no order between them, which is the hardest case for colour. Eight of the
+#: nine are Okabe-Ito, the published palette designed for colour-vision
+#: deficiency; the ninth, `square`, extends it with a violet chosen to sit a
+#: lightness step away from Okabe-Ito's blue, which is the pair that would
+#: otherwise converge under protanopia.
+#:
+#: Measured against the previous assignment, which took six of the nine slots
+#: from the categorical series: worst pair under deuteranopia ΔE 2.0 → 12.0
+#: (`tanh` and `square` were, in effect, the same colour for a deuteranope),
+#: under protanopia 6.6 → 8.6, at normal vision 19.7 → 26.4.
+#:
+#: Nine nominal hues cannot all be separable for everyone, and these are not:
+#: `square` against `tanh` under deuteranopia is ΔE 12, which is visible but
+#: not comfortable. So an operator is never identified by colour alone — every
+#: figure that uses these also labels them — and `sigmoid`, Okabe-Ito's yellow,
+#: is below 3:1 against the surface and is therefore always drawn with relief:
+#: an edge ring on a node, an edge on a legend swatch.
+#:
+#: Structural nodes are grey because bias, input and output are not an operator
+#: choice.
 OP_COLOUR = {
-    "tanh": SERIES[0], "relu": SERIES[1], "sigmoid": SERIES[2],
-    "gaussian": SERIES[3], "sin": SERIES[4], "abs": SERIES[5],
-    "square": "#7b5cd6", "mult": "#b0531f", "add": "#3f8f8f", "null": "#9a9a95",
+    "sin": "#e69f00",       # Okabe-Ito orange
+    "gaussian": "#d55e00",  # vermillion
+    "mult": "#cc79a7",      # reddish purple
+    "square": "#9b76c4",    # the one extension: a violet, lighter than the blue
+    "abs": "#009e73",       # bluish green
+    "sigmoid": "#f0e442",   # yellow; always drawn with relief
+    "tanh": "#56b4e9",      # sky blue
+    "relu": "#0072b2",      # blue
+    "add": "#3f3c36",       # near-black, so it cannot be read as a hue
+    "null": "#9a9a95",
 }
+
+#: Colours below this contrast against the surface may not be drawn without
+#: relief — an edge ring, an outline, a direct label.
+NEEDS_RELIEF = frozenset({"sigmoid"})
 
 #: Every geometry this project uses, under one spelling.
 TASK_LABEL = {
@@ -439,19 +469,21 @@ PLATE_RULE = "#6e6450"
 PLATE_CAPTION = "#c9bda2"
 
 #: Haeckel's accents, used as sparingly as he used them: ochre, rose,
-#: verdigris. One hue per operator, in the same assignment as `OP_COLOUR`, so
-#: a reader who learns "gaussian is the warm red" in a chart keeps it on a
-#: plate. Lithograph pigments rather than screen primaries.
+#: verdigris. One pigment per operator, translating `OP_COLOUR` family by
+#: family, so a reader who learns "gaussian is the warm red" in a chart keeps
+#: it on a plate. The one exception is `add`, which is near-black in a chart
+#: and would disappear into a dark ground, so on the plates it is stone.
 PLATE_ACCENT = {
-    "sin": "#d8a521",
-    "gaussian": "#c6572f",
-    "square": "#9c6ea8",
-    "abs": "#7f9f6a",
-    "tanh": "#6f98b8",
-    "relu": "#c8803a",
-    "sigmoid": "#5f9e8a",
-    "mult": "#b0485a",
-    "add": "#8e8468",
+    "sin": "#e0a51c",       # ochre        <- amber
+    "gaussian": "#c6572f",  # burnt red    <- vermillion
+    "mult": "#b0485a",      # rose         <- reddish purple
+    "square": "#8e7fb4",    # muted violet <- violet
+    "abs": "#5f9478",       # verdigris    <- bluish green
+    "sigmoid": "#bcbe55",   # olive gold   <- yellow
+    "tanh": "#a9c6de",      # pale slate   <- sky blue
+    "relu": "#2f5680",      # deep navy    <- blue
+    "add": "#8e8468",       # stone        <- near-black, which a dark ground
+                            #                 cannot carry
     "null": "#9a927c",
 }
 

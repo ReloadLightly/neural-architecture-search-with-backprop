@@ -259,8 +259,12 @@ def fig_champion_networks(out: Path) -> Path:
         for n in topology_layout(c, make_bundle(task, seed=c.dataset_seed))["nodes"]
         if not n["structural"]
     })
+    # Every swatch carries the same edge ring the nodes do: Okabe-Ito's yellow
+    # is below 3:1 against the surface and would otherwise read as a blank.
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=8,
-                          color=OP_COLOUR.get(op, "#9a9a95"), label=op)
+                          markerfacecolor=OP_COLOUR.get(op, "#9a9a95"),
+                          markeredgecolor=INK2, markeredgewidth=1.0,
+                          color="none", label=op)
                for op in ops_present]
     handles += [
         plt.Line2D([], [], color=WEIGHT_POS, linewidth=2.4, label="positive weight"),

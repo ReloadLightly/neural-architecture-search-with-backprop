@@ -184,9 +184,12 @@ def fig_size_vs_accuracy(comp: list[dict], out: Path) -> Path:
         rows = [r for r in comp if r["task"] == task and r["test_accuracy_mean"] != ""]
         for r in rows:
             colour, marker, _ = STYLE[r["condition"]]
+            # A star's ink sits inside its bounding box, so at one shared size
+            # it renders half the weight of a filled circle.
             ax.scatter(r["causal_hidden_nodes_mean"], float(r["test_accuracy_mean"]),
-                       s=110, color=colour, marker=marker, zorder=3,
-                       edgecolors=SURFACE, linewidths=2, label=LABEL[r["condition"]])
+                       s=230 if marker == "*" else 110, color=colour, marker=marker,
+                       zorder=3, edgecolors=SURFACE, linewidths=2,
+                       label=LABEL[r["condition"]])
         # Direct-label only the two that make the argument.
         for key, dy, ha, dx in ((REFERENCE, 10, "center", 0),
                                 ("fixed_mixed_matched", -17, "right", -8)):

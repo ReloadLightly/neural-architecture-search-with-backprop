@@ -50,7 +50,8 @@ from bpneat.style import (  # noqa: E402
     INK,
     INK2,
     OP_COLOUR,
-    SERIES,
+    WEIGHT_NEG,
+    WEIGHT_POS,
     SURFACE,
     boundary_cmap,
     panel,
@@ -150,7 +151,9 @@ def render(bundle, frames, out: Path, fps: int = 3) -> Path:
                 causal = e["causal"]
                 ax_n.plot(
                     [e["x0"], e["x1"]], [e["y0"], e["y1"]],
-                    color=(SERIES[0] if e["weight"] >= 0 else SERIES[1])
+                    # Signed quantity -> the diverging anchors, the same pair
+                    # the static champion-network figure uses.
+                    color=(WEIGHT_POS if e["weight"] >= 0 else WEIGHT_NEG)
                     if causal else GRID,
                     linewidth=(0.5 + 2.4 * abs(e["weight"]) / wmax) if causal else 0.6,
                     alpha=0.85 if causal else 0.4, zorder=1, solid_capstyle="round",

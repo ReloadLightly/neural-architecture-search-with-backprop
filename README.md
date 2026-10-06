@@ -14,7 +14,7 @@ about four active units where the published demonstration shows thirty-four.**
 <td align="center" width="20%"><a href="docs/figures/champion-networks.png"><img src="docs/figures/champion-networks.png" alt="champion networks"></a><br><sub>The evolved graphs themselves</sub></td>
 <td align="center" width="20%"><a href="docs/figures/does-search-pay.png"><img src="docs/figures/does-search-pay.png" alt="search versus random sampling"></a><br><sub>Search against not searching</sub></td>
 <td align="center" width="20%"><a href="docs/figures/mechanism-boundaries.png"><img src="docs/figures/mechanism-boundaries.png" alt="NEAT mechanisms"></a><br><sub>What each NEAT mechanism changes</sub></td>
-<td align="center" width="20%"><a href="docs/figures/topologies-found.png"><img src="docs/figures/topologies-found.png" alt="topology sizes"></a><br><sub>Four active units against thirty-four</sub></td>
+<td align="center" width="20%"><a href="docs/figures/plate-i-forms.png"><img src="docs/figures/plate-i-forms.png" alt="a plate of evolved champion genomes"></a><br><sub>The champions, as a naturalist's plate</sub></td>
 </tr>
 </table>
 
@@ -65,9 +65,13 @@ have one, and neither beats it.
 
 ![does the architecture search pay](docs/figures/does-search-pay.png)
 
-Each grey bar joins a search to its own candidate-matched null: identical
-genotype space, identical inner learner, identical number of candidates,
-selection removed. A short bar means the search bought nothing.
+Each grey bar spans the searched conditions on one geometry, including each
+search's own candidate-matched null: identical genotype space, identical inner
+learner, identical number of candidates, selection removed. A short bar means
+the search bought nothing over sampling that space. On XOR and Circles the
+three searched conditions are indistinguishable at this scale, so the row draws
+one mark and prints their measured range rather than three marks implying a
+separation the picture cannot show.
 
 | geometry | CGP | the same space, sampled | Holm *p* | verdict |
 |---|---|---|---|---|
@@ -82,7 +86,7 @@ Cartesian Genetic Programming's fixed-length genotype with a genotype-phenotype
 map — and the same result. This is preregistered hypothesis **v4-H6**, which
 **holds at 0/5**: CGP beats its null on none of the five geometries.
 
-The diamond in the figure is the thing both are really competing against: a
+The diamond below each bar is the thing both are really competing against: a
 fixed 32×32 network with heterogeneous operators, given the gradient budget the
 search actually spent. It wins on every geometry that can separate conditions.
 **The search space prior, not the search, is where the performance is.**
@@ -107,6 +111,20 @@ gradient updates.
 The graphs behind those pictures. Backprop-NEAT's median spiral champion is two
 hidden units; on checkerboard it is one. Edge width is |weight|, a hollow node is
 structure the genome carries that never reaches the output.
+
+### A plate of specimens
+
+[![Kunstformen der Architektur, Tafel I](docs/figures/plate-i-forms.png)](docs/figures/plate-i-forms.png)
+
+The same champions, drawn as Haeckel drew radiolaria: the output at the centre,
+the rest on rings by depth, one specimen per cell. Nothing here is idealised —
+the nodes, edges, operators and weights are the committed record's, structure
+that never reaches the output drifts outside the rim, and every specimen is the
+**median** replicate of thirty by sealed-test accuracy, never the best. The
+fixed network appears once at the foot rather than once per row, because its
+topology does not vary with the geometry; it is the only form on the plate that
+no search produced, and it is a different order of thing. These plates are a
+portrait, not a result: no number on them enters any claim.
 
 ### One run, as it happens
 
@@ -200,6 +218,12 @@ it is held down by its own defaults.
 | ¼ population, 4× generations | 10.3 / 4.1 / 1.4 | **0.864** / 0.632 / 0.599 |
 | fixed net, matched budget | 65 | **0.964 / 0.712 / 0.765** |
 
+[![Kunstformen der Architektur, Tafel II](docs/figures/plate-ii-complexification.png)](docs/figures/plate-ii-complexification.png)
+
+The same seven arms as specimens. Reading the plate left to right and top to
+bottom is reading the table above as form: the reference is a small thing, and
+each constraint released grows it.
+
 **Complexification is real, and two reference settings suppress it.** Removing
 the complexity penalty grows champions significantly (v5-H1, 2/3); raising the
 structural mutation rate grows them (v5-H2, 2/3); removing both grows them on
@@ -231,7 +255,7 @@ not trained at all.
 
 ![the budget decides the comparison](docs/figures/budget-decides.png)
 
-The first two bars of each group are **the same 65-unit network**. Nothing about
+The first two marks of each group are **the same 65-unit network**. Nothing about
 the architecture differs — only how long it was allowed to train. Ha's inner
 learner checks the full training loss every twenty updates and stops at the first
 increase, which is a mild regulariser on an 8-node evolved graph and a guillotine
