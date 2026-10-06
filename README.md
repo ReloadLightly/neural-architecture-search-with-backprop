@@ -1,8 +1,9 @@
 # When the evaluator decides
 
-**A reconstruction of David Ha's Backprop-NEAT, run three times, that changed
-its own conclusions twice — both times because of an implementation detail the
-algorithm's published description does not fix.**
+**A reconstruction of David Ha's Backprop-NEAT, run four times, that changed its
+own conclusions three times — each time because of an implementation detail the
+algorithm's published description does not fix. The third correction is to the
+protocol that made the first two.**
 
 [![CI](https://github.com/ReloadLightly/neural-architecture-search-with-backprop/actions/workflows/ci.yml/badge.svg)](https://github.com/ReloadLightly/neural-architecture-search-with-backprop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
@@ -32,9 +33,25 @@ under a matched budget.** A fixed network with a sinusoidal activation reaches
 Two of v2's five claims reverse under every fairly trained control. Three of
 our five preregistered hypotheses failed. All of it is reported.
 
+Protocol **v4** then turns the same instrument on v3, by running a second,
+independently derived topology search — Cartesian Genetic Programming with
+gradient-trained candidates, sharing no encoding, no selection mechanism and no
+code with the first — through the same controls, across 1,200 further runs on
+test splits no earlier release had opened. **Four of its six preregistered
+hypotheses failed, including the one we most expected to hold.**
+
+The artifact is universal; the reversal is not. Restoring the budget the control
+was denied raises it on all five geometries, for both algorithms. But *search
+losing to a fairly trained control* proves geometry-dependent rather than
+general, so v3's headline is a true statement about the deceptive geometry and
+not a law about architecture search. What does replicate across both algorithms
+is that the search component never beats its own candidate-matched null — and on
+the two hardest geometries CGP is significantly beaten by one.
+
 > **Start here:** the conclusion stability matrix
-> ([`results/backprop-neat-v3/`](results/backprop-neat-v3/)) · the errata
-> ([`docs/v2-errata.md`](docs/v2-errata.md)) · the paper
+> ([`results/backprop-neat-v3/`](results/backprop-neat-v3/)) · what a second
+> algorithm did to it ([`results/backprop-neat-v4/`](results/backprop-neat-v4/))
+> · the errata ([`docs/v2-errata.md`](docs/v2-errata.md)) · the paper
 > ([`docs/paper/main.md`](docs/paper/main.md))
 
 ## 1. Results first: the stability matrix
@@ -56,7 +73,61 @@ Read the first column: under correction, v2's own data supports only C1 and
 C4 — exactly the two that reverse. The two that survive needed v3's 30
 replicates to reach significance at all.
 
-## 2. The headline: one rule, 0.261 accuracy
+## 2. What a second algorithm did to that matrix
+
+v4 asks the obvious objection: is Backprop-NEAT simply weak? It runs Cartesian
+Genetic Programming — fixed-length genotype with a genotype-phenotype map, no
+innovation numbers, no crossover, (1+4) with neutral drift — through the same
+controls, holding the geometries, inner learner, fitness, weight inheritance and
+candidate budget identical. 1,200 runs, 150 cells, 30 paired replicates, zero
+failures, on dataset seeds no earlier release opened.
+
+![which side wins, by algorithm and by budget protocol](results/backprop-neat-v4/figures/sign-matrix.png)
+
+Sealed-test accuracy, mean over 30 replicates; search conditions marked \*:
+
+| condition | XOR | circles | spirals | checkerboard | 3-arm spiral |
+|---|---|---|---|---|---|
+| Backprop-NEAT \* | 0.990 | 0.984 | 0.791 | 0.621 | 0.590 |
+| CGP (1+4) \* | 0.989 | 0.986 | 0.741 | 0.584 | 0.558 |
+| fixed tanh, **unmatched** | 0.983 | 0.971 | 0.640 | 0.570 | 0.528 |
+| fixed tanh @ BP-NEAT budget | 0.986 | 0.979 | 0.898 | 0.686 | 0.583 |
+| fixed tanh @ CGP budget | 0.986 | 0.980 | 0.867 | 0.695 | 0.572 |
+| fixed **mixed** @ BP-NEAT budget | 0.977 | 0.985 | **0.964** | **0.714** | **0.783** |
+| fixed **mixed** @ CGP budget | 0.978 | 0.985 | 0.960 | 0.713 | 0.753 |
+| random CGP, candidate-matched | 0.989 | 0.985 | 0.757 | 0.694 | 0.601 |
+
+Three things, in order of how much they cost us to accept.
+
+**The artifact replicates on every geometry (v4-H1, 5/5).** Give the fixed
+control the budget it was denied and it improves everywhere — on spirals
+0.640 → 0.898, with its success rate going from 0 of 30 replicates to 30 of 30.
+§3's diagnosis is confirmed out of sample.
+
+**The reversal does not (v4-H2 and v4-H3 both fail).** Search losing to a fairly
+trained control happens on spirals for both algorithms and on checkerboard for
+CGP, and nowhere else; XOR and circles saturate above 0.97 and separate nothing.
+We required ≥4 and ≥3 geometries in advance and got 1 and 2. This is v4
+correcting v3, and it is the reason the headline below is now stated as a
+property of the deceptive geometry rather than of architecture search.
+
+**Selection is the component that does not pay (v4-H6, 0/5).** CGP never beats
+its candidate-matched null, and the null beats *it* significantly on
+checkerboard (median −0.090, Holm *p* = 0.000) and the 3-arm spiral (−0.047,
+*p* = 0.011). Selection drives CGP to 0.8 active function nodes on checkerboard
+against 7.8 for the unselected control — in an encoding where all 48 nodes are
+reachable from the first generation, so this is chosen, not imposed. With v3,
+that is two independently derived algorithms whose search component contributes
+nothing measurable here.
+
+A fourth result is methodological. Two evaluators that agree on forward values
+to 2e-15 and gradients to 3e-15 — the same model, pinned by tests — train 5% of
+candidates to visibly different networks, because RMSProp's epsilon floor
+amplifies gradient differences a hundredfold per step. **An architecture-search
+result reported from single runs is not reproducible in principle.**
+([`docs/v4-sensitivity.md`](docs/v4-sensitivity.md))
+
+## 3. The headline: one rule, 0.261 accuracy
 
 Sealed-test accuracy on spirals, 30 paired replicates. The architecture is
 identical in rows 2–3; only the stopping rule differs.
@@ -92,7 +163,7 @@ The operative variable is the **operator prior**, not the search. On the 3-arm
 spiral the budget-matched *tanh* network is worse than Backprop-NEAT (0.589 vs
 0.614) while *sin* and *mixed* are far better (0.746, 0.773).
 
-## 3. The method, and why it is trustworthy about its own failures
+## 4. The method, and why it is trustworthy about its own failures
 
 A NumPy reconstruction over nine operators with recurrent edges, minimal
 logistic seeds, add-node/add-connection mutation under an innovation registry,
@@ -110,7 +181,7 @@ caught a wrong figure in this very README during drafting.
 
 That machinery is why the failures below are documented rather than invisible.
 
-## 4. Two failures, and a corrected correction
+## 5. Two failures, and a corrected correction
 
 **v1 — a selection operator we chose.** We used elitism plus truncation; the
 reference replaces the whole population and samples parents by
@@ -144,7 +215,7 @@ could not attribute the effect.
 ![propagation grid](results/backprop-neat-v3/figures/propagation-grid.png)
 ![selection dose response](results/backprop-neat-v3/figures/selection-dose-response.png)
 
-## 5. Hypotheses
+## 6. Hypotheses
 
 Frozen at commit `a343c66` before any compute
 ([`docs/v3-preregistration.md`](docs/v3-preregistration.md)).
@@ -160,7 +231,7 @@ Frozen at commit `a343c66` before any compute
 Three of five failed. Had H1 and H2 failed instead, v2's claims would have been
 restored; the preregistration was written to make either outcome publishable.
 
-## 6. Limitations
+## 7. Limitations
 
 Five 2-D synthetic geometries. The genome encoding fixes two input nodes in a
 frozen module, so higher-dimensional real datasets were **skipped rather than
@@ -171,7 +242,7 @@ paired tests reported, not for tails. And a sin-MLP beating evolved champions
 is not a claim that sin is the answer — it is a demonstration that an operator
 prior can account for a result attributed to search.
 
-## 7. Reproduce
+## 8. Reproduce
 
 ```bash
 git clone https://github.com/ReloadLightly/neural-architecture-search-with-backprop
@@ -195,7 +266,7 @@ and confirms the fingerprints. CI runs it on every push.
 evaluations, 173,623,974 gradient steps, **23.78 core-hours** against a
 24-hour forecast.
 
-## 8. Related work
+## 9. Related work
 
 Ha's Backprop-NEAT [[blog](https://blog.otoro.net/2016/05/07/backprop-neat/),
 [source](https://github.com/hardmaru/backprop-neat-js)] extends NEAT
@@ -222,7 +293,7 @@ coevolution is injected by Ha's *champion-export rule*, which exports an
 individual ranking 60 of 128 in its own population. Two reconstructions of two
 Ha demos, failing the same way.
 
-## 9. Repository map
+## 10. Repository map
 
 | Path | What |
 |---|---|

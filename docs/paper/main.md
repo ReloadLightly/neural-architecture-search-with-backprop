@@ -7,7 +7,7 @@ venue: GECCO 2027 (draft)
 # Abstract
 
 We reconstruct David Ha's Backprop-NEAT (2016) — NEAT topology search in which
-backpropagation trains every evaluated candidate — and run it three times under
+backpropagation trains every evaluated candidate — and run it four times under
 increasingly careful protocols. The reconstruction is faithful: it is audited
 against the published source, frozen behind a module fingerprint, and every
 published number regenerates byte-identically from committed raw records.
@@ -31,20 +31,34 @@ We measure four factors — the learner's stopping rule, forward-pass scheduling
 the selection operator, and weight inheritance — across 1,920 preregistered
 runs, 30 paired replicates, and five 2-D geometries, and report a *conclusion
 stability matrix*: which of the five v2 headline claims survives which
-evaluator setting.
+evaluator setting. Three of five preregistered hypotheses failed, and two of
+v2's five claims reverse under every fairly trained control.
 
-Three of our five preregistered hypotheses failed. The headline one did not
-merely fail: given a matched gradient budget, the fixed network that v2 beat on
-the deceptive geometry **beats Backprop-NEAT instead**, and a fixed network
-with a sinusoidal activation beats it by 0.175 accuracy while losing none of 30
-paired replicates. Two of v2's five claims reverse under every fairly trained
-control; the other three were never supported by v2's own data at the
-correction level it should have used.
+Protocol v4 then asks whether any of this is specific to Backprop-NEAT, by
+putting a second, independently derived topology search — Cartesian Genetic
+Programming with gradient-trained candidates, sharing no encoding, no selection
+mechanism and no code with the first — through the same controls, across 1,200
+further runs on dataset splits no earlier release had opened. **Four of its six
+preregistered hypotheses failed, including the one we most expected to hold.**
+
+The artifact is universal and the reversal is not. Restoring the budget the
+control was denied raises it on all five geometries (0.640 → 0.898 on spirals,
+0 of 30 successes to 30 of 30), for both algorithms. But *search losing to a
+fairly trained control* proves geometry-dependent rather than general, and the
+hypotheses asserting otherwise failed at thresholds set in advance. What does
+replicate across both algorithms is that the search component never beats its
+own candidate-matched null — and on the two hardest geometries CGP is
+significantly beaten by it, while a fixed network with heterogeneous operators
+beats every evolved champion in the release.
 
 We argue that for evolution-with-learning algorithms, where an inner learner
 and an outer search interact, the evaluator is not a neutral measuring device
 but a component of the method, and that reporting a single budget point is
-closer to reporting a hyperparameter than a result.
+closer to reporting a hyperparameter than a result. A second finding limits even
+that: two implementations of one model, agreeing on values and gradients to
+1e-15, train 5% of candidates to visibly different networks, so a
+neural-architecture-search result reported from single runs is not reproducible
+in principle.
 
 **Reproduction:** one command rebuilds every table and figure from raw records;
 CI asserts byte-identity on every push.
@@ -77,6 +91,14 @@ conclusions, and on what the third attempt had to do differently.
    computing the same function as the reference path (§5).
 4. A conclusion stability matrix: an explicit statement of which claims are
    properties of the algorithm and which are properties of the evaluator (§6).
+5. A second, independently derived search algorithm run through the same
+   controls on fresh test splits, separating the part of the result that
+   generalises — the starved control, and a search component that never beats
+   its own null — from the part that does not, which includes the reversal our
+   own previous protocol led with (§7).
+6. A measurement showing that numerical equivalence does not imply run-level
+   reproducibility: two evaluators agreeing to 1e-15 on values and gradients
+   train a minority of candidates to visibly different networks (§7.5).
 
 # 2 Background and related work
 
@@ -384,7 +406,7 @@ zero causally active hidden nodes:
 | `settled` | train | 0.993 / 0.00 | 0.984 / 0.00 | 0.796 / 0.00 |
 | `settled` | validation | 0.995 / 0.00 | 0.986 / 0.00 | 0.791 / 0.00 |
 
-**H3 is wrong.** It predicted collapse would depend on propagation and not on
+**v3-H3 is wrong.** It predicted collapse would depend on propagation and not on
 the fitness split. Collapse requires *both*: Ha's propagation rule with
 training-loss fitness. Either factor alone produces almost none. This is why v2
 could not attribute its propagation result — the two factors interact, and v2
@@ -402,7 +424,7 @@ varied them together.
 | `v1_truncation` | 0.690 | 0.00 | 4.3 | 0.809 |
 | `tournament_k4` | 0.802 | 0.00 | 4.8 | 0.833 |
 
-**H4 is wrong, and its failure corrects our own earlier correction.** Collapse
+**v3-H4 is wrong, and its failure corrects our own earlier correction.** Collapse
 is zero at every level of selection pressure, on both tasks, and causal size is
 flat at 4.0–4.8. Protocol v1 was invalidated because its selection operator was
 unfaithful to the reference, and we attributed the collapse v1 reported to that
@@ -423,7 +445,7 @@ records were retained.
 | Circles | 0.986 | 0.567 |
 | Spirals | 0.791 | 0.532 |
 
-**H5 answers decisively**, and not through effort: the Baldwinian condition
+**v3-H5 answers decisively**, and not through effort: the Baldwinian condition
 spent *more* gradient steps on spirals (159,083 against 134,449) and still
 landed near chance. Benito et al. [2026] find Baldwinian and Lamarckian
 evolution both beating Darwinian on combinatorial graph problems; our setting
@@ -431,17 +453,17 @@ differs in that the structure being searched is rewired every generation, so a
 topology's learned weights are the only channel by which its learnability
 reaches its descendants.
 
-## 6.6 Hypotheses
+## 6.6 Hypotheses (v3)
 
 | | Prediction | Outcome |
 |---|---|---|
-| H1 | matched MLP's spirals deficit disappears or reverses | **reverses** |
-| H2 | sin MLP matches or beats on spirals | **holds** |
-| H3 | collapse depends on propagation, not fitness split | **fails** — interaction |
-| H4 | collapse/size vary with selection intensity | **fails** — flat |
-| H5 | Lamarckian vs Baldwinian, two-sided | **Lamarckian** |
+| v3-H1 | matched MLP's spirals deficit disappears or reverses | **reverses** |
+| v3-H2 | sin MLP matches or beats on spirals | **holds** |
+| v3-H3 | collapse depends on propagation, not fitness split | **fails** — interaction |
+| v3-H4 | collapse/size vary with selection intensity | **fails** — flat |
+| v3-H5 | Lamarckian vs Baldwinian, two-sided | **Lamarckian** |
 
-Three of five failed. Had H1 and H2 failed instead, v2's claims would have been
+Three of five failed. Had v3-H1 and v3-H2 failed instead, v2's claims would have been
 restored and this paper would report that; the preregistration was written to
 make either outcome publishable.
 
@@ -546,6 +568,127 @@ under v4's code and compares champion topology, champion weights, realized
 gradient steps and every validation metric to the committed records. The bridge
 reads no test split, enters no table, and is a gate rather than a result.
 
+## 7.3 Results: the artifact is universal, the reversal is not
+
+**Four of our six preregistered hypotheses failed.** The scorecard
+(`results/backprop-neat-v4/hypotheses.csv`) is computed from the release by the
+rules written down before the suite ran, not narrated afterwards.
+
+| | Hypothesis | Rule | Observed | |
+|---|---|---|---|---|
+| v4-H1 | the unmatched control is starved, not weak | matched beats unmatched on ≥4 of 5 | 5/5 | **holds** |
+| v4-H2 | Backprop-NEAT's advantage reverses | search>unmatched ≥4, matched>search ≥3 | 3/5, 1/5 | **fails** |
+| v4-H3 | the same for CGP | as v4-H2 | 2/5, 2/5 | **fails** |
+| v4-H4 | the protocol sets the sign, not the algorithm | signs agree on ≥4 of 5 | 2/5 | **fails** |
+| v4-H5 | the algorithms differ less than the protocol does | gap < 0.5× matching effect on ≥3 of 5 | 2/5 | **fails** |
+| v4-H6 | CGP's selection adds little over its null | beats null on ≤2 of 5 | 0/5 | **holds** |
+
+Sealed-test accuracy, mean over 30 paired replicates; search conditions marked \*:
+
+| condition | XOR | circles | spirals | checkerboard | 3-arm spiral |
+|---|---|---|---|---|---|
+| Backprop-NEAT \* | 0.990 | 0.984 | 0.791 | 0.621 | 0.590 |
+| CGP (1+4) \* | 0.989 | 0.986 | 0.741 | 0.584 | 0.558 |
+| fixed tanh, unmatched | 0.983 | 0.971 | 0.640 | 0.570 | 0.528 |
+| fixed tanh @ BP-NEAT budget | 0.986 | 0.979 | 0.898 | 0.686 | 0.583 |
+| fixed tanh @ CGP budget | 0.986 | 0.980 | 0.867 | 0.695 | 0.572 |
+| fixed mixed @ BP-NEAT budget | 0.977 | 0.985 | **0.964** | **0.714** | **0.783** |
+| fixed mixed @ CGP budget | 0.978 | 0.985 | 0.960 | 0.713 | 0.753 |
+| random CGP, candidate-matched | 0.989 | 0.985 | 0.757 | 0.694 | 0.601 |
+
+**v4-H1 holds on every geometry.** The same 32×32 tanh network scores higher once
+it is given the gradient budget the search actually spent — on spirals
+0.640 → 0.898, with its success rate going from 0 of 30 replicates to 30 of 30.
+§4.2's diagnosis replicates out of sample, on splits no earlier release opened.
+The budget gap is the whole of it: on spirals the unmatched control spends 2,586
+gradient updates where Backprop-NEAT spends 131,739, because Ha's rollback rule
+stops a 69-node network after about 43 updates per restart.
+
+**v4-H2 and v4-H3 fail, and that is the paper's main correction to its own §6.**
+Search losing to a fairly trained control is *geometry-dependent*. It happens on
+spirals for both algorithms and on checkerboard for CGP, and nowhere else: on
+XOR and circles every condition sits above 0.97 and nothing can separate. We set
+thresholds of ≥4 and ≥3 geometries in advance and got 1 and 2. §6's headline is
+a true statement about the deceptive geometry; it is not a law about
+architecture search, and v4 is what establishes the difference.
+
+**v4-H4 and v4-H5 fail.** The unmatched and matched-tanh verdicts agree across the two
+algorithms on 2 of 5 geometries. Column by column the agreement is 4/5 on the
+unmatched control and 3/5 on matched tanh. v4-H5 fails its magnitude rule at 2/5,
+but the significance picture is not the same thing and both belong in the
+record: the two algorithms are statistically indistinguishable on four of five
+geometries, and the single significant difference is the 3-arm spiral (median
+−0.032, Holm *p* = 0.037). v4-H5 fails because where the matching effect is near
+zero, any gap exceeds half of it.
+
+> **Post-hoc.** Against the strongest control — mixed operators at a matched
+> budget — the two algorithms' verdicts are identical on all five geometries:
+> both win on XOR, both tie on circles, both lose on all three hard ones. v4-H4's
+> preregistered rule reads the matched-*tanh* column, so this 5/5 agreement is
+> an observation for a future study to test, not a result of this one. We report
+> it because suppressing it would be the mirror image of the error the
+> preregistration exists to prevent.
+
+## 7.4 Selection is the component that does not pay
+
+v4-H6 is the sharpest result in the release. **CGP never beats its
+candidate-matched null on any geometry**, and on the two hardest the null beats
+*it*: checkerboard median −0.090 (Holm *p* = 0.000), 3-arm spiral −0.047
+(*p* = 0.011). Drawing CGP genotypes at random and training them under the same
+learner is the better arm.
+
+The mechanism is visible in the phenotypes. Selection drives CGP to small active
+graphs — 3.9 active function nodes on spirals against 8.0 for the unselected
+control, and 0.8 against 7.8 on checkerboard — in an encoding that is **not**
+structurally capped, since all 48 function nodes are addressable from the first
+generation. Backprop-NEAT reaches 4.2 causally active hidden units on spirals,
+and there the cap *is* real: the reference's `new_node_rate = 0.2` over twenty
+generations adds about four nodes to a lineage, which is why neither this
+reconstruction nor v4 approaches the 34-node champion of the published
+demonstration (§3). What v4 adds is that a search without that cap converges to
+the same scale anyway, and does so *because of* selection rather than despite
+it. Both algorithms inherit Ha's complexity penalty, `1 + 0.03·√connections`,
+which is the plausible shared cause. **v4 contains no penalty-off arm, so
+nothing here isolates it.**
+
+Together with §6.4, where Backprop-NEAT did not beat candidate-matched random
+search after correction, this is two independently derived algorithms whose
+search component contributes nothing measurable on these tasks, while the inner
+learner carries essentially all of the compute — on spirals, 131,739 gradient
+updates against a few thousand mutation and selection operations.
+
+## 7.5 Numerical equivalence is not run-level reproducibility
+
+Building the CGP arm produced a result we did not go looking for. Its candidates
+are trained on a vectorized evaluator that agrees with the frozen genome
+evaluator to 2e-15 on forward values and 3e-15 on gradients, and to 3e-12 even
+where a fifth of node values are clamped — they are the same model, and the test
+suite pins it across weight scales.
+
+They do not produce the same trained network. At the full 600-update budget, 5%
+of CGP candidates diverge by more than 1e-6 in weight space, with a maximum of
+4.8e-01, under either a 1e-12 relative perturbation of the initial weights or
+merely the change of summation order between two provably equivalent
+implementations. The median candidate does not move; the effect is bimodal, and
+calling it "chaotic training" without that qualification would overstate a
+minority effect as a universal one. The mechanism is RMSProp's epsilon floor:
+when the gradient-square cache falls below `SMOOTH_EPS = 1e-8` the denominator
+is pinned at 1e-4 and the update becomes `100 × lr × grad`, so a difference in
+the gradient is amplified a hundredfold per step and then passed through
+`square` and `gaussian` nodes. A tanh MLP does not do this at any rate
+(1.6e-10 worst case over the same budget), which is why our learner-equivalence
+gate can be held to the whole budget there and only to the first updates on CGP
+phenotypes.
+
+Two consequences. First, it is why every claim in this paper is a distribution
+over thirty replicates: an architecture-search result reported from single runs
+is not reproducible across numerically equivalent implementations of the same
+model, let alone across machines. Second, it is a limit on the reproducibility
+guarantee we offer. Our releases regenerate byte-identically from committed raw
+records because the *records* are fixed; re-running the search from the seeds on
+a different BLAS would not reproduce them candidate for candidate. Measurements:
+`docs/v4-sensitivity.md`.
+
 # 8 Limitations
 
 **Two-dimensional synthetic tasks.** All five geometries are 2-D binary
@@ -555,10 +698,30 @@ required editing frozen code; we skipped that rather than do it badly. Our
 claims are about how evaluation choices move conclusions on these tasks, and we
 do not know the magnitudes transfer.
 
-**One algorithm, one reference.** We study Backprop-NEAT because it has a
-public reference implementation to audit against. Whether the specific
-sensitivities here generalise to other evolution-with-learning methods is
-untested; the deep-RL precedents suggest the *pattern* does.
+**Two algorithms, one reference implementation.** §7 answers the first version
+of this limitation: Cartesian Genetic Programming, which shares no code, no
+encoding and no selection mechanism with Backprop-NEAT, shows the same starved
+control (v4-H1, 5/5) and the same failure of its search component to beat its own
+null (v4-H6, 0/5). What v4 also shows is that the *reversal* does not generalise as
+cleanly as §6 suggests — it is geometry-dependent, and v4-H2 and v4-H3 both failed.
+Two algorithms is still two. Whether the pattern holds for methods with a
+different inner learner — the learner, not the search, is what carries the
+compute here — remains untested.
+
+**Two of our five geometries carry no information.** XOR and circles saturate
+above 0.97 for every condition in v4, which is most of why v4-H2 and v4-H3 fail their
+task counts: a geometry on which nothing can lose is a geometry on which nothing
+can be learned. A future design should drop them or make them harder, and should
+not count them toward a threshold.
+
+**The analysis code is not fingerprinted.** Five science modules per protocol
+are hash-bound to their release. `analysis.py`, which decides how the
+preregistered hypotheses are *scored*, is not — it cannot change what a run
+computes, which is why it was excluded, but it can change what a run is taken to
+mean. It was present in the v4 freeze commit before any run record existed and
+that is checkable (`git ls-tree -r --name-only 4fa3009 src/bpneat/v4/`), but it
+rests on git history rather than on a hash. A scoring fingerprint, recorded at
+freeze time alongside the science one, is the obvious fix.
 
 **Matched on gradient steps, not on everything.** Candidate count and gradient
 steps cannot both be matched between an evolutionary condition and a multistart
@@ -593,6 +756,25 @@ fingerprinted, preregistered, sealed-test-once, byte-identical on
 regeneration — and wrong in two of five claims. Reproducibility guarantees that
 others can obtain the same numbers. It says nothing about whether the numbers
 answer the question.
+
+v4 applies the same instrument to v3 and finds the same kind of fault, which is
+the point of building it. §6's headline — that a fairly trained fixed network
+beats the search — survives on the deceptive geometry and fails as a general
+claim; two of our preregistered hypotheses said otherwise and were wrong. We
+report that in the same voice we used to report v2's errors, because a method
+for catching one's own mistakes is worth nothing if it is retired once it starts
+finding them.
+
+What did survive two independently derived algorithms is narrower and more
+useful than what we set out to show. The control that looks weak is starved, on
+every geometry and under both algorithms. The search component — the part of
+these methods that the papers are about — never beats a candidate-matched null
+drawn from the same space, and on the hardest geometries it is beaten by one.
+The compute goes almost entirely into the inner learner, and so does the result.
+For an evolution-with-learning method, the honest question is not whether the
+search found something, but whether anything would have been lost by not
+searching at all; answering it costs one extra arm, and we would now treat a
+paper without it the way we treat one without a seed.
 
 # References
 
