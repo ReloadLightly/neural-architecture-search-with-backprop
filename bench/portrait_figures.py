@@ -51,8 +51,10 @@ from bpneat.style import (  # noqa: E402
     WEIGHT_POS,
     boundary_cmap,
     panel,
+    plate_frame,
     ramp,
     style_axes,
+    typeset,
 )
 
 #: Class 0 -> blue, class 1 -> orange, through a near-neutral midpoint. Two
@@ -126,8 +128,9 @@ def boundary_key(fig, y: float = 0.012) -> None:
              fontsize=8.5, color=INK2)
     fig.text(0.605, y + 0.011, "predicts class 1", ha="left", va="center",
              fontsize=8.5, color=INK2)
-    fig.text(0.5, y - 0.012, "pale = undecided; the dark line is the 0.5 contour; "
-             "dots are training points, coloured by their true class",
+    fig.text(0.5, y - 0.012, "the ground showing through is undecided; the pale "
+             "line is the 0.5 contour; dots are training points, coloured by "
+             "their true class",
              ha="center", va="center", fontsize=8, color=INK2)
 
 
@@ -146,7 +149,7 @@ def _draw_boundary(ax, champ: Champion, show_points: bool = True):
         for cls, colour in zip((0.0, 1.0), CLASS_COLOURS):
             m = y == cls
             ax.scatter(X[m, 0], X[m, 1], s=5.5, c=colour, linewidths=0.4,
-                       edgecolors="white", alpha=0.9, zorder=3)
+                       edgecolors=SURFACE, alpha=0.9, zorder=3)
     _style_panel(ax)
 
 
@@ -188,6 +191,8 @@ def fig_decision_boundaries(out: Path) -> Path:
                         wspace=0.07, hspace=0.16)
     boundary_key(fig, y=0.030)
     OUT.mkdir(parents=True, exist_ok=True)
+    typeset(fig)
+    plate_frame(fig)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -282,6 +287,8 @@ def fig_champion_networks(out: Path) -> Path:
     fig.subplots_adjust(top=0.84, bottom=0.17, left=0.02, right=0.98,
                         wspace=0.05, hspace=0.30)
     OUT.mkdir(parents=True, exist_ok=True)
+    typeset(fig)
+    plate_frame(fig)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -331,6 +338,8 @@ def fig_mechanism_boundaries(out: Path) -> Path:
                         wspace=0.07, hspace=0.16)
     boundary_key(fig, y=0.034)
     OUT.mkdir(parents=True, exist_ok=True)
+    typeset(fig)
+    plate_frame(fig)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -347,7 +356,7 @@ def fig_task_geometries(out: Path) -> Path:
         for cls, colour in zip((0.0, 1.0), CLASS_COLOURS):
             m = b.train.y == cls
             ax.scatter(b.train.X[m, 0], b.train.X[m, 1], s=9, c=colour,
-                       linewidths=0.3, edgecolors="white", alpha=0.95)
+                       linewidths=0.3, edgecolors=SURFACE, alpha=0.95)
         ax.set_title(TASK_LABEL[task], fontsize=10, color=INK, pad=5)
         ax.set_aspect("equal")
         _style_panel(ax)
@@ -358,7 +367,7 @@ def fig_task_geometries(out: Path) -> Path:
     fig.legend(
         handles=[
             plt.Line2D([], [], marker="o", linestyle="", markersize=7,
-                       color=CLASS_COLOURS[i], markeredgecolor="white",
+                       color=CLASS_COLOURS[i], markeredgecolor=SURFACE,
                        label=f"class {i}")
             for i in (0, 1)
         ],
@@ -367,6 +376,8 @@ def fig_task_geometries(out: Path) -> Path:
     )
     fig.subplots_adjust(top=0.76, bottom=0.14, left=0.01, right=0.99, wspace=0.08)
     OUT.mkdir(parents=True, exist_ok=True)
+    typeset(fig)
+    plate_frame(fig)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -474,6 +485,8 @@ def fig_operator_usage(out: Path) -> Path:
     )
     fig.subplots_adjust(top=0.84, bottom=0.14, left=0.085, right=0.99, wspace=0.42)
     OUT.mkdir(parents=True, exist_ok=True)
+    typeset(fig)
+    plate_frame(fig)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")

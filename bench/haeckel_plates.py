@@ -61,20 +61,11 @@ OUT_DIR = ROOT / "docs" / "figures"
 # The plate's palette lives in bpneat.style, like every other palette here
 # --------------------------------------------------------------------------
 
-GROUND = style.PLATE_GROUND
-BONE = style.PLATE_BONE
-BONE_DIM = style.PLATE_BONE_DIM
-RULE = style.PLATE_RULE
-CAPTION = style.PLATE_CAPTION
-accent = style.plate_accent
-
-#: Letterpress tracking. matplotlib cannot letterspace, so the spaces are real
-#: — which is what a compositor did anyway.
-HAIR = " "
-
-
-def spaced(text: str) -> str:
-    return HAIR.join(text.upper())
+# No local copies of the palette: the names below are the shared ones, read
+# through `style` at every use, so this module cannot drift from the figures.
+from bpneat.style import PLATE_BONE_DIM as BONE_DIM  # noqa: E402
+from bpneat.style import plate_accent as accent  # noqa: E402
+from bpneat.style import spaced  # noqa: E402
 
 
 # --------------------------------------------------------------------------
@@ -164,7 +155,7 @@ def draw_specimen(ax, g, weights, task: str) -> dict:
                 connectionstyle="arc3,rad=0.16",
                 arrowstyle="-",
                 linewidth=((0.30 + 1.45 * w) if causal else 0.28) * fine,
-                color=BONE if causal else BONE_DIM,
+                color=style.INK if causal else BONE_DIM,
                 alpha=(0.90 if causal else 0.26) * (1.0 if fine > 0.6 else 0.75),
                 zorder=2,
             )
@@ -178,12 +169,12 @@ def draw_specimen(ax, g, weights, task: str) -> dict:
         if node == OUT:
             # Filled bone: the one node that is neither an operator nor an
             # input, so it must not borrow an operator's accent from the key.
-            r, face, edge = r_base * 1.4, BONE, GROUND
+            r, face, edge = r_base * 1.4, style.INK, style.SURFACE
         elif structural:
-            r, face, edge = r_base * 0.85, GROUND, BONE if causal else BONE_DIM
+            r, face, edge = r_base * 0.85, style.SURFACE, style.INK if causal else BONE_DIM
         else:
-            r, face, edge = r_base, accent(op) if causal else GROUND, (
-                BONE if causal else BONE_DIM)
+            r, face, edge = r_base, accent(op) if causal else style.SURFACE, (
+                style.INK if causal else BONE_DIM)
         ax.add_patch(
             Circle((x, y), r, facecolor=face, edgecolor=edge,
                    linewidth=0.75 * max(fine, 0.5), alpha=1.0 if causal else 0.45,
@@ -192,7 +183,7 @@ def draw_specimen(ax, g, weights, task: str) -> dict:
         if node == OUT:
             # A faint halo, the way Haeckel haloes a central capsule.
             ax.add_patch(
-                Circle((x, y), r * 2.0, facecolor="none", edgecolor=BONE,
+                Circle((x, y), r * 2.0, facecolor="none", edgecolor=style.INK,
                        linewidth=0.4, alpha=0.45, zorder=3)
             )
 
@@ -200,7 +191,7 @@ def draw_specimen(ax, g, weights, task: str) -> dict:
     ax.set_ylim(-1.26, 1.26)
     ax.set_aspect("equal")
     ax.axis("off")
-    ax.set_facecolor(GROUND)
+    ax.set_facecolor(style.SURFACE)
     return {
         "causal_hidden": len({i for i in live_nodes if i >= N_STRUCTURAL}),
         "represented_hidden": g.n_nodes - N_STRUCTURAL,
@@ -265,10 +256,10 @@ def _operator_key(fig, ops: set[str], y: float, aspect: float) -> None:
         x = step * (i + 1)
         fig.add_artist(Ellipse(
             (x - 0.016, y), width=2 * r, height=2 * r * aspect,
-            transform=fig.transFigure, facecolor=accent(op), edgecolor=BONE,
+            transform=fig.transFigure, facecolor=accent(op), edgecolor=style.INK,
             linewidth=0.5, zorder=11))
         fig.text(x + 0.002, y, op, ha="left", va="center", fontsize=6.4,
-                 color=CAPTION, family="serif")
+                 color=style.INK2, family="serif")
 
 
 def plate(rows, title, subtitle, footer, out: Path, coda=None, ncols=None):
@@ -280,7 +271,7 @@ def plate(rows, title, subtitle, footer, out: Path, coda=None, ncols=None):
 
     fig_w = left_in + ncols * COL_IN + RIGHT_IN
     fig_h = TOP_IN + nrows * ROW_IN + (CODA_IN if coda else 0.0) + BOTTOM_IN
-    fig = plt.figure(figsize=(fig_w, fig_h), facecolor=GROUND)
+    fig = plt.figure(figsize=(fig_w, fig_h), facecolor=style.SURFACE)
 
     def fx(inches):
         return inches / fig_w
@@ -305,15 +296,15 @@ def plate(rows, title, subtitle, footer, out: Path, coda=None, ncols=None):
             all_ops |= info["ops"]
             label = spec["label"]
             fig.text(fx(cx), fy(row_top + art_h + 0.12), spaced(label),
-                     ha="center", va="top", color=CAPTION, family="serif",
+                     ha="center", va="top", color=style.INK2, family="serif",
                      fontsize=7.0 if len(label) <= 17 else 6.0)
             fig.text(fx(cx), fy(row_top + art_h + 0.34),
                      f"{info['causal_hidden']} of {info['represented_hidden']} units",
-                     ha="center", va="top", color=RULE, family="serif",
+                     ha="center", va="top", color=style.RULE, family="serif",
                      style="italic", fontsize=6.6)
         if row_label:
             fig.text(fx(0.40), fy(row_top + art_h / 2.0), spaced(row_label),
-                     ha="center", va="center", rotation=90, color=CAPTION,
+                     ha="center", va="center", rotation=90, color=style.INK2,
                      family="serif", fontsize=7.6)
 
     if coda is not None:
@@ -322,7 +313,7 @@ def plate(rows, title, subtitle, footer, out: Path, coda=None, ncols=None):
         # A hairline above the comparison specimen: it is of a different kind.
         fig.add_artist(plt.Line2D(
             [fx(left_in), fx(fig_w - RIGHT_IN)], [fy(band_top + 0.10)] * 2,
-            color=RULE, linewidth=0.5, alpha=0.8, transform=fig.transFigure))
+            color=style.RULE, linewidth=0.5, alpha=0.8, transform=fig.transFigure))
         side = CODA_IN - 1.25
         cx = left_in + COL_IN * 0.72
         prose_x = left_in + COL_IN * 1.42
@@ -337,37 +328,31 @@ def plate(rows, title, subtitle, footer, out: Path, coda=None, ncols=None):
         info = draw_specimen(ax, spec["genome"], spec["weights"], spec["task"])
         all_ops |= info["ops"]
         fig.text(fx(cx), fy(band_top + 0.62 + side), spaced(heading),
-                 ha="center", va="top", color=CAPTION, family="serif", fontsize=7.4)
+                 ha="center", va="top", color=style.INK2, family="serif", fontsize=7.4)
         fig.text(fx(cx), fy(band_top + 0.84 + side),
                  f"{info['causal_hidden']} of {info['represented_hidden']} units",
-                 ha="center", va="top", color=RULE, family="serif",
+                 ha="center", va="top", color=style.RULE, family="serif",
                  style="italic", fontsize=6.6)
         fig.text(fx(prose_x), fy(band_top + 0.58), prose,
-                 ha="left", va="top", color=CAPTION, family="serif",
+                 ha="left", va="top", color=style.INK2, family="serif",
                  fontsize=7.9, linespacing=1.72)
 
     fig.text(0.5, fy(0.52), spaced(title), ha="center", va="center",
-             fontsize=14.5, color=BONE, family="serif")
+             fontsize=14.5, color=style.INK, family="serif")
     fig.text(0.5, fy(0.86), subtitle, ha="center", va="center",
-             fontsize=9.0, color=CAPTION, family="serif", style="italic")
+             fontsize=9.0, color=style.INK2, family="serif", style="italic")
     # A single rule under the title block, as a plate has.
-    fig.add_artist(plt.Line2D([0.30, 0.70], [fy(1.03)] * 2, color=RULE,
+    fig.add_artist(plt.Line2D([0.30, 0.70], [fy(1.03)] * 2, color=style.RULE,
                               linewidth=0.6, transform=fig.transFigure))
 
     _operator_key(fig, all_ops, fy(fig_h - 0.74), fig_w / fig_h)
     fig.text(0.5, fy(fig_h - 0.44), footer, ha="center", va="center",
-             fontsize=6.9, color=RULE, family="serif")
+             fontsize=6.9, color=style.RULE, family="serif")
 
-    # The plate's double rule.
-    for inset_in, lw in ((0.17, 1.0), (0.26, 0.4)):
-        fig.add_artist(plt.Rectangle(
-            (fx(inset_in), inset_in / fig_h),
-            1 - 2 * fx(inset_in), 1 - 2 * inset_in / fig_h,
-            transform=fig.transFigure, facecolor="none", edgecolor=RULE,
-            linewidth=lw, zorder=10))
+    style.plate_frame(fig)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    fig.savefig(out, dpi=style.PLATE_DPI, facecolor=GROUND)
+    fig.savefig(out, dpi=style.PLATE_DPI, facecolor=style.SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
     return out

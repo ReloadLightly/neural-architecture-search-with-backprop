@@ -138,7 +138,7 @@ def render(bundle, frames, out: Path, fps: int = 3) -> Path:
             for cls, colour in zip((0.0, 1.0), CLASS_COLOURS):
                 m = y == cls
                 ax_b.scatter(X[m, 0], X[m, 1], s=6, c=colour, linewidths=0.4,
-                             edgecolors="white", alpha=0.9, zorder=3)
+                             edgecolors=SURFACE, alpha=0.9, zorder=3)
             ax_b.set_xticks([])
             ax_b.set_yticks([])
             for s in ax_b.spines.values():

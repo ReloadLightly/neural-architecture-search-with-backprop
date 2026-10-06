@@ -23,6 +23,7 @@ from ..style import (  # noqa: E402
     INK,
     INK2,
     NEUTRAL,
+    RULE,
     SEARCH_NULL,
     SEARCH_PRIMARY,
     SEARCH_SECONDARY,
@@ -151,7 +152,7 @@ def fig_complexification(runs: list[dict], out: Path) -> Path:
                     marker=marker, markevery=max(n // 6, 1), markersize=5,
                     label=LABEL[cond])
         if task == REFERENCE_CHAMPION["task"]:
-            ax.axhline(REFERENCE_CHAMPION["nodes"], color=INK2, linewidth=1.2,
+            ax.axhline(REFERENCE_CHAMPION["nodes"], color=RULE, linewidth=1.2,
                        linestyle=(0, (4, 3)))
             ax.text(0.98, REFERENCE_CHAMPION["nodes"], " Ha (2016) champion: 34 nodes",
                     transform=ax.get_yaxis_transform(), ha="right", va="bottom",
@@ -253,7 +254,7 @@ def fig_mechanisms(effects: list[dict], out: Path) -> Path:
                edgecolor=TASK_COLOUR[task], linewidth=1.1,
                yerr=[lo, hi], ecolor=INK2, capsize=2,
                error_kw={"linewidth": 0.9})
-    ax.axhline(0.0, color=INK, linewidth=1.0)
+    ax.axhline(0.0, color=INK2, linewidth=1.0)
     ax.set_xticks(range(len(conds)))
     ax.set_xticklabels([LABEL[c] for c in conds], fontsize=8, color=INK2,
                        rotation=18, ha="right")
@@ -325,7 +326,7 @@ def fig_accuracy(summary: list[dict], out: Path) -> Path:
             vals.append(float(v) if v not in (None, "") else np.nan)
             colours.append(STYLE[c][0])
         y = np.arange(len(READING_ORDER))
-        ax.axvline(chance, color=INK2, linewidth=0.9, linestyle=(0, (4, 3)), zorder=1)
+        ax.axvline(chance, color=RULE, linewidth=0.9, linestyle=(0, (4, 3)), zorder=1)
         for yi, v, colour in zip(y, vals, colours):
             if not np.isfinite(v):
                 continue
@@ -341,7 +342,7 @@ def fig_accuracy(summary: list[dict], out: Path) -> Path:
         for edge in (len(BRAKES_ON) - 0.5,
                      len(BRAKES_ON) + len(BRAKE_RELEASED) - 0.5,
                      len(READING_ORDER) - 1.5):
-            ax.axhline(edge, color=INK2, linewidth=0.7, alpha=0.45)
+            ax.axhline(edge, color=RULE, linewidth=0.7, alpha=0.8)
         ax.invert_yaxis()
         ax.set_ylim(len(READING_ORDER) - 0.4, -1.05)
         ax.set_xlim(chance - 0.02, 1.05)
@@ -351,7 +352,7 @@ def fig_accuracy(summary: list[dict], out: Path) -> Path:
         ax.grid(axis="y", visible=False)
         if task == ALL_TASKS[0]:
             ax.text(chance, -0.9, " chance", ha="left", va="center", fontsize=7.5,
-                    color=INK2, style="italic")
+                    color=RULE, style="italic")
         else:
             ax.set_yticklabels([])
     fig.suptitle(

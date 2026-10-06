@@ -33,11 +33,13 @@ from ..style import (  # noqa: E402
     INK,
     INK2,
     NEUTRAL,
+    RULE,
     SEARCH_PRIMARY,
     SURFACE,
     colour_of,
     role_of,
     save,
+    spaced,
     style_axes,
 )
 from .analysis import (  # noqa: E402
@@ -148,8 +150,7 @@ def fig_sign_matrix(signs: list[dict], out: Path) -> Path:
                                   linewidth=2)
                 )
                 ax.text(ci, ti, SIGN_TEXT[verdict], ha="center", va="center",
-                        fontsize=8, color="white" if verdict != "ns" else INK,
-                        fontweight="bold" if verdict != "ns" else "normal")
+                        fontsize=8.5, color=SURFACE)
         ax.set_xlim(-0.6, len(cols) - 0.4)
         ax.set_ylim(-0.6, len(ALL_TASKS) - 0.4)
         ax.set_xticks(range(len(cols)))
@@ -167,7 +168,7 @@ def fig_sign_matrix(signs: list[dict], out: Path) -> Path:
         "by algorithm and by budget protocol",
         color=INK, fontsize=11,
     )
-    return _save(fig, out, top=0.80, bottom=0.1, left=0.1, right=0.98, wspace=0.05)
+    return _save(fig, out, top=0.80, bottom=0.16, left=0.1, right=0.98, wspace=0.05)
 
 
 def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
@@ -192,7 +193,7 @@ def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
             vals.append(_test_or_val(row) if row else np.nan)
             colours.append(STYLE[c][0])
         y = np.arange(len(conds))
-        ax.axvline(chance, color=INK2, linewidth=0.9, linestyle=(0, (4, 3)),
+        ax.axvline(chance, color=RULE, linewidth=0.9, linestyle=(0, (4, 3)),
                    zorder=1)
         for yi, v, colour in zip(y, vals, colours):
             if not np.isfinite(v):
@@ -213,22 +214,22 @@ def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
         ax.set_xlim(chance - 0.03, 1.10)
         ax.set_xticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
         # The two families, separated by a rule rather than by eight hues.
-        ax.axhline(split - 0.5, color=INK2, linewidth=0.8, alpha=0.5)
+        ax.axhline(split - 0.5, color=RULE, linewidth=0.8, alpha=0.9)
         ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
         ax.grid(axis="x", color=GRID, linewidth=0.8)
         ax.grid(axis="y", visible=False)
         if task == ALL_TASKS[0]:
             ax.text(chance, -0.9, " chance", ha="left", va="center",
-                    fontsize=7.5, color=INK2, style="italic")
+                    fontsize=7.5, color=RULE, style="italic")
         else:
             ax.set_yticklabels([])
     # Family labels in the left margin, outside every panel.
     for frac, text, colour in (
-        (0.80, "searched", SEARCH_PRIMARY),
-        (0.42, "fixed in advance", CONTROL_BEST),
+        (0.76, "searched", SEARCH_PRIMARY),
+        (0.38, "fixed in advance", CONTROL_BEST),
     ):
-        fig.text(0.012, frac, text, rotation=90, ha="left", va="center",
-                 fontsize=9, color=colour)
+        fig.text(0.024, frac, spaced(text), rotation=90, ha="left", va="center",
+                 fontsize=8, color=colour)
     fig.suptitle(
         "Sealed-test accuracy by condition. Blue was found by a search; "
         "orange was fixed before the run. * marks a search algorithm.",
@@ -289,7 +290,7 @@ def fig_reversal(effects: list[dict], out: Path) -> Path:
             ],
             fontsize=7.5, frameon=False, loc="lower left", ncol=1,
         )
-        ax.axhline(0.0, color=INK, linewidth=1.0)
+        ax.axhline(0.0, color=INK2, linewidth=1.0)
         ax.set_xticks(range(len(ALL_TASKS)))
         ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
         ax.set_ylabel("median paired difference\n(search − fixed)", fontsize=8, color=INK2)

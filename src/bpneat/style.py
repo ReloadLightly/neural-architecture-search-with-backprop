@@ -1,29 +1,40 @@
 """The one place this repository's figures get their look.
 
+**Every figure here is a plate.** Warm near-black ground, bone line work, a
+double rule round the edge, serif lettering, tracked small caps over each
+panel, and a small set of accent pigments — the register of Ernst Haeckel's
+*Kunstformen der Natur*. Not the specimen plates only: the bar charts, the dot
+plots, the decision-boundary grids, the sign matrix, the scorecards, the
+animation, and whatever gets drawn from results that do not exist yet. A style
+that applies to some of the figures is not a style, it is a decoration.
+
 Every plotting module in the project — `figures.py`, the per-protocol figure
-modules, `champions.py`, and the scripts under `bench/` — imports its surface,
-ink, grid, palette, colormap, fonts and save settings from here. Nothing else
-defines them.
+modules, `champions.py`, and the scripts under `bench/` — imports its ground,
+ink, rule, palette, colormap, type and save settings from here. Nothing else
+defines them, and the specimen plates are not an exception: `PLATE_GROUND` and
+its siblings are aliases of the same tokens, because a second palette is
+exactly how two figures in one repository come to disagree.
 
-That is enforced, not merely intended: `tests/test_style.py` parses every module
-that imports matplotlib and fails if it assigns its own `SURFACE`, `SERIES` or
-any other token defined below, or if it calls `savefig` with its own settings
-instead of :func:`save`. Six separate copies of this palette existed before this
-module did, which is six chances for the figures to drift apart.
+That is enforced, not merely intended. `tests/test_style.py` parses every
+module that imports matplotlib and fails if it assigns its own ground, ink,
+rule or palette; if it writes a figure without the plate's frame; if it names a
+colour white; or if a pigment drifts out of the band between the ground and the
+bone. Six separate copies of this palette existed before this module did, which
+is six chances for the figures to drift apart.
 
-**The palette is validated, not chosen.** Running the categorical checker over
-`SERIES` against `SURFACE` in light mode: all six slots inside the lightness
-band, chroma floor met, worst adjacent pair ΔE 9.1 under protanopia, normal
-vision floor ΔE 19.6. Three slots fall below 3:1 contrast against the surface,
-which is legal **only** with visible relief — so every figure here either
-directly labels its marks or ships a CSV table view beside it in the release.
-Colour never carries identity alone.
+**The palette is validated, not chosen,** and validated against the ground
+rather than against paper. Every accent clears 4:1 above the ground; the
+closest pair of operator pigments is ΔE 21.2 at normal vision, 14.4 under
+protanopia and 13.1 under deuteranopia; the two role families are further apart
+than that and are ordered by luminance inside themselves. Colour still never
+carries identity alone — every figure either directly labels its marks or ships
+a CSV table view beside it in the release.
 
 **What is deliberately not restyled.** `results/backprop-neat-v1/figures/`
 belongs to an invalidated release and `results/backprop-neat-v2/` carries
-errata; both are frozen evidence, and a frozen release should look like what was
-released. Their figures stay as they were rendered. Nothing in the README or the
-paper shows them.
+errata; both are frozen evidence, and a frozen release should look like what
+was released. Their figures stay as they were rendered, and nothing in the
+README or the paper shows them. Every figure a reader is pointed at is a plate.
 """
 
 from __future__ import annotations
@@ -35,30 +46,40 @@ from typing import Any
 # Tokens
 # --------------------------------------------------------------------------
 
-#: The chart surface. Slightly warm of white so a white page still frames it.
-SURFACE = "#fcfcfb"
-#: Primary ink for titles and values, secondary for labels and ticks.
-INK = "#0b0b0b"
-INK2 = "#52514e"
-#: Recessive grid and axis colour — present, never competing with the data.
-GRID = "#e3e2df"
+#: The plate. Every figure in this repository is drawn on a warm near-black
+#: ground in bone-coloured line work, after Ernst Haeckel's *Kunstformen der
+#: Natur* — not as decoration on top of a chart, but as the chart's own
+#: register. A lithograph plate has a ground, a bone line, one rule weight for
+#: the frame and a very small number of accent pigments; so does every figure
+#: here. Nothing in the repository is drawn any other way.
+SURFACE = "#17150f"
+#: The skeletal line: bone for values and headings, a dimmer bone for labels.
+INK = "#ece2cd"
+INK2 = "#c9bda2"
+#: The grid is a trace on the plate, not a feature: present when you look for
+#: it, invisible when you look at the data.
+GRID = "#332e24"
+#: The frame rule and the plate's lettering furniture.
+RULE = "#6e6450"
 
-#: The validated categorical order. Assigned in this order and never cycled: a
-#: seventh series folds into "other", small multiples, or a composite encoding
-#: with marker shape.
+#: The old categorical order, kept only so that `tests/test_style.py` can prove
+#: nothing reads it. Colour comes from a condition's role, never its position.
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"]
 
-#: Status colours, reserved. Never reused as "series 4".
-GOOD = "#1baf7a"
-BAD = "#e34948"
-NEUTRAL = "#c9c8c3"
+#: Status colours, reserved. Never reused as a series. Verdigris and a muted
+#: rose: the two pigments a hand-coloured plate would have had for this.
+GOOD = "#7fb79a"
+BAD = "#d4705f"
+NEUTRAL = "#8d8470"
 
-#: Class 0 → blue, class 1 → orange, through a near-neutral midpoint. The
-#: midpoint *is* the decision boundary, so it must read as undecided rather than
-#: as a third colour — which is why this is a diverging ramp and not a rainbow.
-BOUNDARY_COLOURS = ["#2a78d6", "#dcdcd8", "#eb6834"]
-#: The two classes as drawn points: darker than the field so they sit on top.
-CLASS_COLOURS = ("#1b4f8f", "#8f3a12")
+#: Class 0 → cold, class 1 → warm, through the ground itself. The midpoint *is*
+#: the decision boundary, so it must read as undecided rather than as a third
+#: pigment — which is why this is a diverging ramp through the plate's own
+#: ground and not a rainbow.
+BOUNDARY_COLOURS = ["#5f93c6", "#363330", "#d4873f"]
+#: The two classes as drawn points: brighter than the field, so they sit on it
+#: the way a specimen's detail sits on its wash.
+CLASS_COLOURS = ("#bcd8f2", "#f4c88c")
 
 #: A signed quantity — a connection weight, a difference either side of zero —
 #: takes the same two diverging anchors. Named so that a module does not reach
@@ -68,42 +89,40 @@ WEIGHT_POS = BOUNDARY_COLOURS[0]
 WEIGHT_NEG = BOUNDARY_COLOURS[2]
 
 #: Operators are the one genuinely nominal set in this project: nine names with
-#: no order between them, which is the hardest case for colour. Eight of the
-#: nine are Okabe-Ito, the published palette designed for colour-vision
-#: deficiency; the ninth, `square`, extends it with a violet chosen to sit a
-#: lightness step away from Okabe-Ito's blue, which is the pair that would
-#: otherwise converge under protanopia.
+#: no order between them, which is the hardest case for colour. These are the
+#: plate's accent pigments — ochre, verdigris, rose, slate — used as sparingly
+#: as Haeckel used them, and tuned against the ground rather than against paper.
 #:
-#: Measured against the previous assignment, which took six of the nine slots
-#: from the categorical series: worst pair under deuteranopia ΔE 2.0 → 12.0
-#: (`tanh` and `square` were, in effect, the same colour for a deuteranope),
-#: under protanopia 6.6 → 8.6, at normal vision 19.7 → 26.4.
+#: Measured: every pigment clears 4.1:1 above the ground, and the closest pair
+#: is ΔE 21.2 at normal vision, 14.4 under protanopia and 13.1 under
+#: deuteranopia. The light-ground assignment this replaced managed 19.7 / 6.6 /
+#: 2.0 before it was fixed, and 26.4 / 8.6 / 11.9 afterwards; the dark ground
+#: does better because luminance is doing more of the work.
 #:
-#: Nine nominal hues cannot all be separable for everyone, and these are not:
-#: `square` against `tanh` under deuteranopia is ΔE 12, which is visible but
-#: not comfortable. So an operator is never identified by colour alone — every
-#: figure that uses these also labels them — and `sigmoid`, Okabe-Ito's yellow,
-#: is below 3:1 against the surface and is therefore always drawn with relief:
-#: an edge ring on a node, an edge on a legend swatch.
+#: Nine nominal pigments cannot all be separable for everyone, and these are
+#: not: the two slates differ mostly in value. So an operator is never
+#: identified by colour alone — every figure that uses these also labels them.
 #:
-#: Structural nodes are grey because bias, input and output are not an operator
+#: Structural nodes are bone because bias, input and output are not an operator
 #: choice.
 OP_COLOUR = {
-    "sin": "#e69f00",       # Okabe-Ito orange
-    "gaussian": "#d55e00",  # vermillion
-    "mult": "#cc79a7",      # reddish purple
-    "square": "#9b76c4",    # the one extension: a violet, lighter than the blue
-    "abs": "#009e73",       # bluish green
-    "sigmoid": "#f0e442",   # yellow; always drawn with relief
-    "tanh": "#56b4e9",      # sky blue
-    "relu": "#0072b2",      # blue
-    "add": "#3f3c36",       # near-black, so it cannot be read as a hue
-    "null": "#9a9a95",
+    "sin": "#e0a51c",       # ochre
+    "gaussian": "#c6572f",  # burnt red
+    "mult": "#c2546a",      # rose
+    "square": "#ab9ad0",    # muted violet
+    "abs": "#8fc3a6",       # verdigris
+    "sigmoid": "#c8cb5e",   # olive gold
+    "tanh": "#a9c6de",      # pale slate
+    "relu": "#4f7fae",      # deep slate
+    "add": "#8d9699",       # cool grey, so it is not a hue
+    "null": "#5a5346",      # the ground, barely lifted
 }
 
-#: Colours below this contrast against the surface may not be drawn without
-#: relief — an edge ring, an outline, a direct label.
-NEEDS_RELIEF = frozenset({"sigmoid"})
+#: On the plate every accent clears 3:1 against the ground, so nothing here has
+#: to be rescued by relief. The set is kept because the rule it encodes — a
+#: pigment too close to the ground is drawn with an outline — is a rule about
+#: the ground, and the ground could change again.
+NEEDS_RELIEF: frozenset[str] = frozenset()
 
 #: Every geometry this project uses, under one spelling.
 TASK_LABEL = {
@@ -112,8 +131,10 @@ TASK_LABEL = {
 }
 
 #: Type scale. One ladder, so a panel title in v3 is the size of one in v5.
-TITLE_SIZE = 11.5
-PANEL_TITLE_SIZE = 10.0
+#: A plate carries less type than a chart and carries it larger, because the
+#: lettering is part of the object rather than an annotation on it.
+TITLE_SIZE = 13.0
+PANEL_TITLE_SIZE = 10.5
 LABEL_SIZE = 9.0
 TICK_SIZE = 8.5
 ANNOT_SIZE = 8.5
@@ -143,8 +164,12 @@ FONT_DIR = Path(__file__).resolve().parents[2] / "assets" / "fonts"
 #: Families, in the order a renderer should try them. DejaVu stays last so a
 #: checkout without the bundled files still produces a figure rather than an
 #: exception; `tests/test_style.py` checks the bundled files are there.
+#: A plate is set in one face. Source Serif 4 Display for the lettering a
+#: lithograph would have engraved — the plate's title, the specimen captions,
+#: the panel headings — and the text cut of the same family for everything
+#: smaller, so a tick label and a title are visibly the same hand.
 DISPLAY_FAMILY = ["Source Serif 4 Display", "Source Serif 4", "DejaVu Serif"]
-TEXT_FAMILY = ["Source Sans 3", "DejaVu Sans"]
+TEXT_FAMILY = ["Source Serif 4", "Source Serif 4 Display", "DejaVu Serif"]
 
 
 def _register_fonts() -> None:
@@ -170,9 +195,9 @@ def use_project_typography() -> None:
 
     _register_fonts()
     mpl.rcParams.update({
-        "font.family": "sans-serif",
+        "font.family": "serif",
+        "font.serif": TEXT_FAMILY,
         "font.sans-serif": TEXT_FAMILY,
-        "font.serif": DISPLAY_FAMILY,
         "font.size": LABEL_SIZE,
         "axes.titlesize": PANEL_TITLE_SIZE,
         "axes.labelsize": LABEL_SIZE,
@@ -210,6 +235,16 @@ def display_font(size: float, weight: str = "regular") -> dict:
     return {"family": DISPLAY_FAMILY, "fontsize": size, "fontweight": weight}
 
 
+#: Letterpress tracking, for the small caps a plate sets its headings in.
+HAIR = "\u2009"
+
+
+def spaced(text: str) -> str:
+    """Tracked small caps. matplotlib cannot letterspace, so the spaces are
+    real — which is what a compositor did anyway."""
+    return HAIR.join(text.upper())
+
+
 def boundary_cmap():
     """The diverging ramp as a matplotlib colormap."""
     from matplotlib.colors import LinearSegmentedColormap
@@ -223,12 +258,15 @@ def boundary_cmap():
 
 
 def style_axes(ax, grid_axis: str | None = "y") -> None:
-    """Recessive frame: no top or right spine, grey ticks without tick marks."""
+    """A plate's measuring frame: the ground, one engraved baseline, a trace
+    of a grid. No top or right spine, no tick marks, nothing drawn heavier
+    than the data it measures."""
     ax.set_facecolor(SURFACE)
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
     for side in ("left", "bottom"):
-        ax.spines[side].set_color(GRID)
+        ax.spines[side].set_color(RULE)
+        ax.spines[side].set_linewidth(0.7)
     ax.tick_params(colors=INK2, labelsize=TICK_SIZE, length=0)
     if grid_axis:
         ax.grid(axis=grid_axis, color=GRID, linewidth=0.8)
@@ -236,11 +274,12 @@ def style_axes(ax, grid_axis: str | None = "y") -> None:
 
 
 def panel(ax) -> None:
-    """A bare image panel: framed, no ticks. For boundaries and matrices."""
+    """A bare specimen panel: framed in the plate's rule, no ticks."""
     ax.set_xticks([])
     ax.set_yticks([])
     for spine in ax.spines.values():
-        spine.set_color(GRID)
+        spine.set_color(RULE)
+        spine.set_linewidth(0.7)
     ax.set_facecolor(SURFACE)
 
 
@@ -260,47 +299,163 @@ def suptitle(fig, text: str, size: float = TITLE_SIZE) -> None:
 
 
 def typeset(fig) -> None:
-    """Put the figure's headline and panel titles into the display face.
+    """Set the figure's lettering the way a plate sets it.
 
     Done here, at the single exit every figure passes through, rather than at
     the ~60 call sites that pass ``fontsize=`` literals. A module can still say
     how big a title is; it cannot say what it is set in, which is the part that
     has to be the same everywhere.
+
+    The headline keeps its sentence case because these titles are sentences —
+    tracked caps over two lines of prose is a poster, not a plate — but every
+    panel heading becomes tracked small caps, which is what a plate puts over
+    a specimen.
     """
-    sup = fig.get_suptitle()
-    if sup:
+    if fig.get_suptitle():
         fig._suptitle.set_fontfamily(DISPLAY_FAMILY)
         fig._suptitle.set_color(INK)
         # A headline is a statement; give it room to breathe above the panels.
-        fig._suptitle.set_linespacing(1.45)
+        fig._suptitle.set_linespacing(1.5)
     for ax in fig.axes:
-        if ax.get_title():
-            ax.title.set_fontfamily(DISPLAY_FAMILY)
+        title = ax.get_title()
+        if not title:
+            continue
+        ax.title.set_fontfamily(DISPLAY_FAMILY)
+        ax.title.set_color(INK)
+        # One line, short, and not already tracked: a specimen heading.
+        if "\n" not in title and len(title) <= 34 and HAIR not in title:
+            ax.set_title(spaced(title), fontsize=ax.title.get_fontsize() * 0.92,
+                         color=INK, family=DISPLAY_FAMILY, pad=5.0)
+
+
+#: Where the frame sits, in inches from the figure edge, and how far below the
+#: top rule a headline starts. Both are inches rather than fractions because a
+#: plate's border is the same width on a tall plate and a wide one.
+FRAME_IN = 0.17
+HEADLINE_IN = 0.40
+
+
+def plate_frame(fig, inset_in: float = FRAME_IN) -> None:
+    """The plate's double rule, a thick line and a hairline just inside it.
+
+    Every figure in the repository carries it. It is the one mark that says
+    these are plates rather than charts, and it is drawn here so that no
+    figure can be published without it.
+    """
+    import matplotlib.pyplot as plt
+
+    w, h = fig.get_size_inches()
+    for inset, lw in ((inset_in, 1.0), (inset_in * 1.52, 0.4)):
+        fig.add_artist(plt.Rectangle(
+            (inset / w, inset / h), 1 - 2 * inset / w, 1 - 2 * inset / h,
+            transform=fig.transFigure, facecolor="none", edgecolor=RULE,
+            linewidth=lw, zorder=1000))
+
+
+def _reserve_headline(fig, adjust: dict) -> dict:
+    """Keep the panels clear of the plate's rule and of the lettering under it.
+
+    A chart can let a title float at the top of the canvas and overlap whatever
+    is there. A plate cannot: the rule is drawn a fixed distance from the edge
+    and the lettering sits inside it, so the panels have to be told how much
+    room that takes. Guessing it in inches went wrong on every figure with a
+    two-line headline, so it is measured: draw once, ask the renderer where the
+    headline actually ends and how tall the panel headings actually are, and
+    push the panels below both.
+    """
+    if not fig.get_suptitle():
+        return adjust
+
+    height_in = fig.get_size_inches()[1]
+    fig._suptitle.set_y(1 - (FRAME_IN + 0.22) / height_in)
+
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    inv = fig.transFigure.inverted()
+
+    def frac(artist):
+        return artist.get_window_extent(renderer).transformed(inv)
+
+    headline_bottom = frac(fig._suptitle).y0
+    # How far a panel heading reaches above its own axes, as a fraction.
+    overshoot = 0.0
+    for ax in fig.axes:
+        if not ax.get_title():
+            continue
+        box = frac(ax.title)
+        overshoot = max(overshoot, box.y1 - ax.get_position().y1)
+
+    cap = headline_bottom - 0.018 - overshoot
+    if adjust.get("top", 1.0) > cap:
+        adjust = dict(adjust, top=cap)
+    return adjust
+
+
+def _clear_the_frame(fig) -> None:
+    """Move figure-level lettering out from under the plate's rule.
+
+    A key placed at ``loc="lower center"`` sits at the very bottom of the
+    canvas, which on a plate is exactly where the border is — the rule drew
+    straight through the legend and through the leading character of every
+    label in it. Rather than hand-tune a bottom margin per figure, measure what
+    crosses the rule and move it inside.
+    """
+    artists = list(fig.legends) + [
+        txt for txt in fig.texts if txt is not getattr(fig, "_suptitle", None)
+    ]
+    if not artists:
+        return
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    inv = fig.transFigure.inverted()
+    w_in, h_in = fig.get_size_inches()
+    pad_y = (FRAME_IN * 1.52 + 0.07) / h_in
+    pad_x = (FRAME_IN * 1.52 + 0.07) / w_in
+
+    for art in artists:
+        box = art.get_window_extent(renderer).transformed(inv)
+        dy = (pad_y - box.y0) if box.y0 < pad_y else (
+            (1 - pad_y) - box.y1 if box.y1 > 1 - pad_y else 0.0)
+        dx = (pad_x - box.x0) if box.x0 < pad_x else (
+            (1 - pad_x) - box.x1 if box.x1 > 1 - pad_x else 0.0)
+        if not dx and not dy:
+            continue
+        if hasattr(art, "set_bbox_to_anchor"):
+            art.set_bbox_to_anchor((dx, dy, 1.0, 1.0), transform=fig.transFigure)
+        else:
+            x, y = art.get_position()
+            art.set_position((x + dx, y + dy))
 
 
 def save(fig, path, **adjust) -> Any:
-    """Write a figure at the project's density, onto the project's surface."""
+    """Write a figure at the project's density, onto the project's ground."""
     import matplotlib.pyplot as plt
 
     typeset(fig)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
+    adjust = _reserve_headline(fig, adjust)
     if adjust:
         fig.subplots_adjust(**adjust)
     else:
         fig.tight_layout()
+    _clear_the_frame(fig)
+    plate_frame(fig)
     fig.savefig(path, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     return path
 
 
 def pale(colour: str, amount: float = 0.74):
-    """Toward white, so a filled field never competes with points drawn on it."""
+    """Toward the ground, so a filled field never competes with what is drawn
+    on it. On a plate "wash it out" means sink it into the paper, not raise it
+    toward white — the ground is the dark here."""
     import matplotlib.colors as mcolors
     import numpy as np
 
     rgb = np.array(mcolors.to_rgb(colour))
-    return tuple(rgb + (1.0 - rgb) * amount)
+    ground = np.array(mcolors.to_rgb(SURFACE))
+    return tuple(rgb + (ground - rgb) * amount)
 
 
 # --------------------------------------------------------------------------
@@ -327,23 +482,26 @@ def pale(colour: str, amount: float = 0.74):
 #   grey   = published reference targets and non-significant verdicts; never
 #            a series
 #
-# Validated: blue vs orange is ΔE 24.7 under protanopia and 33.6 at normal
-# vision, both above 3:1 against the surface — materially safer than the
-# six-slot categorical order it replaces (worst adjacent pair ΔE 9.1, three
-# slots under 3:1). The ramps are sequential, so the governing property is
-# lightness monotonicity, which `tests/test_style.py` checks: blue spans
-# L 0.49→0.73 and orange L 0.76→0.51, both strictly monotonic.
+# Validated against the plate ground rather than against paper: all six clear
+# 3:1 above the ground, the worst pair inside a family is ΔE 14.6 under
+# deuteranopia and 16.2 under protanopia, and the two families are further
+# apart than that. The six-slot categorical order this replaced had a worst
+# adjacent pair of ΔE 9.1 and three slots under 3:1. The ramps are sequential,
+# so the governing property is luminance monotonicity, which
+# `tests/test_style.py` checks in both directions.
 
-#: We searched for it.
-SEARCH_PRIMARY = "#1a5fb4"
-SEARCH_SECONDARY = "#2a78d6"
-SEARCH_NULL = "#7aaae8"
+#: We searched for it. On a dark ground the ordering runs the other way round
+#: from a white one: weight is luminance, so the primary is the brightest.
+SEARCH_PRIMARY = "#a7c9e8"
+SEARCH_SECONDARY = "#6e9cc8"
+SEARCH_NULL = "#466f94"
 SEARCH_RAMP = [SEARCH_PRIMARY, SEARCH_SECONDARY, SEARCH_NULL]
 
-#: We fixed it in advance. Pale is starved, deep is the strongest control.
-CONTROL_STARVED = "#f0996a"
-CONTROL_MATCHED = "#eb6834"
-CONTROL_BEST = "#a8400f"
+#: We fixed it in advance. Dim is starved, bright is the strongest control —
+#: the same rule as above, read against the ground rather than against paper.
+CONTROL_STARVED = "#9a6a42"
+CONTROL_MATCHED = "#d08242"
+CONTROL_BEST = "#efb264"
 CONTROL_RAMP = [CONTROL_STARVED, CONTROL_MATCHED, CONTROL_BEST]
 
 #: Neither: a published target, or a verdict that did not reach significance.
@@ -451,44 +609,23 @@ def ramp(role: str, n: int) -> list[str]:
 # The plate language
 # ==========================================================================
 #
-# One family of figures in this repository is not a chart: the Haeckel plates,
-# which draw real champion genomes as naturalist specimens. They need a dark
-# ground, and a dark ground is exactly the kind of local decision that six
-# copies of a palette used to make differently. So the plate language lives
-# here too, next to the chart language, and the plates import it.
+# There is no separate plate language any more. The specimen plates and the
+# analytical figures are the same object drawn at different magnifications, so
+# they take the same ground, the same bone, the same rule and the same accent
+# pigments. These names remain because the plate modules read well with them,
+# but they are aliases, not a second palette — which is the whole point: a
+# second palette is how two figures in one repository come to disagree.
 
-#: The plate's paper under ink — warm near-black, never pure black.
-PLATE_GROUND = "#17150f"
-#: The skeletal line: bone, for structure that reaches the output.
-PLATE_BONE = "#ece2cd"
-#: Structure the genome carries that never arrives. Drawn, but recessive.
+PLATE_GROUND = SURFACE
+PLATE_BONE = INK
+PLATE_CAPTION = INK2
+PLATE_RULE = RULE
+#: Structure a genome carries that never reaches the output: present, recessive.
 PLATE_BONE_DIM = "#8d8470"
-#: The border rule and the plate's lettering.
-PLATE_RULE = "#6e6450"
-#: Specimen captions.
-PLATE_CAPTION = "#c9bda2"
+PLATE_ACCENT = OP_COLOUR
 
-#: Haeckel's accents, used as sparingly as he used them: ochre, rose,
-#: verdigris. One pigment per operator, translating `OP_COLOUR` family by
-#: family, so a reader who learns "gaussian is the warm red" in a chart keeps
-#: it on a plate. The one exception is `add`, which is near-black in a chart
-#: and would disappear into a dark ground, so on the plates it is stone.
-PLATE_ACCENT = {
-    "sin": "#e0a51c",       # ochre        <- amber
-    "gaussian": "#c6572f",  # burnt red    <- vermillion
-    "mult": "#b0485a",      # rose         <- reddish purple
-    "square": "#8e7fb4",    # muted violet <- violet
-    "abs": "#5f9478",       # verdigris    <- bluish green
-    "sigmoid": "#bcbe55",   # olive gold   <- yellow
-    "tanh": "#a9c6de",      # pale slate   <- sky blue
-    "relu": "#2f5680",      # deep navy    <- blue
-    "add": "#8e8468",       # stone        <- near-black, which a dark ground
-                            #                 cannot carry
-    "null": "#9a927c",
-}
-
-#: Plates are lithographs and carry fine line work at small scale, so they are
-#: rasterised denser than the charts. Still a token, never a literal.
+#: Plates carry fine line work at small scale, so they are rasterised denser
+#: than a chart with the same ink. Still a token, never a literal.
 PLATE_DPI = 200
 
 

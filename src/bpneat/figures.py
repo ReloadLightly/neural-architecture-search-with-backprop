@@ -30,6 +30,7 @@ from .style import (  # noqa: E402
     GRID,
     INK,
     OP_COLOUR,
+    RULE,
     SEARCH_PRIMARY,
     SEARCH_SECONDARY,
     SURFACE,
@@ -116,7 +117,7 @@ def validation_performance(rows: list[dict], out: Path, track: str) -> Path:
                yerr=sds, ecolor=INK_2, capsize=3, error_kw={"linewidth": 1.1})
         for xi, v in zip(x, vals):
             ax.text(xi, v + 0.035, f"{v:.2f}", ha="center", fontsize=8.5, color=INK)
-        ax.axhline(SUCCESS_THRESHOLD[task], color=INK_2, linewidth=1, linestyle=(0, (4, 3)))
+        ax.axhline(SUCCESS_THRESHOLD[task], color=RULE, linewidth=1, linestyle=(0, (4, 3)))
         ax.text(-0.45, SUCCESS_THRESHOLD[task] + 0.015, "success threshold",
                 ha="left", fontsize=7, color=INK_2)
         _cat_axis(ax, x, conds)
@@ -173,7 +174,7 @@ def paired_effects_figure(effects: list[dict], out: Path, track: str) -> Path:
                     markeredgecolor=SURFACE, markeredgewidth=1.6)
             ax.text(hi + 0.012, yi, f"{e['mean_difference']:+.3f}", va="center",
                     fontsize=8, color=INK)
-        ax.axvline(0, color=INK_2, linewidth=1)
+        ax.axvline(0, color=RULE, linewidth=1)
         ax.set_yticks(y)
         ax.set_yticklabels(
             ["vs " + LABEL[e["comparison"].split(" - ")[1]] for e in items], fontsize=8.5

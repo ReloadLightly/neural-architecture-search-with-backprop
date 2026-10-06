@@ -349,6 +349,7 @@ def _plotting():
         CLASS_COLOURS,
         CONTROL_MATCHED,
         OP_COLOUR,
+        RULE,
         SEARCH_PRIMARY,
     )
 
@@ -360,6 +361,7 @@ def _plotting():
         "CLASS_COLOURS": CLASS_COLOURS,
         "CONTROL_MATCHED": CONTROL_MATCHED,
         "OP_COLOUR": OP_COLOUR,
+        "RULE": RULE,
         "SEARCH_PRIMARY": SEARCH_PRIMARY,
         "SURFACE": SURFACE,
         "TASK_LABEL": TASK_LABEL,
@@ -389,7 +391,8 @@ def champion_boundaries(release_dir: Path, out: Path, track_dir: str = "track-b"
     # a class-1 point stays readable where the model also predicts class 1.
     cmap = mcolors.LinearSegmentedColormap.from_list(
         "bpneat-boundary",
-        [_pale(s["BOUNDARY_COLOURS"][0]), "#ffffff", _pale(s["BOUNDARY_COLOURS"][2])],
+        [_pale(s["BOUNDARY_COLOURS"][0]), s["BOUNDARY_COLOURS"][1],
+         _pale(s["BOUNDARY_COLOURS"][2])],
     )
     marker = {0: "o", 1: "^"}
     tasks = [t for t in TASKS if t in chosen]
@@ -564,7 +567,7 @@ def paired_test_loss(release_dir: Path, out: Path, track_dir: str = "track-b") -
                 hi + pad, yi, f"{e['mean_difference']:+.3f}  {e['wins']}/{e['n_pairs']}",
                 va="center", fontsize=7.5, color=s["INK"],
             )
-        ax.axvline(0, color=s["INK_2"], linewidth=1)
+        ax.axvline(0, color=s["RULE"], linewidth=1)
         ax.set_yticks(y)
         ax.set_yticklabels(
             ["vs " + LABEL[e["comparison"].split(" - ")[1]] for e in items], fontsize=8.5

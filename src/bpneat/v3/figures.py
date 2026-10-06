@@ -24,6 +24,7 @@ from ..style import (  # noqa: E402
     INK,
     INK2,
     NEUTRAL,
+    RULE,
     SEARCH_NULL,
     SEARCH_PRIMARY,
     SURFACE,
@@ -95,18 +96,25 @@ def stability(matrix: list[dict], out: Path) -> Path | None:
     if not matrix:
         return None
     cols = [k for k in matrix[0] if k not in ("claim", "statement", "task")]
-    fig, ax = plt.subplots(figsize=(13, 0.9 * len(matrix) + 2.6), facecolor=SURFACE)
+    fig, ax = plt.subplots(figsize=(13, 0.78 * len(matrix) + 2.2), facecolor=SURFACE)
     ax.set_facecolor(SURFACE)
-    colour = {"supported": GOOD, "reversed": BAD, "not significant": NEUTRAL, "n/a": "#f0efec"}
+    # "not applicable" is the ground itself with a hairline round it: the cell
+    # exists, nothing was measured in it, and it should read as absence rather
+    # than as a sixth pigment.
+    colour = {"supported": GOOD, "reversed": BAD, "not significant": NEUTRAL,
+              "n/a": SURFACE}
     for r, row in enumerate(matrix):
         for c, col in enumerate(cols):
             v = row[col]
-            ax.add_patch(plt.Rectangle((c, -r), 1, 1, facecolor=colour.get(v, NEUTRAL),
-                                       edgecolor=SURFACE, linewidth=3))
+            ax.add_patch(plt.Rectangle(
+                (c, -r), 1, 1, facecolor=colour.get(v, NEUTRAL),
+                edgecolor=RULE if v == "n/a" else SURFACE,
+                linewidth=0.7 if v == "n/a" else 3))
             short = {"supported": "supported", "reversed": "REVERSED",
                      "not significant": "n.s.", "n/a": "—"}[v]
             ax.text(c + 0.5, -r + 0.5, short, ha="center", va="center",
-                    fontsize=8.5, color=INK if v != "reversed" else "#ffffff")
+                    fontsize=8.5,
+                    color=RULE if v == "n/a" else SURFACE)
     ax.set_xlim(0, len(cols))
     ax.set_ylim(-len(matrix) + 1, 1)
     ax.set_xticks([c + 0.5 for c in range(len(cols))])
@@ -122,12 +130,13 @@ def stability(matrix: list[dict], out: Path) -> Path | None:
     # C2 and C3 compare against ablations that share the candidate budget by
     # construction, so their row is identical across control definitions. That
     # invariance is the point, not a rendering artifact.
-    fig.text(0.30, 0.055,
+    fig.text(0.30, 0.068,
              "Columns are control definitions. Rows C2 and C3 compare against "
              "budget-matched ablations,\nso they are invariant across columns by "
              "construction — that invariance is the finding.",
              fontsize=8, color=INK2, ha="left")
-    return _save(fig, out / "stability-matrix.png", bottom=0.30, left=0.30, top=0.88, right=0.99)
+    return _save(fig, out / "stability-matrix.png",
+                 bottom=0.32, left=0.30, top=0.88, right=0.99)
 
 
 #: Block A only. The compute figure is about controls and budgets; the
@@ -246,7 +255,7 @@ def block_a_effects(effects: list[dict], out: Path) -> Path | None:
                     solid_capstyle="round")
             ax.plot(e["median_difference"], yi, "o", markersize=7, color=col,
                     markeredgecolor=SURFACE, markeredgewidth=1.4)
-        ax.axvline(0, color=INK2, linewidth=1)
+        ax.axvline(0, color=RULE, linewidth=1)
         ax.set_yticks(y)
         if task == tasks[0]:
             ax.set_yticklabels(
@@ -344,9 +353,9 @@ def propagation_grid(summary: list[dict], out: Path) -> Path | None:
         # Grouped by rule, with a gap between the groups rather than a uniform row.
         x = np.array([0.0, 0.85, 2.05, 2.90])
         ax.bar(x, accs, width=0.68, color=colours)
-        ax.axhline(0.5, color=INK2, linewidth=0.9, linestyle=(0, (4, 3)))
-        ax.text(x[-1] + 0.5, 0.515, "chance", va="bottom", ha="right",
-                fontsize=7.5, color=INK2, style="italic")
+        ax.axhline(0.5, color=RULE, linewidth=0.9, linestyle=(0, (4, 3)))
+        ax.text(x[-1] + 0.5, 0.525, "chance", va="bottom", ha="right",
+                fontsize=7.5, color=RULE, style="italic")
         for xi, (a, c) in enumerate(zip(accs, colls)):
             ax.text(x[xi], a + 0.022, f"{a:.2f}", ha="center", fontsize=8.5, color=INK)
             if c > 0:

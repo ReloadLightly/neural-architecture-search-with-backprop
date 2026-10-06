@@ -40,6 +40,7 @@ from bpneat.style import (  # noqa: E402
     INK,
     INK2,
     NEUTRAL,
+    RULE,
     SURFACE,
     colour_of,
     save,
@@ -73,13 +74,15 @@ def _style(ax):
 def _headline(fig, head: str, sub: str, x: float = 0.055) -> None:
     """A headline and a sub-line, at two sizes and two weights.
 
-    A two-line `set_title` set both at 11.5pt, so the claim and its gloss had
-    the same weight and the figure had no entry point. These are the three
-    figures the README opens with; they get a real hierarchy.
+    Measured down from the top of the plate in inches rather than in figure
+    fractions: the display face is set large here, and at a fixed fraction the
+    two lines collided on every figure shorter than six inches.
     """
-    fig.text(x, 0.955, head, ha="left", va="top", color=INK,
-             fontsize=15.5, family=DISPLAY_FAMILY)
-    fig.text(x, 0.885, sub, ha="left", va="top", color=INK2, fontsize=9.5)
+    height = fig.get_size_inches()[1]
+    fig.text(x, 1 - 0.46 / height, head, ha="left", va="top", color=INK,
+             fontsize=16.0, family=DISPLAY_FAMILY)
+    fig.text(x, 1 - 0.82 / height, sub, ha="left", va="top", color=INK2,
+             fontsize=9.5)
 
 
 def _save(fig, name: str, **kw):
@@ -258,7 +261,7 @@ def fig_topologies_found() -> Path:
         (HA_CHAMPION_NODES, f"Ha (2016) champion: {HA_CHAMPION_NODES}"),
         (FIXED_UNITS, f"the fixed network it is compared with: {FIXED_UNITS}"),
     ):
-        ax.axvline(x, color=INK2, linewidth=1.3, linestyle=(0, (4, 3)), zorder=2)
+        ax.axvline(x, color=RULE, linewidth=1.3, linestyle=(0, (4, 3)), zorder=2)
         ax.text(x * 0.95, (len(bars) - 1) / 2.0, label, fontsize=8.5, color=INK2,
                 rotation=90, va="center", ha="right")
 
@@ -318,9 +321,9 @@ def fig_budget_decides() -> Path:
                 markeredgecolor=SURFACE, markeredgewidth=2, label=label, zorder=4)
         for x, v in zip(xs, vals):
             ax.text(x, v + 0.016, f"{v:.3f}", ha="center", fontsize=8.5, color=INK)
-    ax.axhline(chance, color=INK2, linewidth=0.9, linestyle=(0, (4, 3)), zorder=2)
-    ax.text(len(tasks) - 0.62, chance + 0.008, "chance", ha="right", va="bottom",
-            fontsize=8, color=INK2, style="italic")
+    ax.axhline(chance, color=RULE, linewidth=0.9, linestyle=(0, (4, 3)), zorder=2)
+    ax.text(len(tasks) - 0.62, chance + 0.012, "chance", ha="right", va="bottom",
+            fontsize=8, color=RULE, style="italic")
     ax.set_xticks(range(len(tasks)))
     ax.set_xticklabels([TASK_LABEL[t] for t in tasks], fontsize=9.5, color=INK)
     ax.set_ylim(chance - 0.02, 1.02)

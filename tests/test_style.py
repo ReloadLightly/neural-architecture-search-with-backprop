@@ -1,12 +1,14 @@
 """One visual style, enforced rather than intended.
 
-Six plotting modules each carried their own copy of the surface, ink, grid and
-categorical palette. They happened to agree, which is the dangerous case: six
-copies that agree today are six chances to disagree tomorrow, and a reader
-cannot tell a deliberate difference from a drifted one.
+Every figure in this repository is a plate: a warm near-black ground, bone
+line work, a double rule round the edge, serif lettering, and a small set of
+accent pigments. Not some of them, and not the plates only — all of them,
+including whatever is drawn from results that do not exist yet.
 
-`src/bpneat/style.py` is now the only place those values are defined. These
-gates parse every module that imports matplotlib and fail if it defines its own.
+That is a claim about consistency, and consistency is exactly the kind of claim
+that decays quietly. So it is enforced here rather than intended: these gates
+parse every module that imports matplotlib and fail if it defines its own
+ground, its own ink, its own palette, or saves a figure without the frame.
 """
 
 from __future__ import annotations
@@ -25,7 +27,7 @@ from bpneat import style  # noqa: E402
 
 #: Names that define the look. No module but `style` may assign one.
 RESERVED = {
-    "SURFACE", "INK", "INK2", "INK_2", "GRID", "SERIES",
+    "SURFACE", "INK", "INK2", "INK_2", "GRID", "RULE", "SERIES",
     "SEARCH_PRIMARY", "SEARCH_SECONDARY", "SEARCH_NULL",
     "CONTROL_STARVED", "CONTROL_MATCHED", "CONTROL_BEST",
     "ROLE_COLOUR", "REFERENCE_COLOUR", "WEIGHT_POS", "WEIGHT_NEG",
@@ -39,6 +41,21 @@ RESERVED = {
 }
 
 STYLE_MODULE = ROOT / "src" / "bpneat" / "style.py"
+
+
+def _luminance(colour: str) -> float:
+    import matplotlib.colors as mcolors
+    import numpy as np
+
+    rgb = np.array(mcolors.to_rgb(colour))
+    lin = np.where(rgb <= 0.04045, rgb / 12.92, ((rgb + 0.055) / 1.055) ** 2.4)
+    return float(0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2])
+
+
+def _contrast(a: str, b: str) -> float:
+    la, lb = _luminance(a), _luminance(b)
+    hi, lo = max(la, lb), min(la, lb)
+    return (hi + 0.05) / (lo + 0.05)
 
 
 def _plotting_modules() -> list[Path]:
@@ -99,13 +116,26 @@ def test_every_figure_is_saved_at_the_project_density(path: Path):
                 )
 
 
-def test_the_palette_is_the_validated_one():
-    """The six slots are a validated set, not a preference; pin them."""
-    assert style.SERIES == [
-        "#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300"
-    ]
-    assert style.SURFACE == "#fcfcfb"
-    assert len(style.SERIES) == len(set(style.SERIES)) == 6
+def test_the_ground_is_the_plate_ground():
+    """One ground, and it is the plate's. Pinned because every other colour in
+    the project was chosen against it."""
+    assert style.SURFACE == "#17150f"
+    assert style.PLATE_GROUND == style.SURFACE
+    assert style.PLATE_BONE == style.INK
+
+
+def test_nothing_is_lighter_than_the_ink_or_darker_than_the_ground():
+    """The ground is the floor and the bone is the ceiling: any pigment outside
+    that range is either invisible or shouting."""
+    named = {
+        **{k: v for k, v in style.OP_COLOUR.items()},
+        **style.ROLE_COLOUR,
+        "good": style.GOOD, "bad": style.BAD, "neutral": style.NEUTRAL,
+        "rule": style.RULE, "grid": style.GRID,
+    }
+    floor, ceiling = _luminance(style.SURFACE), _luminance(style.INK)
+    for name, colour in named.items():
+        assert floor <= _luminance(colour) <= ceiling, f"{name} is outside the plate"
 
 
 def test_status_colours_are_not_reused_as_series():
@@ -116,7 +146,8 @@ def test_status_colours_are_not_reused_as_series():
 
 def test_the_boundary_ramp_is_diverging_with_a_neutral_midpoint():
     """Two hues through a near-neutral middle — never a rainbow, never a hue
-    at the midpoint, because the midpoint is the decision boundary itself."""
+    at the midpoint, because the midpoint is the decision boundary itself. On
+    a plate the middle is the ground showing through."""
     import matplotlib.colors as mcolors
 
     lo, mid, hi = (mcolors.to_rgb(c) for c in style.BOUNDARY_COLOURS)
@@ -193,33 +224,38 @@ def test_every_condition_in_every_protocol_has_a_declared_role():
 
 
 def test_the_two_families_are_one_hue_each():
-    """Blue is "we searched", orange is "we fixed it". Two anchors, no third."""
+    """Cold is "we searched", warm is "we fixed it". Two anchors, no third."""
     import matplotlib.colors as mcolors
 
     def hue(c):
         return mcolors.rgb_to_hsv(mcolors.to_rgb(c))[0]
 
     for c in style.SEARCH_RAMP:
-        assert 0.5 < hue(c) < 0.72, f"{c} is not in the blue family"
+        assert 0.5 < hue(c) < 0.72, f"{c} is not in the cold family"
     for c in style.CONTROL_RAMP:
-        assert hue(c) < 0.09, f"{c} is not in the orange family"
+        assert hue(c) < 0.11, f"{c} is not in the warm family"
 
 
-def test_role_ramps_are_monotonic_in_lightness():
-    """A sequential ramp's governing property is lightness, in both directions."""
-    import matplotlib.colors as mcolors
+def test_role_ramps_are_monotonic_in_luminance():
+    """A sequential ramp's governing property is luminance.
 
-    def light(c):
-        r, g, b = mcolors.to_rgb(c)
-        return 0.2126 * r + 0.7152 * g + 0.0722 * b
-
-    assert [light(c) for c in style.SEARCH_RAMP] == sorted(
-        light(c) for c in style.SEARCH_RAMP)
-    assert [light(c) for c in style.CONTROL_RAMP] == sorted(
-        (light(c) for c in style.CONTROL_RAMP), reverse=True)
+    On a dark ground the direction flips: weight is brightness, so the primary
+    search and the strongest control are the brightest members of their family
+    and the ramps run the opposite way from each other.
+    """
+    search = [_luminance(c) for c in style.SEARCH_RAMP]
+    control = [_luminance(c) for c in style.CONTROL_RAMP]
+    assert search == sorted(search, reverse=True), "the search ramp is not ordered"
+    assert control == sorted(control), "the control ramp is not ordered"
     for role in ("search_primary", "control_matched"):
-        steps = [light(c) for c in style.ramp(role, 6)]
+        steps = [_luminance(c) for c in style.ramp(role, 6)]
         assert steps == sorted(steps), f"{role} ramp is not monotonic"
+
+
+def test_every_role_colour_carries_on_the_ground():
+    """A pigment that does not clear 3:1 above the ground is not on the plate."""
+    for name, colour in style.ROLE_COLOUR.items():
+        assert _contrast(colour, style.SURFACE) >= 3.0, f"{name} sinks into the ground"
 
 
 def test_a_signed_quantity_uses_the_diverging_anchors():
@@ -259,10 +295,12 @@ def test_the_families_fall_back_rather_than_fail():
 
 
 def test_importing_style_installs_the_type():
+    """A plate is set in one face, and it is a serif."""
     import matplotlib as mpl
 
-    assert mpl.rcParams["font.sans-serif"][0] == style.TEXT_FAMILY[0]
-    assert mpl.rcParams["font.serif"][0] == style.DISPLAY_FAMILY[0]
+    assert mpl.rcParams["font.family"] == ["serif"]
+    assert mpl.rcParams["font.serif"][0] == style.TEXT_FAMILY[0]
+    assert "Serif" in style.TEXT_FAMILY[0] and "Serif" in style.DISPLAY_FAMILY[0]
 
 
 def test_titles_are_typeset_at_the_single_exit():
@@ -285,7 +323,7 @@ def test_titles_are_typeset_at_the_single_exit():
 
 
 def test_the_plate_palette_lives_here_too():
-    """The one figure family with a dark ground is still a single source."""
+    """There is no second palette: the plate names are aliases of the one set."""
     import matplotlib.colors as mcolors
 
     for name in ("PLATE_GROUND", "PLATE_BONE", "PLATE_BONE_DIM", "PLATE_RULE",
@@ -367,43 +405,96 @@ def test_the_operator_palette_separates_under_colour_vision_deficiency():
     future edit cannot quietly give one back.
     """
     palette = {k: v for k, v in style.OP_COLOUR.items() if k != "null"}
-    floors = {"normal": 26.0, "protan": 8.5, "deutan": 11.9}
+    floors = {"normal": 21.0, "protan": 14.0, "deutan": 13.0}
     for kind, floor in floors.items():
         d, a, b = _worst_pair(palette, kind)
         assert d >= floor, f"{kind}: {a} and {b} are only ΔE {d:.1f} apart"
+    for name, colour in palette.items():
+        assert _contrast(colour, style.SURFACE) >= 4.0, f"{name} sinks into the ground"
 
 
-def test_a_low_contrast_operator_colour_is_declared_as_needing_relief():
-    """Okabe-Ito's yellow is below 3:1 against the surface. That is allowed
-    only because every figure draws it with an edge, and the exception is
-    named rather than left for a reader to discover."""
-    import numpy as np
-
-    def contrast(a, b):
-        def lum(c):
-            r = _linear(c)
-            return float(0.2126 * r[0] + 0.7152 * r[1] + 0.0722 * r[2])
-        hi, lo = max(lum(a), lum(b)), min(lum(a), lum(b))
-        return (hi + 0.05) / (lo + 0.05)
-
+def test_any_pigment_too_close_to_the_ground_is_declared():
+    """The rule is about the ground, so it survives the ground changing: a
+    pigment that does not clear it has to be named as needing an outline."""
     low = {
         op for op, c in style.OP_COLOUR.items()
-        if op != "null" and contrast(c, style.SURFACE) < 1.6
+        if op != "null" and _contrast(c, style.SURFACE) < 2.0
     }
     assert low == set(style.NEEDS_RELIEF), (
-        f"these sit below 1.6:1 and are not declared: {sorted(low ^ set(style.NEEDS_RELIEF))}"
+        "undeclared pigments that sink into the ground: "
+        f"{sorted(low ^ set(style.NEEDS_RELIEF))}"
     )
-    assert np.isfinite(contrast(style.OP_COLOUR["relu"], style.SURFACE))
 
 
-def test_the_plate_pigments_track_the_chart_hues():
-    """A reader who learns an operator's colour in a chart keeps it on a plate."""
-    import matplotlib.colors as mcolors
+def test_there_is_no_second_operator_palette():
+    """A reader who learns an operator's pigment on one figure keeps it on all
+    of them, because there is only one table."""
+    assert style.PLATE_ACCENT is style.OP_COLOUR
 
-    for op in style.OP_COLOUR:
-        if op in ("null", "add"):
-            continue  # `add` is near-black in a chart; a dark ground cannot carry it
-        chart = mcolors.rgb_to_hsv(mcolors.to_rgb(style.OP_COLOUR[op]))[0]
-        plate = mcolors.rgb_to_hsv(mcolors.to_rgb(style.PLATE_ACCENT[op]))[0]
-        gap = min(abs(chart - plate), 1 - abs(chart - plate))
-        assert gap < 0.085, f"{op}: plate pigment is a different hue ({gap:.3f})"
+
+# --------------------------------------------------------------------------
+# The plate register, applied to everything
+# --------------------------------------------------------------------------
+
+
+def test_no_figure_is_written_without_the_frame():
+    """A plate without its rule is a chart, and the point of this style is that
+    there are no charts in here. Every `savefig` in the repository either goes
+    through `style.save`, which draws the frame, or draws it itself two
+    statements earlier."""
+    offenders = []
+    for path in _plotting_modules():
+        lines = path.read_text().split("\n")
+        for i, line in enumerate(lines):
+            if ".savefig(" not in line:
+                continue
+            window = "\n".join(lines[max(0, i - 6):i])
+            if "plate_frame" not in window and "style.save" not in window:
+                offenders.append(f"{path.relative_to(ROOT)}:{i + 1}")
+    assert not offenders, (
+        "figures written without the plate's rule at " + ", ".join(offenders)
+    )
+
+
+def test_the_frame_is_drawn_in_inches_not_fractions():
+    """A plate's border is the same width on a tall plate and a wide one, so
+    the inset is an absolute measure. Taking it as a figure fraction would give
+    a 16-inch-wide figure a hairline down the sides and a band across the top.
+    """
+    import matplotlib.pyplot as plt
+
+    for size in ((4.0, 4.0), (16.0, 4.4), (8.2, 13.6)):
+        fig = plt.figure(figsize=size)
+        style.plate_frame(fig)
+        rect = fig.artists[0]
+        inset_x = (size[0] - rect.get_width() * size[0]) / 2
+        inset_y = (size[1] - rect.get_height() * size[1]) / 2
+        assert abs(inset_x - style.FRAME_IN) < 1e-6, size
+        assert abs(inset_y - style.FRAME_IN) < 1e-6, size
+        plt.close(fig)
+
+
+def test_every_plotting_module_draws_on_the_shared_ground():
+    """A module may not set its own facecolor to anything but the ground."""
+    import re
+
+    pattern = re.compile(r"facecolor\s*=\s*[\"']#")
+    offenders = [
+        str(p.relative_to(ROOT)) for p in _plotting_modules()
+        if pattern.search(p.read_text())
+    ]
+    assert not offenders, f"hard-coded facecolors in {offenders}"
+
+
+def test_nothing_draws_in_white():
+    """White is not on this plate. A call site that wants "the paper" means the
+    ground, and must say `SURFACE` so it follows the ground if it moves."""
+    import re
+
+    pattern = re.compile(r"[\"'](?:white|#fff(?:fff)?)[\"']", re.IGNORECASE)
+    offenders = []
+    for path in _plotting_modules():
+        for i, line in enumerate(path.read_text().split("\n")):
+            if pattern.search(line) and "noqa: plate" not in line:
+                offenders.append(f"{path.relative_to(ROOT)}:{i + 1}")
+    assert not offenders, "literal white at " + ", ".join(offenders)
