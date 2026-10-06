@@ -1,12 +1,22 @@
 # Does the architecture search pay?
 
-**Four preregistered protocols on David Ha's Backprop-NEAT and on a second,
-unrelated topology search. 3,120 runs on sealed test splits. The search
-component never beats sampling the same space at random — and on the hardest
-geometries it is beaten by it.**
+**Five preregistered protocols on David Ha's Backprop-NEAT, on a second
+unrelated topology search, and on NEAT's own machinery. The search component
+never beats sampling the same space at random — and the networks it builds have
+about four active units where the published demonstration shows thirty-four.**
 
 [![CI](https://github.com/ReloadLightly/neural-architecture-search-with-backprop/actions/workflows/ci.yml/badge.svg)](https://github.com/ReloadLightly/neural-architecture-search-with-backprop/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+
+<table>
+<tr>
+<td align="center" width="20%"><a href="docs/figures/decision-boundaries.png"><img src="docs/figures/decision-boundaries.png" alt="decision boundaries"></a><br><sub>What each search actually built</sub></td>
+<td align="center" width="20%"><a href="docs/figures/champion-networks.png"><img src="docs/figures/champion-networks.png" alt="champion networks"></a><br><sub>The evolved graphs themselves</sub></td>
+<td align="center" width="20%"><a href="docs/figures/does-search-pay.png"><img src="docs/figures/does-search-pay.png" alt="search versus random sampling"></a><br><sub>Search against not searching</sub></td>
+<td align="center" width="20%"><a href="docs/figures/mechanism-boundaries.png"><img src="docs/figures/mechanism-boundaries.png" alt="NEAT mechanisms"></a><br><sub>What each NEAT mechanism changes</sub></td>
+<td align="center" width="20%"><a href="docs/figures/topologies-found.png"><img src="docs/figures/topologies-found.png" alt="topology sizes"></a><br><sub>Four active units against thirty-four</sub></td>
+</tr>
+</table>
 
 ## Abstract
 
@@ -19,24 +29,33 @@ every published number regenerating byte-identically from committed raw records.
 Then we ask the question a NAS paper is supposed to answer and usually does not:
 **would anything have been lost by not searching?**
 
-Across four protocols — including a second algorithm that shares no encoding, no
+Across five protocols — including a second algorithm that shares no encoding, no
 selection mechanism and no code with the first — the answer is consistently no.
 Topology search never beats a candidate-matched random sample of its own search
-space; on the two hardest geometries it is significantly *worse*. The
-topologies it finds are tiny — about four causally active units where the
-published demonstration shows thirty-four — and selection is what makes them
-tiny, not the mutation rate. Meanwhile a *fixed* network with a well-chosen
-operator set, given the same gradient budget, beats every evolved champion in
-every release.
+space; on the two hardest geometries it is significantly *worse*. The topologies
+it finds are tiny, and protocol v5 shows **why**: NEAT's complexification is
+real but is held down by two of its own reference settings, and releasing both
+grows the networks two- to five-fold and does buy accuracy. Even so, a *fixed*
+network with a well-chosen operator set, given the same gradient budget, beats
+every evolved champion in every release.
 
 Our own conclusions changed three times along the way, each time because of an
 implementation detail the algorithm's published description does not fix. All
 three corrections are in the repository, with the invalidated data retained.
 
 > **Start here:** does the search pay? ([§1](#1-does-the-architecture-search-pay))
-> · what the topologies look like ([§2](#2-the-topologies-neat-actually-finds))
-> · the releases ([v4](results/backprop-neat-v4/), [v3](results/backprop-neat-v3/))
+> · what it builds ([§2](#2-what-the-search-actually-builds))
+> · what NEAT's own machinery does ([§3](#3-what-neats-machinery-actually-does))
+> · the releases ([v5](results/backprop-neat-v5/), [v4](results/backprop-neat-v4/), [v3](results/backprop-neat-v3/))
 > · the paper ([`docs/paper/main.md`](docs/paper/main.md))
+
+### The five geometries
+
+![the five task geometries](docs/figures/task-geometries.png)
+
+Two-dimensional binary classification, as in the original demonstration. XOR and
+circles are here for continuity and separate nothing: every condition in protocol
+v4 clears 0.97 on them. The three on the right are where the work happens.
 
 ## 1. Does the architecture search pay?
 
@@ -68,7 +87,36 @@ fixed 32×32 network with heterogeneous operators, given the gradient budget the
 search actually spent. It wins on every geometry that can separate conditions.
 **The search space prior, not the search, is where the performance is.**
 
-## 2. The topologies NEAT actually finds
+## 2. What the search actually builds
+
+Every figure in this repository used to be a summary statistic. These are the
+objects themselves: the median champion of thirty replicates — never the best
+one — and the function it computes.
+
+![decision boundaries of the median champion](docs/figures/decision-boundaries.png)
+
+Read the right-hand column against the rest. A fixed 32×32 network with
+heterogeneous operators, given the budget the search spent, **traces the spiral**.
+Backprop-NEAT produces stripes and blobs; CGP produces sine waves; random CGP
+produces vertical bands; and the same fixed network under the unmatched protocol
+produces a handful of crossing lines, because it was stopped after about 43
+gradient updates.
+
+![the champion networks themselves](docs/figures/champion-networks.png)
+
+The graphs behind those pictures. Backprop-NEAT's median spiral champion is two
+hidden units; on checkerboard it is one. Edge width is |weight|, a hollow node is
+structure the genome carries that never reaches the output.
+
+### One run, as it happens
+
+![one search, generation by generation](docs/figures/evolution.gif)
+
+A demonstration run on a burned pilot seed — outside every release, cited
+nowhere. It is here because no table in this repository conveys what "evolution
+found a topology" looks like.
+
+### Augmenting topologies, by about four units
 
 ![the topologies these searches find](docs/figures/topologies-found.png)
 
@@ -90,11 +138,60 @@ the network in an encoding that could not have been stopped from growing it.
 
 Both algorithms inherit the same complexity penalty from Ha's fitness,
 `1 + 0.03·√connections`. Protocol **v5** turns that, the mutation rate,
-speciation and crossover into factors and asks whether any of them is what keeps
-these topologies small — and whether growing them buys anything
-([`docs/v5-preregistration.md`](docs/v5-preregistration.md)).
+speciation and crossover into factors — and finds that the penalty is indeed most
+of the answer. §3 has what happens when it is removed.
 
-## 3. Why the comparison was wrong before
+## 3. What NEAT's machinery actually does
+
+Nothing above touched NEAT's own mechanisms — every condition in protocols v3 and
+v4 ran the reference settings of the structural operators, the complexity
+penalty, the speciation and the crossover. Protocol **v5** makes those five
+things the factors: 720 runs, 90 cells, 30 replicates, on the three geometries
+that can separate conditions, with champion **size** as a primary outcome
+alongside accuracy ([`docs/v5-preregistration.md`](docs/v5-preregistration.md)).
+
+![what each NEAT mechanism changes about the function](docs/figures/mechanism-boundaries.png)
+
+**Six of seven preregistered hypotheses hold**, and the picture is more
+favourable to NEAT than §1 alone would suggest. Its machinery is doing real work;
+it is held down by its own defaults.
+
+| | causal units (spiral / checkerboard / 3-arm) | sealed-test accuracy |
+|---|---|---|
+| reference | 4.2 / 2.1 / 1.6 | 0.791 / 0.662 / 0.597 |
+| + mutation rate 0.2 → 0.5 | 7.8 / 5.0 / 1.8 | 0.830 / 0.685 / 0.606 |
+| − complexity penalty | 4.9 / 4.8 / 4.0 | 0.807 / 0.650 / 0.616 |
+| **both** | **8.0 / 8.2 / 7.5** | **0.835 / 0.688 / 0.621** |
+| − speciation | 3.6 / 0.8 / 0.5 | 0.781 / 0.580 / 0.568 |
+| − crossover | 5.0 / 2.2 / 1.3 | 0.760 / 0.640 / 0.593 |
+| ¼ population, 4× generations | 10.3 / 4.1 / 1.4 | **0.864** / 0.632 / 0.599 |
+| fixed net, matched budget | 65 | **0.964 / 0.712 / 0.765** |
+
+**Complexification is real, and two reference settings suppress it.** Removing
+the complexity penalty grows champions significantly (v5-H1, 2/3); raising the
+structural mutation rate grows them (v5-H2, 2/3); removing both grows them on
+every geometry (v5-H3, 3/3) — two- to five-fold, and on the 3-arm spiral from 1.6
+units to 7.5. The penalty is `1 + 0.03·√connections`, inherited from Ha's
+fitness, and it is doing more than regularising.
+
+**And the bigger topologies do buy accuracy** (v5-H4, holds). This is the
+hypothesis the protocol existed to test, and had it failed the reading would have
+been that NEAT's networks are small because the fitness asks them to be and
+growing them is pointless. It did not fail.
+
+**Speciation earns its place; crossover does not.** Removing speciation loses
+significantly on two of three geometries (v5-H5, holds) and collapses the
+checkerboard champion to 0.8 causal units. Removing historical-marking crossover
+loses on only one (v5-H6, **fails**) — the one mechanism here that is not
+load-bearing.
+
+**But the ceiling is not NEAT's to raise.** The best variant found anywhere in
+v5 reaches 0.864 on spirals, against the fixed network's 0.964, and no variant
+beats it on any geometry (v5-H7, holds, 0/3). Freeing complexification moves NEAT
+a third of the way across a gap that a better-chosen fixed architecture crosses
+for nothing.
+
+## 4. Why the comparison was wrong before
 
 A NAS comparison is only as good as how its baseline was trained, and ours was
 not trained at all.
@@ -115,7 +212,7 @@ which holds on **5 of 5** geometries.
 It is also why §1 is stated the way it is. A result that only shows a search
 beating an undertrained baseline is a result about the baseline.
 
-## 4. Which conclusions survive which evaluator
+## 5. Which conclusions survive which evaluator
 
 Which v2 headline claim survives which evaluator. Wilcoxon signed-rank with
 Holm correction over each source's pre-declared family.
@@ -134,7 +231,7 @@ Read the first column: under correction, v2's own data supports only C1 and
 C4 — exactly the two that reverse. The two that survive needed v3's 30
 replicates to reach significance at all.
 
-## 5. What a second algorithm did to that matrix
+## 6. What a second algorithm did to that matrix
 
 v4 asks the obvious objection: is Backprop-NEAT simply weak? It runs Cartesian
 Genetic Programming — fixed-length genotype with a genotype-phenotype map, no
@@ -188,7 +285,7 @@ amplifies gradient differences a hundredfold per step. **An architecture-search
 result reported from single runs is not reproducible in principle.**
 ([`docs/v4-sensitivity.md`](docs/v4-sensitivity.md))
 
-## 6. The evaluator result in full
+## 7. The evaluator result in full
 
 Sealed-test accuracy on spirals, 30 paired replicates. The architecture is
 identical in rows 2–3; only the stopping rule differs.
@@ -224,7 +321,7 @@ The operative variable is the **operator prior**, not the search. On the 3-arm
 spiral the budget-matched *tanh* network is worse than Backprop-NEAT (0.589 vs
 0.614) while *sin* and *mixed* are far better (0.746, 0.773).
 
-## 7. The method, and why it is trustworthy about its own failures
+## 8. The method, and why it is trustworthy about its own failures
 
 A NumPy reconstruction over nine operators with recurrent edges, minimal
 logistic seeds, add-node/add-connection mutation under an innovation registry,
@@ -242,7 +339,7 @@ caught a wrong figure in this very README during drafting.
 
 That machinery is why the failures below are documented rather than invisible.
 
-## 8. Three corrections, including one to this project's own headline
+## 9. Three corrections, including one to this project's own headline
 
 **v1 — a selection operator we chose.** We used elitism plus truncation; the
 reference replaces the whole population and samples parents by
@@ -276,7 +373,7 @@ could not attribute the effect.
 ![propagation grid](results/backprop-neat-v3/figures/propagation-grid.png)
 ![selection dose response](results/backprop-neat-v3/figures/selection-dose-response.png)
 
-## 9. Hypotheses
+## 10. Hypotheses
 
 Frozen at commit `a343c66` before any compute
 ([`docs/v3-preregistration.md`](docs/v3-preregistration.md)).
@@ -292,7 +389,7 @@ Frozen at commit `a343c66` before any compute
 Three of five failed. Had H1 and H2 failed instead, v2's claims would have been
 restored; the preregistration was written to make either outcome publishable.
 
-## 10. Limitations
+## 11. Limitations
 
 Five 2-D synthetic geometries. The genome encoding fixes two input nodes in a
 frozen module, so higher-dimensional real datasets were **skipped rather than
@@ -303,7 +400,7 @@ paired tests reported, not for tails. And a sin-MLP beating evolved champions
 is not a claim that sin is the answer — it is a demonstration that an operator
 prior can account for a result attributed to search.
 
-## 11. Reproduce
+## 12. Reproduce
 
 ```bash
 git clone https://github.com/ReloadLightly/neural-architecture-search-with-backprop
@@ -313,21 +410,23 @@ make setup && make gates && make verify
 
 | Target | What it does |
 |---|---|
-| `make gates` | 146 correctness gates, plus ruff |
+| `make gates` | the correctness gates, plus ruff |
 | `make verify` | proves the v2 release rebuilds from its raw records |
 | `make audit` | reproduces the October 2026 audit |
-| `make v3-run` | the v3 suite, sharded and resumable, in the background |
+| `make v3-run` · `v4-run` · `v5-run` | a suite, sharded and resumable, in the background |
 | `make v3-finaltest` / `make v3-release` | one-shot sealed test, then seal |
 
 `verify` rebuilds every derived table from `raw/runs/*.json` in a scratch
 directory and byte-compares against the committed release, rechecks every hash,
 and confirms the fingerprints. CI runs it on every push.
 
-**Compute.** v2: 360 runs, 1.87 core-hours. v3: 1,920 runs, 2,143,500 candidate
-evaluations, 173,623,974 gradient steps, **23.78 core-hours** against a
-24-hour forecast.
+**Compute.** v2: 360 runs, 1.87 core-hours. v3: 1,920 runs, 23.78 core-hours.
+v4: 1,200 runs, 809,550 candidate evaluations, 101,852,179 gradient updates,
+10.93 core-hours. v5: 720 runs, 1,328,400 candidate evaluations, 85,498,011
+gradient updates, 7.34 core-hours. **4,200 runs in all**, every one of them
+committed as an atomic record carrying its own fingerprints.
 
-## 12. Related work
+## 13. Related work
 
 Ha's Backprop-NEAT [[blog](https://blog.otoro.net/2016/05/07/backprop-neat/),
 [source](https://github.com/hardmaru/backprop-neat-js)] extends NEAT
@@ -354,10 +453,12 @@ coevolution is injected by Ha's *champion-export rule*, which exports an
 individual ranking 60 of 128 in its own population. Two reconstructions of two
 Ha demos, failing the same way.
 
-## 13. Repository map
+## 14. Repository map
 
 | Path | What |
 |---|---|
+| [`results/backprop-neat-v5/`](results/backprop-neat-v5/) | v5 — NEAT's five mechanisms as factors |
+| [`results/backprop-neat-v4/`](results/backprop-neat-v4/) | v4 — a second search algorithm through the same controls |
 | [`results/backprop-neat-v3/`](results/backprop-neat-v3/) | the v3 release and its claim ladder |
 | [`results/backprop-neat-v2/`](results/backprop-neat-v2/) | v2, with [`ERRATA.md`](results/backprop-neat-v2/ERRATA.md) |
 | [`results/backprop-neat-v1/`](results/backprop-neat-v1/) | invalidated, retained for audit |
@@ -365,7 +466,8 @@ Ha demos, failing the same way.
 | [`docs/v3-preregistration.md`](docs/v3-preregistration.md) | the frozen v3 contract |
 | [`docs/v2-errata.md`](docs/v2-errata.md) · [`docs/audit-2026-10.md`](docs/audit-2026-10.md) | what was wrong, and its reproduction |
 | [`docs/writeup.md`](docs/writeup.md) | the motivating argument — an argument, not evidence |
-| `src/bpneat/` · `src/bpneat/v3/` | frozen v2 science modules · v3 |
+| `src/bpneat/` · `v3/` · `v4/` · `v5/` | frozen v2 science modules, then one package per protocol |
+| [`bench/portrait_figures.py`](bench/portrait_figures.py) · [`bench/evolution_movie.py`](bench/evolution_movie.py) | the boundary, network and animation figures |
 
 ## License and citation
 
