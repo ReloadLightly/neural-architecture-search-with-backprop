@@ -35,18 +35,14 @@ V4 = ROOT / "results" / "backprop-neat-v4"
 OUT = ROOT / "docs" / "figures"
 
 from bpneat.style import (  # noqa: E402
-    CLASS_COLOURS,
-    DPI,
+    DISPLAY_FAMILY,
     GRID,
     INK,
     INK2,
-    OP_COLOUR,
+    NEUTRAL,
+    SURFACE,
     colour_of,
     save,
-    SURFACE,
-    boundary_cmap,
-    panel,
-    style_axes,
 )
 
 TASKS = ("xor", "circle", "spiral", "checkerboard", "spiral3")
@@ -72,6 +68,18 @@ def _style(ax):
         ax.spines[s].set_color(GRID)
     ax.tick_params(colors=INK2, labelsize=8.5, length=0)
     ax.set_axisbelow(True)
+
+
+def _headline(fig, head: str, sub: str, x: float = 0.055) -> None:
+    """A headline and a sub-line, at two sizes and two weights.
+
+    A two-line `set_title` set both at 11.5pt, so the claim and its gloss had
+    the same weight and the figure had no entry point. These are the three
+    figures the README opens with; they get a real hierarchy.
+    """
+    fig.text(x, 0.955, head, ha="left", va="top", color=INK,
+             fontsize=15.5, family=DISPLAY_FAMILY)
+    fig.text(x, 0.885, sub, ha="left", va="top", color=INK2, fontsize=9.5)
 
 
 def _save(fig, name: str, **kw):
@@ -107,7 +115,7 @@ def fig_does_search_pay() -> Path:
             }
         )
 
-    fig, ax = plt.subplots(figsize=(11, 5.0), facecolor=SURFACE)
+    fig, ax = plt.subplots(figsize=(11, 5.2), facecolor=SURFACE)
     _style(ax)
     ax.grid(axis="x", color=GRID, linewidth=0.8)
     y = np.arange(len(rows))[::-1]
@@ -117,37 +125,61 @@ def fig_does_search_pay() -> Path:
     # the row is annotated with the fact instead of four colliding numbers.
     saturated = 0.97
 
+    # Two lanes per geometry: the searched conditions on a connecting bar, and
+    # the fixed control on its own line below. Drawn on one line, the fixed
+    # network's diamond was the last and largest mark and simply covered the
+    # other three — on Circles the row showed one mark where there were four.
+    search_dy, fixed_dy = 0.15, -0.23
     for yi, r in zip(y, rows):
-        values = (r["search"], r["null"], r["bpneat"], r["fixed"])
-        lo, hi = sorted((r["search"], r["null"]))
-        ax.plot([lo, hi], [yi, yi], color=GRID, linewidth=6, solid_capstyle="round",
-                zorder=1)
-        ax.scatter(r["null"], yi, s=150, color=colour_of("cgp_random_matched"),
-                   zorder=3, marker="o", edgecolors=SURFACE, linewidths=2)
-        ax.scatter(r["search"], yi, s=150, color=colour_of("cgp"),
-                   zorder=4, marker="s", edgecolors=SURFACE, linewidths=2)
-        ax.scatter(r["bpneat"], yi, s=150, color=colour_of("bpneat"),
-                   zorder=4, marker="^", edgecolors=SURFACE, linewidths=2)
-        ax.scatter(r["fixed"], yi, s=210, color=colour_of("fixed_tanh_matched_bpneat"),
-                   zorder=5, marker="D", edgecolors=SURFACE, linewidths=2)
-
-        if min(values) >= saturated:
-            ax.annotate("every condition ≥ 0.97 — nothing to separate",
-                        (min(values), yi), xytext=(-14, 0),
-                        textcoords="offset points", ha="right", va="center",
-                        fontsize=8.5, color=INK2, style="italic")
-            continue
-        # Otherwise every mark is directly labelled: three palette slots sit
-        # below 3:1 against the surface, so identity may not rest on colour.
-        ax.annotate(f"{r['fixed']:.3f}", (r["fixed"], yi), xytext=(0, 14),
-                    textcoords="offset points", ha="center", fontsize=8.5, color=INK)
-        left = min(r["search"], r["null"], r["bpneat"])
-        ax.annotate(f"{left:.3f}", (left, yi), xytext=(-13, 0),
-                    textcoords="offset points", ha="right", va="center",
+        searched = (
+            ("bpneat", r["bpneat"], "^"),
+            ("cgp", r["search"], "s"),
+            ("cgp_random_matched", r["null"], "o"),
+        )
+        lo, hi = min(v for _, v, _ in searched), max(v for _, v, _ in searched)
+        # On a geometry where every searched condition clears 0.97 the three
+        # marks occupy 0.4% of the axis: drawing them separately would be three
+        # overlapping marks claiming a separation that is not there. One mark
+        # is what this scale can honestly show, and the row says the range.
+        crowded = lo >= saturated
+        ax.plot([lo, hi], [yi + search_dy] * 2, color=GRID, linewidth=6,
+                solid_capstyle="round", zorder=1)
+        ax.plot([r["fixed"], r["fixed"]], [yi + fixed_dy, yi + search_dy],
+                color=GRID, linewidth=1.0, zorder=1)
+        if crowded:
+            ax.scatter((lo + hi) / 2, yi + search_dy, s=150, color=NEUTRAL,
+                       zorder=4, marker="o", edgecolors=SURFACE, linewidths=2)
+        else:
+            for cond, v, marker in searched:
+                ax.scatter(v, yi + search_dy, s=140, color=colour_of(cond),
+                           zorder=4, marker=marker, edgecolors=SURFACE,
+                           linewidths=2)
+        ax.scatter(r["fixed"], yi + fixed_dy, s=150,
+                   color=colour_of("fixed_tanh_matched_bpneat"), zorder=4,
+                   marker="D", edgecolors=SURFACE, linewidths=2)
+        ax.annotate(f"{r['fixed']:.3f}", (r["fixed"], yi + fixed_dy), xytext=(12, 0),
+                    textcoords="offset points", ha="left", va="center",
                     fontsize=8.5, color=INK2)
-        right = max(r["search"], r["null"], r["bpneat"])
-        if right - left > 0.01:
-            ax.annotate(f"{right:.3f}", (right, yi), xytext=(0, -17),
+
+        if crowded:
+            # Nothing to separate: say so once, at the left of the row, rather
+            # than print three colliding numbers on top of three stacked marks.
+            # The span is measured, not asserted.
+            ax.annotate(
+                f"all three searched conditions fall in {lo:.3f}–{hi:.3f} "
+                "— drawn as one mark",
+                (0.515, yi + search_dy), ha="left", va="center",
+                fontsize=8.5, color=INK2, style="italic")
+            continue
+        # Otherwise every searched mark is directly labelled. Colour may not
+        # carry identity alone, and on a saturated row it cannot carry it at all.
+        placed: list[float] = []
+        for i, (_cond, v, _m) in enumerate(sorted(searched, key=lambda s: s[1])):
+            # Alternate above and below when two marks are closer than a label.
+            above = not any(abs(v - q) < 0.035 for q in placed)
+            placed.append(v)
+            ax.annotate(f"{v:.3f}", (v, yi + search_dy),
+                        xytext=(0, 15 if above or i % 2 == 0 else -17),
                         textcoords="offset points", ha="center", va="center",
                         fontsize=8.5, color=INK2)
 
@@ -158,7 +190,7 @@ def fig_does_search_pay() -> Path:
     ax.set_xlim(0.50, 1.04)
     # Room under the last row for its below-mark label, which would
     # otherwise land on the x axis.
-    ax.set_ylim(-0.75, len(rows) - 0.35)
+    ax.set_ylim(-0.85, len(rows) - 0.25)
 
     handles = [
         plt.Line2D([], [], marker="^", color=colour_of("bpneat"), linestyle="",
@@ -174,11 +206,11 @@ def fig_does_search_pay() -> Path:
     ]
     ax.legend(handles=handles, fontsize=8.5, frameon=False, ncol=2,
               loc="lower left", bbox_to_anchor=(0.0, -0.30))
-    ax.set_title(
-        "Does the architecture search pay?\n"
-        "Each bar joins a search to the same space sampled at random. "
-        "Short bar = the search bought nothing.",
-        color=INK, fontsize=11.5, loc="left", pad=14,
+    _headline(
+        fig,
+        "Does the architecture search pay?",
+        "Each bar spans the searched conditions on one geometry; the diamond below is the fixed network at the same budget.",
+        x=0.055,
     )
     return _save(fig, "does-search-pay.png", top=0.84, bottom=0.26, left=0.11,
                  right=0.98)
@@ -209,10 +241,14 @@ def fig_topologies_found() -> Path:
     _style(ax)
     ax.grid(axis="x", color=GRID, linewidth=0.8)
     y = np.arange(len(bars))[::-1]
-    ax.barh(y, [b[1] for b in bars], height=0.55, color=[b[2] for b in bars],
-            zorder=3)
-    for yi, (label, v, _) in zip(y, bars):
-        ax.text(v + 0.9, yi, f"{v:.1f}", va="center", fontsize=9, color=INK)
+    # Dots, not bars: the axis is logarithmic and starts at 2.4, so a bar's
+    # length would not be proportional to anything.
+    for yi, (_label, v, colour) in zip(y, bars):
+        ax.plot([2.4, v], [yi, yi], color=colour, linewidth=2.2, alpha=0.5,
+                solid_capstyle="round", zorder=3)
+        ax.plot(v, yi, "o", color=colour, markersize=11, zorder=4,
+                markeredgecolor=SURFACE, markeredgewidth=2)
+        ax.text(v * 1.08, yi, f"{v:.1f}", va="center", fontsize=9, color=INK)
     ax.set_yticks(y)
     ax.set_yticklabels([b[0] for b in bars], fontsize=9.5, color=INK)
 
@@ -223,16 +259,27 @@ def fig_topologies_found() -> Path:
         (FIXED_UNITS, f"the fixed network it is compared with: {FIXED_UNITS}"),
     ):
         ax.axvline(x, color=INK2, linewidth=1.3, linestyle=(0, (4, 3)), zorder=2)
-        ax.text(x - 1.1, (len(bars) - 1) / 2.0, label, fontsize=8.5, color=INK2,
+        ax.text(x * 0.95, (len(bars) - 1) / 2.0, label, fontsize=8.5, color=INK2,
                 rotation=90, va="center", ha="right")
 
-    ax.set_xlim(0, FIXED_UNITS * 1.1)
+    # Four champions between 3.9 and 8.0 units, against references at 34 and
+    # 65. On a linear axis the data occupied the leftmost ninth of the panel
+    # and Backprop-NEAT's 4.2 sat four pixels from CGP's 3.9. A log axis gives
+    # the measured values the room, and still shows how far off the references
+    # are — which is the figure's whole point.
+    ax.set_xscale("log")
+    ax.set_xlim(2.4, FIXED_UNITS * 1.5)
+    ax.set_xticks([3, 4, 5, 6, 8, 10, 20, 34, 65])
+    ax.set_xticklabels(["3", "4", "5", "6", "8", "10", "20", "34", "65"],
+                       fontsize=8.5)
+    ax.minorticks_off()
     ax.set_xlabel("causally active hidden units in the champion (spirals)",
                   fontsize=9, color=INK2)
-    ax.set_title(
-        "The topologies these searches actually find\n"
-        "Augmenting topologies, augmenting by about four units.",
-        color=INK, fontsize=11.5, loc="left", pad=20,
+    _headline(
+        fig,
+        "The topologies these searches actually find",
+        "Augmenting topologies — augmenting by about four causally active units.",
+        x=0.055,
     )
     return _save(fig, "topologies-found.png", top=0.78, bottom=0.15, left=0.21,
                  right=0.98)
@@ -246,6 +293,7 @@ def fig_budget_decides() -> Path:
     two bars of each group — only how long it was allowed to train.
     """
     s4 = summary(V4)
+    chance = 0.5
     tasks = ("spiral", "checkerboard", "spiral3")
     groups = [
         ("fixed net, unmatched", "fixed_tanh_ha", colour_of("fixed_tanh_ha")),
@@ -257,21 +305,32 @@ def fig_budget_decides() -> Path:
     _style(ax)
     ax.grid(axis="y", color=GRID, linewidth=0.8)
     width = 0.26
+    # Dots on a stem from chance, not bars from a 0.45 floor. With the floor,
+    # 0.528 and 0.590 rendered as heights 0.078 and 0.145, so the third bar
+    # looked nearly twice the first where the real ratio is 1.12.
     for gi, (label, cond, colour) in enumerate(groups):
         xs = [ti + (gi - 1) * width for ti in range(len(tasks))]
         vals = [float(s4[(t, cond)]["test_accuracy_mean"]) for t in tasks]
-        ax.bar(xs, vals, width=width * 0.88, color=colour, label=label, zorder=3)
         for x, v in zip(xs, vals):
-            ax.text(x, v + 0.008, f"{v:.3f}", ha="center", fontsize=8, color=INK)
+            ax.plot([x, x], [chance, v], color=colour, linewidth=2.4, alpha=0.5,
+                    solid_capstyle="round", zorder=3)
+        ax.plot(xs, vals, "o", color=colour, markersize=11, linestyle="",
+                markeredgecolor=SURFACE, markeredgewidth=2, label=label, zorder=4)
+        for x, v in zip(xs, vals):
+            ax.text(x, v + 0.016, f"{v:.3f}", ha="center", fontsize=8.5, color=INK)
+    ax.axhline(chance, color=INK2, linewidth=0.9, linestyle=(0, (4, 3)), zorder=2)
+    ax.text(len(tasks) - 0.62, chance + 0.008, "chance", ha="right", va="bottom",
+            fontsize=8, color=INK2, style="italic")
     ax.set_xticks(range(len(tasks)))
     ax.set_xticklabels([TASK_LABEL[t] for t in tasks], fontsize=9.5, color=INK)
-    ax.set_ylim(0.45, 1.0)
+    ax.set_ylim(chance - 0.02, 1.02)
     ax.set_ylabel("sealed-test accuracy", fontsize=9, color=INK2)
     ax.legend(fontsize=8.5, frameon=False, ncol=3, loc="upper left")
-    ax.set_title(
-        "The first two bars are the same 65-unit network.\n"
-        "Only the training budget differs — and it decides the comparison.",
-        color=INK, fontsize=11.5, loc="left", pad=14,
+    _headline(
+        fig,
+        "The budget decides the comparison",
+        "The first two marks are the same 65-unit network. Only the training budget differs.",
+        x=0.055,
     )
     return _save(fig, "budget-decides.png", top=0.78, bottom=0.11, left=0.08,
                  right=0.98)

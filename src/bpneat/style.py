@@ -60,6 +60,13 @@ BOUNDARY_COLOURS = ["#2a78d6", "#dcdcd8", "#eb6834"]
 #: The two classes as drawn points: darker than the field so they sit on top.
 CLASS_COLOURS = ("#1b4f8f", "#8f3a12")
 
+#: A signed quantity — a connection weight, a difference either side of zero —
+#: takes the same two diverging anchors. Named so that a module does not reach
+#: into the categorical series for them, which is how blue came to mean "tanh"
+#: on a node and "positive" on the edge leaving it.
+WEIGHT_POS = BOUNDARY_COLOURS[0]
+WEIGHT_NEG = BOUNDARY_COLOURS[2]
+
 #: Operators get their own fixed hue order, never cycled. Structural nodes are
 #: grey because bias, input and output are not an operator choice.
 OP_COLOUR = {

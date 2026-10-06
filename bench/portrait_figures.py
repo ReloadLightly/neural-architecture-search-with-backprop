@@ -45,10 +45,13 @@ from bpneat.style import (  # noqa: E402
     INK,
     INK2,
     OP_COLOUR,
-    SERIES,
+    REFERENCE,
     SURFACE,
+    WEIGHT_NEG,
+    WEIGHT_POS,
     boundary_cmap,
     panel,
+    ramp,
     style_axes,
 )
 
@@ -104,6 +107,30 @@ def _style_panel(ax):
     ax.set_facecolor(SURFACE)
 
 
+def boundary_key(fig, y: float = 0.012) -> None:
+    """What the two colours mean, said once per figure.
+
+    Thirty-three two-colour panels went out with nothing anywhere stating that
+    blue is class 0, orange is class 1, and the pale middle is the model
+    declining to decide. A figure that never names its encoding is asking the
+    reader to guess it.
+    """
+    gradient = np.linspace(0, 1, 256).reshape(1, -1)
+    bar = fig.add_axes([0.40, y + 0.004, 0.20, 0.014])
+    bar.imshow(gradient, aspect="auto", cmap=BOUNDARY_CMAP, vmin=0, vmax=1)
+    bar.set_xticks([])
+    bar.set_yticks([])
+    for s in bar.spines.values():
+        s.set_color(GRID)
+    fig.text(0.395, y + 0.011, "predicts class 0", ha="right", va="center",
+             fontsize=8.5, color=INK2)
+    fig.text(0.605, y + 0.011, "predicts class 1", ha="left", va="center",
+             fontsize=8.5, color=INK2)
+    fig.text(0.5, y - 0.012, "pale = undecided; the dark line is the 0.5 contour; "
+             "dots are training points, coloured by their true class",
+             ha="center", va="center", fontsize=8, color=INK2)
+
+
 def _draw_boundary(ax, champ: Champion, show_points: bool = True):
     bundle = make_bundle(champ.task, seed=champ.dataset_seed)
     field = boundary_field(champ, bundle, resolution=200)
@@ -157,9 +184,10 @@ def fig_decision_boundaries(out: Path) -> Path:
         "Sealed-test accuracy under each panel. Median replicate of 30, never the best.",
         color=INK, fontsize=12,
     )
-    OUT.mkdir(parents=True, exist_ok=True)
-    fig.subplots_adjust(top=0.86, bottom=0.05, left=0.055, right=0.99,
+    fig.subplots_adjust(top=0.86, bottom=0.10, left=0.055, right=0.99,
                         wspace=0.07, hspace=0.16)
+    boundary_key(fig, y=0.030)
+    OUT.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -175,7 +203,11 @@ def _draw_network(ax, champ: Champion, title: str, subtitle: str):
         causal = e["causal"]
         ax.plot(
             [e["x0"], e["x1"]], [e["y0"], e["y1"]],
-            color=(SERIES[0] if e["weight"] >= 0 else SERIES[1]) if causal else GRID,
+            # A weight's sign is a diverging quantity, so it takes the
+            # project's declared diverging anchors. Using the categorical
+            # series here meant blue was "tanh" on a node and "positive" on
+            # the edge leaving it.
+            color=(WEIGHT_POS if e["weight"] >= 0 else WEIGHT_NEG) if causal else GRID,
             linewidth=(0.5 + 2.6 * abs(e["weight"]) / wmax) if causal else 0.6,
             alpha=0.85 if causal else 0.4, zorder=1,
             solid_capstyle="round",
@@ -231,8 +263,8 @@ def fig_champion_networks(out: Path) -> Path:
                           color=OP_COLOUR.get(op, "#9a9a95"), label=op)
                for op in ops_present]
     handles += [
-        plt.Line2D([], [], color=SERIES[0], linewidth=2.4, label="positive weight"),
-        plt.Line2D([], [], color=SERIES[1], linewidth=2.4, label="negative weight"),
+        plt.Line2D([], [], color=WEIGHT_POS, linewidth=2.4, label="positive weight"),
+        plt.Line2D([], [], color=WEIGHT_NEG, linewidth=2.4, label="negative weight"),
         plt.Line2D([], [], color=GRID, linewidth=1.2,
                    label="represented but never reaches the output"),
     ]
@@ -291,8 +323,9 @@ def fig_mechanism_boundaries(out: Path) -> Path:
         "Median champion of 30 replicates; accuracy under each panel.",
         color=INK, fontsize=12,
     )
-    fig.subplots_adjust(top=0.86, bottom=0.05, left=0.06, right=0.99,
+    fig.subplots_adjust(top=0.86, bottom=0.11, left=0.06, right=0.99,
                         wspace=0.07, hspace=0.16)
+    boundary_key(fig, y=0.034)
     OUT.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
@@ -316,7 +349,19 @@ def fig_task_geometries(out: Path) -> Path:
         _style_panel(ax)
     fig.suptitle("The five geometries. Two of them nothing can separate.",
                  color=INK, fontsize=11.5)
-    fig.subplots_adjust(top=0.76, bottom=0.04, left=0.01, right=0.99, wspace=0.08)
+    # Name the two colours here too: these panels carry no boundary field, so
+    # the colour bar would be meaningless, but the classes still need saying.
+    fig.legend(
+        handles=[
+            plt.Line2D([], [], marker="o", linestyle="", markersize=7,
+                       color=CLASS_COLOURS[i], markeredgecolor="white",
+                       label=f"class {i}")
+            for i in (0, 1)
+        ],
+        fontsize=8.5, frameon=False, ncol=2, loc="lower center",
+        bbox_to_anchor=(0.5, 0.0),
+    )
+    fig.subplots_adjust(top=0.76, bottom=0.14, left=0.01, right=0.99, wspace=0.08)
     OUT.mkdir(parents=True, exist_ok=True)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
@@ -358,9 +403,15 @@ def fig_operator_usage(out: Path) -> Path:
                 )
 
     tasks = [t for t in ("xor", "circle", "spiral", "checkerboard", "spiral3") if t in data]
+    # Not sharex: each geometry concentrates its usage differently, and one
+    # shared 0..0.88 range left three quarters of four panels empty.
     fig, axes = plt.subplots(1, len(tasks), figsize=(2.75 * len(tasks), 4.6),
-                             facecolor=SURFACE, sharex=True)
-    style = {"v3": (SERIES[0], "o"), "v4": (SERIES[1], "s"), "v5": (SERIES[2], "^")}
+                             facecolor=SURFACE)
+    # Three protocols measuring the same reference search, so one family at
+    # three values — not three unrelated hues, which previously drew the
+    # algorithm under study in the fixed control's colour.
+    _proto = ramp("search_primary", 3)
+    style = {"v3": (_proto[0], "o"), "v4": (_proto[1], "s"), "v5": (_proto[2], "^")}
 
     for ax, task in zip(np.atleast_1d(axes).ravel(), tasks):
         per = data[task]
@@ -371,8 +422,11 @@ def fig_operator_usage(out: Path) -> Path:
         y = np.arange(len(ops))[::-1]
         for yi, op in zip(y, ops):
             vals = [d.get(op, 0.0) for d in per.values()]
-            ax.plot([min(vals), max(vals)], [yi, yi], color=GRID, linewidth=4.5,
-                    solid_capstyle="round", zorder=1)
+            # The spread between protocols is the replication check, i.e. the
+            # figure's actual claim. In GRID it was the colour of the gridlines
+            # it crossed; in the reference ink it reads as a measurement.
+            ax.plot([min(vals), max(vals)], [yi, yi], color=REFERENCE, linewidth=4.5,
+                    alpha=0.45, solid_capstyle="round", zorder=1)
             for tag, d in per.items():
                 colour, marker = style[tag]
                 ax.scatter(d.get(op, 0.0), yi, s=58, color=colour, marker=marker,
@@ -380,10 +434,21 @@ def fig_operator_usage(out: Path) -> Path:
         ax.set_yticks(y)
         ax.set_yticklabels(
             [f"{op} *" if op in PREDICTED.get(task, ()) else op for op in ops],
-            fontsize=8.5, color=INK2,
+            fontsize=8.5,
         )
+        # The asterisk marks an operator the published description predicts for
+        # this geometry, which is the figure's hypothesis test. Give those rows
+        # the primary ink so the test is visible without reading the caption.
+        for lab, op in zip(ax.get_yticklabels(), ops):
+            predicted = op in PREDICTED.get(task, ())
+            lab.set_color(INK if predicted else INK2)
+            lab.set_fontweight("semibold" if predicted else "normal")
         ax.set_title(TASK_LABEL[task], fontsize=10.5, color=INK, pad=6)
-        ax.set_xlim(-0.02, 0.88)
+        # Pinned per panel to where the data are: a shared 0..0.88 left three
+        # quarters of four panels empty and compressed every difference that
+        # matters into the leftmost eighth.
+        top = max(max(d.values(), default=0.0) for d in per.values())
+        ax.set_xlim(-0.02, min(0.9, top * 1.22 + 0.04))
         ax.grid(axis="x", color=GRID, linewidth=0.8)
         ax.set_axisbelow(True)
         for sp in ("top", "right", "left"):
