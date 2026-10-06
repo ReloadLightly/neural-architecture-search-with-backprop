@@ -18,6 +18,12 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+# `bench/` is a directory of scripts, not an installed package, so importing it
+# needs the repository root on the path. `python -m pytest` puts the working
+# directory there and bare `pytest` does not — which is how this file passed
+# locally and failed in CI. Insert it explicitly rather than depend on the
+# invocation.
+sys.path.insert(0, str(ROOT))
 
 V3 = ROOT / "results" / "backprop-neat-v3"
 V4 = ROOT / "results" / "backprop-neat-v4"
