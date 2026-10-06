@@ -102,6 +102,9 @@ extend-exclude = [
     "src/bpneat/v4/learners.py",
     "src/bpneat/v4/protocol.py",
     "src/bpneat/v4/search.py",
+    "src/bpneat/v5/conditions.py",
+    "src/bpneat/v5/protocol.py",
+    "src/bpneat/v5/search.py",
 ]
 
 [tool.ruff.lint]
