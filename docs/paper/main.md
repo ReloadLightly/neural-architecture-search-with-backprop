@@ -7,7 +7,7 @@ venue: GECCO 2027 (draft)
 # Abstract
 
 We reconstruct David Ha's Backprop-NEAT (2016) — NEAT topology search in which
-backpropagation trains every evaluated candidate — and run it four times under
+backpropagation trains every evaluated candidate — and run it five times under
 increasingly careful protocols. The reconstruction is faithful: it is audited
 against the published source, frozen behind a module fingerprint, and every
 published number regenerates byte-identically from committed raw records.
@@ -50,6 +50,18 @@ replicate across both algorithms is that the search component never beats its
 own candidate-matched null — and on the two hardest geometries CGP is
 significantly beaten by it, while a fixed network with heterogeneous operators
 beats every evolved champion in the release.
+
+Protocol v5 then turns the algorithm's own machinery into the experiment — the
+complexification rate, the complexity penalty that opposes it, speciation,
+crossover, and width against depth at a fixed budget — across 720 further runs.
+**Six of its seven hypotheses hold, and they are the most favourable results in
+the project.** NEAT's complexification is real and is suppressed by two of its
+own reference settings; removing both grows champions on every geometry, from 1.6
+causally active units to 7.5 on the hardest, and that growth does buy accuracy.
+Speciation earns its place; historical-marking crossover cannot be shown to. But
+no variant beats the budget-matched fixed network on any geometry: freeing
+complexification closes about a third of a gap a better-chosen fixed architecture
+crosses for nothing.
 
 We argue that for evolution-with-learning algorithms, where an inner learner
 and an outer search interact, the evaluator is not a neutral measuring device
@@ -99,6 +111,10 @@ conclusions, and on what the third attempt had to do differently.
 6. A measurement showing that numerical equivalence does not imply run-level
    reproducibility: two evaluators agreeing to 1e-15 on values and gradients
    train a minority of candidates to visibly different networks (§7.5).
+7. A factorial study of NEAT's own mechanisms, separating what the algorithm
+   cannot do from what its default hyperparameters prevent it from doing, and
+   showing that the former is a smaller set than our own earlier protocols
+   implied (§8).
 
 # 2 Background and related work
 
@@ -689,7 +705,115 @@ records because the *records* are fixed; re-running the search from the seeds on
 a different BLAS would not reproduce them candidate for candidate. Measurements:
 `docs/v4-sensitivity.md`.
 
-# 8 Limitations
+# 8 Protocol v5: NEAT's own machinery
+
+§6 and §7 are about the evaluator. Both answers concern the inner learner and the
+controls, and neither touched the algorithm's own mechanisms: every condition in
+both studies ran the reference settings of the structural operators, the
+complexity penalty, the speciation and the crossover. For a method named
+*NeuroEvolution of Augmenting Topologies*, nothing so far had tested whether the
+augmenting happens, or whether the machinery around it earns its place.
+
+The motivating observation is on the record across all four earlier protocols.
+This reconstruction's champions reach about four causally active hidden units on
+spirals, against the 34 nodes and 96 connections of the champion in Figure 10.3
+of the published description (§3). Part of that is arithmetic: `new_node_rate =
+0.2` over twenty generations adds roughly four nodes to a lineage. But §7.4
+showed something arithmetic does not explain — CGP, whose 48 function nodes are
+all addressable from the first generation and which is under no growth cap,
+*also* converges small, and smaller than its own unselected control. Selection
+shrank the network in an encoding that could not have been prevented from
+growing it.
+
+## 8.1 Design
+
+Five mechanisms as factors, on the three geometries that separate conditions,
+with the budget-matched fixed network kept as the yardstick: **720 runs across 90
+cells**, 30 paired replicates, 1,328,400 candidate evaluations, 85,498,011
+gradient updates, 7.34 core-hours, zero failures. Dataset seeds are fresh again
+(`70001 + 13i`), so v5 is paired with no earlier release.
+
+XOR and circles are excluded **by the contract**, not by a later choice: §7.3
+established that they saturate above 0.97 for every condition and contribute
+nothing except to drag hypotheses below their task thresholds. Declaring the
+exclusion in advance is the difference between a design decision and a reported
+subset.
+
+`P_ADD_NODE` and `P_ADD_CONNECTION` are module constants in the frozen v2 code,
+which is why v5 needs new code at all: the rates cannot be varied without it, and
+the frozen module may not be edited. A gate asserts that at the reference rates
+v5's `mutate` produces byte-identical genomes to the frozen one, so a changed
+rate changes a rate and nothing else.
+
+One arm is **compound and is declared as such**. Holding the candidate budget
+while quartering the population necessarily quadruples the generations *and*
+shrinks each species from about twenty members to about five; the two cannot be
+separated without a third change. `neat_deep_narrow` therefore answers "does
+trading width for depth help at a fixed evaluation budget" and does not isolate
+depth.
+
+## 8.2 Results
+
+**Six of seven preregistered hypotheses hold**, and the picture is considerably
+more favourable to NEAT than §6 and §7 alone would suggest. Causally active
+hidden units and sealed-test accuracy, means over 30 replicates, on spirals /
+checkerboard / 3-arm spiral:
+
+| condition | causal units | sealed-test accuracy |
+|---|---|---|
+| reference | 4.2 / 2.1 / 1.6 | 0.791 / 0.662 / 0.597 |
+| `p_add_node` 0.2 → 0.5 | 7.8 / 5.0 / 1.8 | 0.830 / 0.685 / 0.606 |
+| − complexity penalty | 4.9 / 4.8 / 4.0 | 0.807 / 0.650 / 0.616 |
+| **both** | **8.0 / 8.2 / 7.5** | **0.835 / 0.688 / 0.621** |
+| − speciation | 3.6 / 0.8 / 0.5 | 0.781 / 0.580 / 0.568 |
+| − crossover | 5.0 / 2.2 / 1.3 | 0.760 / 0.640 / 0.593 |
+| ¼ population, 4× generations | 10.3 / 4.1 / 1.4 | **0.864** / 0.632 / 0.599 |
+| fixed network, matched budget | 65 | **0.964 / 0.712 / 0.765** |
+
+**Complexification is real, and two reference settings suppress it.** Every arm
+is offered node additions at the same rate the reference is — about 404
+node-addition events per run at `p_add_node = 0.2` and about 993 at 0.5 — but
+what survives into a champion is decided by the fitness. Removing the complexity
+penalty grows champions significantly (v5-H1, 2/3); raising the structural
+mutation rate grows them (v5-H2, 2/3); removing both grows them on every geometry
+(v5-H3, 3/3), from 1.6 causal units to 7.5 on the 3-arm spiral. The penalty is
+`1 + 0.03·√connections`, inherited from the reference fitness, and it is doing
+considerably more than regularising.
+
+**And the larger topologies buy accuracy** (v5-H4, holds). This is the hypothesis
+the protocol existed to test. Had it failed while v5-H1 to v5-H3 held, the reading
+would have been that NEAT's networks are small because the fitness asks them to be
+and that growing them is pointless — a tidy result, and the one we expected. It
+did not fail: the unconstrained arm improves on the reference on two geometries,
+and the width-for-depth trade reaches 0.864 on spirals against 0.791.
+
+**Speciation earns its place; crossover does not.** Removing speciation loses
+significantly on two of three geometries (v5-H5, holds) and collapses the
+checkerboard champion to 0.8 causal units — the smallest network in the release,
+and a direct demonstration of what speciation is for. Removing historical-marking
+crossover loses on one geometry only (v5-H6, **fails**). Of the five mechanisms
+tested, crossover is the one this study cannot show is load-bearing, which is
+notable because it is among the mechanisms the original NEAT paper argues for
+most explicitly.
+
+**The ceiling is not NEAT's to raise** (v5-H7, holds, 0/3). No variant beats the
+budget-matched fixed network on any geometry. The best result anywhere in v5 —
+0.864 on spirals — closes about a third of the distance to 0.964. Freeing
+complexification moves the algorithm part of the way across a gap that a
+better-chosen fixed architecture crosses for nothing.
+
+## 8.3 What this changes about §6 and §7
+
+It narrows them, in NEAT's favour, without overturning them. §7.4 reported that
+the search component contributes nothing measurable; v5 shows that a substantial
+part of that is self-inflicted by two reference hyperparameters rather than
+intrinsic to the method, and that the mechanism NEAT is named for does work once
+the fitness stops opposing it. What survives unchanged is the comparison that
+motivated the whole project: even an unhobbled NEAT does not reach a fixed
+network with a well-chosen operator set at the same gradient budget. The search
+space prior remains where the performance is.
+
+# 9 Limitations
 
 **Two-dimensional synthetic tasks.** All five geometries are 2-D binary
 classification. The genome encoding fixes two input nodes in a module frozen by
@@ -711,8 +835,16 @@ compute here — remains untested.
 **Two of our five geometries carry no information.** XOR and circles saturate
 above 0.97 for every condition in v4, which is most of why v4-H2 and v4-H3 fail their
 task counts: a geometry on which nothing can lose is a geometry on which nothing
-can be learned. A future design should drop them or make them harder, and should
-not count them toward a threshold.
+can be learned. v5 excludes them by contract, which fixes the problem going
+forward and leaves every v5 hypothesis scored out of three — a coarse
+denominator, and the price of the fix.
+
+**v5 varies each mechanism at two settings, not along a dose-response.** The
+penalty is on or off and `p_add_node` is 0.2 or 0.5. We can say that both
+constrain complexification and that releasing them helps; we cannot say where
+either optimum lies, or whether a penalty *tuned* rather than removed would beat
+both. The width-against-depth arm is additionally compound by construction
+(§8.1).
 
 **The analysis code is not fingerprinted.** Five science modules per protocol
 are hash-bound to their release. `analysis.py`, which decides how the
@@ -736,7 +868,7 @@ characterise tails. Collapse rates in particular are proportions estimated from
 It is a demonstration that the operator prior, not the search, can account for
 a result that was attributed to search.
 
-# 9 Conclusion
+# 10 Conclusion
 
 We set out to measure a neuroevolution algorithm and twice measured our own
 evaluator instead. Both times the responsible choice — a selection operator, a
@@ -765,8 +897,18 @@ report that in the same voice we used to report v2's errors, because a method
 for catching one's own mistakes is worth nothing if it is retired once it starts
 finding them.
 
-What did survive two independently derived algorithms is narrower and more
-useful than what we set out to show. The control that looks weak is starved, on
+v5 then corrects us in the other direction, which is worth saying plainly because
+it is the only correction in this paper that makes the studied algorithm look
+better rather than worse. Having reported across two protocols that the search
+component contributes nothing measurable, we found on turning NEAT's own
+mechanisms into factors that a substantial part of that is inflicted by two of
+its reference hyperparameters and not by the method: complexification works once
+the fitness stops opposing it, the larger topologies it then builds do score
+better, and speciation is load-bearing. A critique that had stopped before §8
+would have been accurate about what we measured and wrong about why.
+
+What did survive two independently derived algorithms, and NEAT's own machinery
+set free, is narrower and more useful than what we set out to show. The control that looks weak is starved, on
 every geometry and under both algorithms. The search component — the part of
 these methods that the papers are about — never beats a candidate-matched null
 drawn from the same space, and on the hardest geometries it is beaten by one.

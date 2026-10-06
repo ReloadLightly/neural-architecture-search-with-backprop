@@ -103,15 +103,46 @@ def test_the_readme_search_table_matches_the_release():
             assert val in text, f"{task}/{cond} = {val} is in the table but not published"
 
 
+def _release_totals(release: Path) -> set[str]:
+    """Per-run means and the release total, both as the README formats them.
+
+    A release total is the sum over its summary rows of mean x n, which is the
+    sum of the per-run values exactly — so this reads the published table rather
+    than re-deriving anything from raw records.
+    """
+    out: set[str] = set()
+    path = release / "summary.csv"
+    if not path.exists():
+        return out
+    grad = cand = 0.0
+    with open(path) as fh:
+        for r in csv.DictReader(fh):
+            n = int(r["n"])
+            grad += float(r["gradient_steps_mean"]) * n
+            cand += float(r["candidate_evaluations_mean"]) * n
+            out.add(f"{round(float(r['gradient_steps_mean'])):,}")
+    out.add(f"{round(grad):,}")
+    out.add(f"{round(cand):,}")
+    return out
+
+
 def test_the_readme_does_not_claim_an_unpublished_budget():
-    """The gradient-update counts quoted in prose must come from the release."""
+    """Every compute count quoted in prose must come from a committed release.
+
+    Covers both kinds the README quotes: a single run's realized budget, and a
+    release total. The totals were unchecked until one of them failed this gate.
+    """
+    published: set[str] = set()
+    for rel in (V4, ROOT / "results" / "backprop-neat-v3",
+                ROOT / "results" / "backprop-neat-v5"):
+        published |= _release_totals(rel)
     with open(V4 / "budget-table.csv") as fh:
-        rows = list(csv.DictReader(fh))
-    published = {
-        f"{float(r['gradient_steps_mean']):,.0f}" for r in rows
-    } | {f"{round(float(r['gradient_steps_mean'])):,}" for r in rows}
+        for r in csv.DictReader(fh):
+            published.add(f"{round(float(r['gradient_steps_mean'])):,}")
+
     text = README.read_text()
-    quoted = set(re.findall(r"\b(\d{1,3}(?:,\d{3})+) gradient updates", text))
-    assert quoted, "no gradient-update count is quoted; the check is not exercised"
+    quoted = set(re.findall(r"\b(\d{1,3}(?:,\d{3})+) (?:gradient updates|candidate evaluations)",
+                            text))
+    assert len(quoted) >= 4, f"only {len(quoted)} compute counts quoted; check not exercised"
     for q in quoted:
-        assert q in published, f"{q} gradient updates appears in no release table"
+        assert q in published, f"{q} appears in no committed release"
