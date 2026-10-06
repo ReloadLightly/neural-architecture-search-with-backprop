@@ -1,11 +1,13 @@
 """v4 figures, rendered from the raw records.
 
 Colour here is semantic, not positional. Every condition in this protocol is
-either something we searched for or something we fixed in advance, so blue
-means "searched" and orange means "fixed", with the ordered distinctions inside
-each family carried as lightness. The condition-to-colour table lives in
-``bpneat.style`` and is shared with every other protocol, so a condition cannot
-be one colour here and another in the README.
+either something we searched for or something we fixed in advance, so a cool
+hue means "searched" and a warm one means "fixed". The ordered distinctions
+inside each family are separate hues from the shared palette rather than tints
+of one, because tints of a single hue at these mark sizes were the thing that
+stopped being legible. The condition-to-colour table lives in ``bpneat.style``
+and is shared with every other protocol, so a condition cannot be one colour
+here and another in the README.
 
 The scheme this replaced assigned colour by row index over a six-slot
 categorical palette. With eight conditions it cycled: Backprop-NEAT and "fixed
@@ -25,6 +27,7 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from ..style import (  # noqa: E402
+    ANNOT_SIZE,
     BAD,
     CONTROL_BEST,
     CONTROL_RAMP,
@@ -32,15 +35,22 @@ from ..style import (  # noqa: E402
     GRID,
     INK,
     INK2,
+    LABEL_SIZE,
     NEUTRAL,
+    PANEL_TITLE_SIZE,
     RULE,
     SEARCH_PRIMARY,
     SURFACE,
+    TICK_SIZE,
+    TITLE_SIZE,
     colour_of,
+    pale,
+    parity,
     role_of,
     save,
-    spaced,
     style_axes,
+    title,
+    vparity,
 )
 from .analysis import (  # noqa: E402
     ALGORITHMS,
@@ -112,7 +122,14 @@ def _style(ax):
     style_axes(ax)
 
 
-def _fig(nrows=1, ncols=1, figsize=(10, 4.2)):
+#: No figure in this repository is wider than 6.8in: GitHub renders a README
+#: image at about 870px, so a 13in figure at 200dpi arrives at a third of its
+#: size and its 7.5pt ticks land at about 2pt. Panels therefore stack downwards
+#: and height is spent freely; width is not.
+WIDTH = 6.6
+
+
+def _fig(nrows=1, ncols=1, figsize=(WIDTH, 3.4)):
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize, facecolor=SURFACE)
     for ax in np.atleast_1d(axes).ravel():
         _style(ax)
@@ -120,8 +137,8 @@ def _fig(nrows=1, ncols=1, figsize=(10, 4.2)):
 
 
 def _save(fig, path: Path, **kw):
-    # One exit for every figure in the module, so the typographic pass in
-    # `style.save` cannot be forgotten at a call site.
+    # One exit for every figure in the module, so nothing can be written at
+    # another density or onto another ground than the project's.
     return save(fig, path, **kw)
 
 
@@ -138,37 +155,50 @@ def fig_sign_matrix(signs: list[dict], out: Path) -> Path:
             ("vs_matched_mixed", "matched\nmixed")]
     by = {(r["algorithm"], r["task"]): r for r in signs}
 
-    fig, axes = _fig(1, len(algos), figsize=(9, 5.0))
+    # Two algorithms, each a 3x5 block of square cells. This is the one shape
+    # that stays side by side: a square matrix stacked would be a 6.6 x 20in
+    # column, and at half of 6.6in a cell is still 0.7in across — wide enough
+    # for the two words written in it.
+    fig, axes = _fig(1, len(algos), figsize=(WIDTH, 4.3))
     for ax, algo in zip(np.atleast_1d(axes).ravel(), algos):
         ax.grid(False)
         for ci, (key, _) in enumerate(cols):
             for ti, task in enumerate(ALL_TASKS):
                 verdict = by.get((algo, task), {}).get(key, "n/a")
+                # A pale wash carrying the hue, with the verdict written on it
+                # in ink. The version this replaces drew the lettering in
+                # SURFACE and reversed it out of a saturated block: on a white
+                # ground that is white-on-white for "n.s." and for the empty
+                # "n/a" cell — the two cases where the reader most needs to be
+                # told that nothing was found.
                 ax.add_patch(
                     plt.Rectangle((ci - 0.47, ti - 0.45), 0.94, 0.9,
-                                  facecolor=SIGN_COLOUR[verdict], edgecolor=SURFACE,
-                                  linewidth=2)
+                                  facecolor=pale(SIGN_COLOUR[verdict]),
+                                  edgecolor=SURFACE, linewidth=2)
                 )
                 ax.text(ci, ti, SIGN_TEXT[verdict], ha="center", va="center",
-                        fontsize=8.5, color=SURFACE)
+                        fontsize=LABEL_SIZE,
+                        color=RULE if verdict == "n/a" else INK)
         ax.set_xlim(-0.6, len(cols) - 0.4)
         ax.set_ylim(-0.6, len(ALL_TASKS) - 0.4)
         ax.set_xticks(range(len(cols)))
-        ax.set_xticklabels([c[1] for c in cols], fontsize=8, color=INK2)
+        ax.set_xticklabels([c[1] for c in cols], fontsize=TICK_SIZE, color=INK2)
         ax.set_yticks(range(len(ALL_TASKS)))
-        ax.set_yticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
-        ax.set_title(algo, color=INK, fontsize=10)
+        ax.set_yticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=TICK_SIZE,
+                           color=INK2)
+        title(ax, algo)
         # Square cells: without this the panel stretches three columns across
         # its full width and the matrix reads as a scatter of distant blocks.
         ax.set_aspect("equal")
         for s in ax.spines.values():
             s.set_visible(False)
+    # The headline is a sentence, flush left like every other title here.
     fig.suptitle(
         "Sealed-test accuracy: which side wins against each control,\n"
         "by algorithm and by budget protocol",
-        color=INK, fontsize=11,
+        x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    return _save(fig, out, top=0.80, bottom=0.16, left=0.1, right=0.98, wspace=0.05)
+    return _save(fig, out, top=0.84, bottom=0.06, left=0.14, right=0.995, wspace=0.55)
 
 
 def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
@@ -185,16 +215,24 @@ def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
     conds = READING_ORDER
     split = sum(1 for c in conds if role_of(c).startswith("search"))
     chance = 0.5
-    fig, axes = _fig(1, len(ALL_TASKS), figsize=(16, 4.6))
-    for ax, task in zip(np.atleast_1d(axes).ravel(), ALL_TASKS):
+    # One task per row, not one task per column. Five panels side by side needed
+    # 16in of width; at the 6.6in a README actually renders, that put these
+    # eight condition names at about 2pt. Stacked, each panel keeps its own full
+    # set of labels and the figure simply gets taller.
+    fig, axes = _fig(len(ALL_TASKS), 1,
+                     figsize=(WIDTH, 1.95 * len(ALL_TASKS) + 0.9))
+    panels = np.atleast_1d(axes).ravel()
+    for ax, task in zip(panels, ALL_TASKS):
         vals, colours = [], []
         for c in conds:
             row = by.get((task, c))
             vals.append(_test_or_val(row) if row else np.nan)
             colours.append(STYLE[c][0])
         y = np.arange(len(conds))
-        ax.axvline(chance, color=RULE, linewidth=0.9, linestyle=(0, (4, 3)),
-                   zorder=1)
+        # The reference every dot is read against, in the project's one
+        # dashed-grey register. Only the first panel names it; the line is the
+        # same line in all five.
+        vparity(ax, chance, label="chance" if task == ALL_TASKS[0] else None)
         for yi, v, colour in zip(y, vals, colours):
             if not np.isfinite(v):
                 continue
@@ -202,40 +240,45 @@ def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
                     alpha=0.5, solid_capstyle="round", zorder=2)
             ax.plot(v, yi, "o", color=colour, markersize=8.5,
                     markeredgecolor=SURFACE, markeredgewidth=1.4, zorder=3)
-            ax.text(v + 0.018, yi, f"{v:.3f}", va="center", fontsize=7.5,
+            ax.text(v + 0.018, yi, f"{v:.3f}", va="center", fontsize=ANNOT_SIZE,
                     color=INK2, zorder=4)
         ax.set_yticks(y)
         ax.set_yticklabels(
             [LABEL[c] + ("  *" if c in ("bpneat", "cgp") else "") for c in conds],
-            fontsize=7.5, color=INK2,
+            fontsize=TICK_SIZE, color=INK2,
         )
         ax.invert_yaxis()
-        ax.set_ylim(len(conds) - 0.4, -1.05)
-        ax.set_xlim(chance - 0.03, 1.10)
+        ax.set_ylim(len(conds) - 0.4, -0.85)
+        ax.set_xlim(chance - 0.03, 1.12)
         ax.set_xticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
         # The two families, separated by a rule rather than by eight hues.
         ax.axhline(split - 0.5, color=RULE, linewidth=0.8, alpha=0.9)
-        ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
+        title(ax, TASK_LABEL[task])
         ax.grid(axis="x", color=GRID, linewidth=0.8)
         ax.grid(axis="y", visible=False)
-        if task == ALL_TASKS[0]:
-            ax.text(chance, -0.9, " chance", ha="left", va="center",
-                    fontsize=7.5, color=RULE, style="italic")
-        else:
-            ax.set_yticklabels([])
-    # Family labels in the left margin, outside every panel.
-    for frac, text, colour in (
-        (0.76, "searched", SEARCH_PRIMARY),
-        (0.38, "fixed in advance", CONTROL_BEST),
+    # The two families, named once, each in its own colour, beside the block of
+    # rows it covers. The earlier version set them in the left margin of a
+    # five-column figure; stacked, there is no such margin, and the right-hand
+    # edge of the first panel is empty.
+    for rows, text, colour in (
+        (range(split), "searched", SEARCH_PRIMARY),
+        (range(split, len(conds)), "fixed in advance", CONTROL_BEST),
     ):
-        fig.text(0.024, frac, spaced(text), rotation=90, ha="left", va="center",
-                 fontsize=8, color=colour)
+        rows = list(rows)
+        panels[0].annotate(
+            text, xy=(1.012, (rows[0] + rows[-1]) / 2),
+            xycoords=("axes fraction", "data"), rotation=90,
+            ha="left", va="center", fontsize=ANNOT_SIZE, color=colour,
+            annotation_clip=False,
+        )
     fig.suptitle(
-        "Sealed-test accuracy by condition. Blue was found by a search; "
-        "orange was fixed before the run. * marks a search algorithm.",
-        color=INK, fontsize=11,
+        "Sealed-test accuracy by condition.\n"
+        "A cool hue was found by a search; a warm one was fixed before the run.\n"
+        "* marks a search algorithm.",
+        x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    return _save(fig, out, top=0.86, bottom=0.08, left=0.175, right=0.99, wspace=0.08)
+    return _save(fig, out, top=0.905, bottom=0.04, left=0.27, right=0.955,
+                 hspace=0.30)
 
 
 def fig_reversal(effects: list[dict], out: Path) -> Path:
@@ -244,8 +287,12 @@ def fig_reversal(effects: list[dict], out: Path) -> Path:
     Above zero the search wins; below it the fixed network does. The figure's
     claim is that both algorithms cross zero at the same place.
     """
-    fig, axes = _fig(1, 2, figsize=(11.5, 4.4))
+    fig, axes = _fig(2, 1, figsize=(WIDTH, 6.6))
     for ax, spec in zip(np.atleast_1d(axes).ravel(), ALGORITHMS):
+        # Zero is the line the whole figure is read against, so it is the
+        # project's dashed grey one, and it is drawn first so the bars sit on
+        # top of it rather than it on top of them.
+        parity(ax)
         ref = spec["reference"]
         controls = [spec["unmatched"], spec["matched"], spec["matched_mixed"]]
         width = 0.26
@@ -288,19 +335,21 @@ def fig_reversal(effects: list[dict], out: Path) -> Path:
                 plt.Rectangle((0, 0), 1, 1, facecolor=SURFACE, edgecolor=INK2,
                               label="not significant (Holm)")
             ],
-            fontsize=7.5, frameon=False, loc="lower left", ncol=1,
+            loc="lower left", ncol=1,
         )
-        ax.axhline(0.0, color=INK2, linewidth=1.0)
         ax.set_xticks(range(len(ALL_TASKS)))
-        ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
-        ax.set_ylabel("median paired difference\n(search − fixed)", fontsize=8, color=INK2)
-        ax.set_title(spec["algorithm"], color=INK, fontsize=10)
+        ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=TICK_SIZE,
+                           color=INK2)
+        ax.set_ylabel("median paired difference\n(search − fixed)",
+                      fontsize=LABEL_SIZE, color=INK2)
+        title(ax, spec["algorithm"])
     fig.suptitle(
-        "The reversal, both algorithms. A hollow bar did not reach significance "
-        "after Holm correction in that algorithm's own family.",
-        color=INK, fontsize=11,
+        "The reversal, both algorithms. A hollow bar did not reach\n"
+        "significance after Holm correction in that algorithm's own family.",
+        x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    return _save(fig, out, top=0.85, bottom=0.11, left=0.085, right=0.985, wspace=0.22)
+    return _save(fig, out, top=0.90, bottom=0.05, left=0.155, right=0.99,
+                 hspace=0.30)
 
 
 def fig_budget(budgets: list[dict], out: Path) -> Path:
@@ -308,13 +357,20 @@ def fig_budget(budgets: list[dict], out: Path) -> Path:
     by = {(r["task"], r["condition"]): r for r in budgets}
     conds = ["bpneat", "cgp", "fixed_tanh_ha",
              "fixed_tanh_matched_bpneat", "fixed_tanh_matched_cgp"]
-    fig, ax = _fig(figsize=(10.5, 4.2))
+    fig, ax = _fig(figsize=(WIDTH, 3.5))
     width = 0.16
     for ci, c in enumerate(conds):
         xs = [ti + (ci - 2) * width for ti in range(len(ALL_TASKS))]
         vals = [by.get((t, c), {}).get("gradient_steps_mean", np.nan) for t in ALL_TASKS]
         colour, _ = STYLE[c]
-        ax.bar(xs, vals, width=width * 0.9, color=colour, label=LABEL[c])
+        # "@ BP-NEAT budget" and "@ CGP budget" are the same architecture at two
+        # budgets, so the role table gives them one hue on purpose. Here nothing
+        # labels the bar itself, so the second of the pair takes a hatch: a
+        # second channel for a second variable, rather than a hue that would
+        # claim they are different architectures.
+        ax.bar(xs, vals, width=width * 0.9, color=colour, label=LABEL[c],
+               hatch="///" if c.endswith("_cgp") else None,
+               edgecolor=SURFACE, linewidth=0.0)
     ax.set_yscale("log")
     # A bar on a log axis measures from wherever autoscale put the floor, which
     # is not a number anyone declared. Pin it to one gradient update, so a bar's
@@ -322,22 +378,25 @@ def fig_budget(budgets: list[dict], out: Path) -> Path:
     # the title claims is the gap the reader sees.
     ax.set_ylim(1, None)
     ax.set_xticks(range(len(ALL_TASKS)))
-    ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
-    ax.set_ylabel("gradient updates per run (log)", fontsize=8, color=INK2)
-    # The decades below 10^3 are empty on every panel; the key goes there
-    # rather than on top of the bars.
-    ax.legend(fontsize=8, frameon=False, ncol=3, loc="lower center")
-    ax.set_title(
-        "Realized gradient budget. The unmatched control spends about two orders of "
-        "magnitude less than the searches it is compared against.",
-        color=INK, fontsize=10,
+    ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=TICK_SIZE,
+                       color=INK2)
+    ax.set_ylabel("gradient updates per run (log)", fontsize=LABEL_SIZE, color=INK2)
+    # A log axis has no empty floor: every bar is drawn from the bottom of the
+    # frame upward, so the key placed "inside, low" sat across five bars, and
+    # with no box behind it — this style's legends are unboxed — it could not be
+    # read at all. It goes below the task labels, where nothing is drawn.
+    ax.legend(ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.11))
+    title(
+        ax,
+        "Realized gradient budget. The unmatched control spends about\n"
+        "two orders of magnitude less than the searches it is compared against.",
     )
     return _save(fig, out)
 
 
 def fig_cross_algorithm(cross: list[dict], out: Path) -> Path:
     """How far apart the algorithms are, against how far the protocol moves things."""
-    fig, ax = _fig(figsize=(10.5, 4.2))
+    fig, ax = _fig(figsize=(WIDTH, 3.4))
     xs = np.arange(len(cross))
     between = [abs(r["median_cgp_minus_bpneat"]) for r in cross]
     protocol = [
@@ -352,22 +411,29 @@ def fig_cross_algorithm(cross: list[dict], out: Path) -> Path:
     ax.bar(xs + 0.19, protocol, width=0.34, color=CONTROL_BEST,
            label="|effect of matching the budget| (mean of the two)")
     for x, b, p in zip(xs, between, protocol):
-        ax.text(x - 0.19, b + 0.004, f"{b:.3f}", ha="center", fontsize=7, color=INK2)
-        ax.text(x + 0.19, p + 0.004, f"{p:.3f}", ha="center", fontsize=7, color=INK2)
+        ax.text(x - 0.19, b + 0.004, f"{b:.3f}", ha="center", fontsize=ANNOT_SIZE,
+                color=INK2)
+        ax.text(x + 0.19, p + 0.004, f"{p:.3f}", ha="center", fontsize=ANNOT_SIZE,
+                color=INK2)
+    # Headroom for the value label above the tallest bar, which otherwise was
+    # drawn outside the axes and ran into the title.
+    # Headroom for the value label above the tallest bar *and* for the key,
+    # which sits over the short XOR and Circles bars: at 1.15 the label on the
+    # tallest bar was written through the second legend entry.
+    ax.set_ylim(0, max(between + protocol) * 1.38)
     ax.set_xticks(xs)
-    ax.set_xticklabels([TASK_LABEL[r["task"]] for r in cross], fontsize=8, color=INK2)
-    ax.set_ylabel("median paired difference in accuracy", fontsize=8, color=INK2)
-    ax.legend(fontsize=8, frameon=False, loc="upper left")
-    ax.set_title(
-        "Choosing the algorithm matters less than choosing the budget protocol",
-        color=INK, fontsize=10,
-    )
+    ax.set_xticklabels([TASK_LABEL[r["task"]] for r in cross], fontsize=TICK_SIZE,
+                       color=INK2)
+    ax.set_ylabel("median paired difference in accuracy", fontsize=LABEL_SIZE,
+                  color=INK2)
+    ax.legend(loc="upper left")
+    title(ax, "Choosing the algorithm matters less than choosing the budget protocol")
     return _save(fig, out)
 
 
 def fig_hypotheses(hyp: list[dict], out: Path) -> Path:
     """The preregistered scorecard, as declared, with the observed counts."""
-    fig, ax = _fig(figsize=(11, 0.78 * len(hyp) + 1.6))
+    fig, ax = _fig(figsize=(WIDTH, 0.82 * len(hyp) + 0.9))
     ax.grid(False)
     for i, h in enumerate(reversed(hyp)):
         good = h["verdict"] == "holds"
@@ -375,25 +441,29 @@ def fig_hypotheses(hyp: list[dict], out: Path) -> Path:
         # the verdict is one bit and it is already written out in words at the
         # end of the row, so it needs a mark, not a field.
         ax.add_patch(
-            plt.Rectangle((0, i - 0.38), 0.006, 0.76,
+            plt.Rectangle((0, i - 0.40), 0.008, 0.80,
                           facecolor=GOOD if good else BAD, edgecolor="none")
         )
-        ax.text(0.022, i + 0.14, f"{h['hypothesis']}  {h['statement']}",
-                fontsize=9.5, color=INK, va="center")
-        ax.text(0.022, i - 0.19,
-                f"rule: {h['decision_rule']}   ·   observed: {h['observed']}",
-                fontsize=8, color=INK2, va="center")
+        ax.text(0.028, i + 0.26, f"{h['hypothesis']}  {h['statement']}",
+                fontsize=PANEL_TITLE_SIZE, color=INK, va="center")
+        # Rule and outcome on separate lines. Set end to end they ran to about
+        # 115 characters, which is 8in of type and so could only be read on a
+        # figure far wider than a README renders.
+        ax.text(0.028, i - 0.02, f"rule: {h['decision_rule']}",
+                fontsize=LABEL_SIZE, color=INK2, va="center")
+        ax.text(0.028, i - 0.28, f"observed: {h['observed']}",
+                fontsize=LABEL_SIZE, color=INK2, va="center")
         ax.axhline(i - 0.5, color=GRID, linewidth=0.7)
-        ax.text(0.985, i, h["verdict"], fontsize=9, color=GOOD if good else BAD,
-                ha="right", va="center", fontweight="bold")
+        ax.text(0.995, i + 0.26, h["verdict"], fontsize=LABEL_SIZE,
+                color=GOOD if good else BAD, ha="right", va="center",
+                fontweight="bold")
     ax.set_xlim(0, 1)
     ax.set_ylim(-0.6, len(hyp) - 0.4)
     ax.set_xticks([])
     ax.set_yticks([])
     for s in ax.spines.values():
         s.set_visible(False)
-    ax.set_title("Preregistered hypotheses, scored by their own declared rules",
-                 color=INK, fontsize=11, loc="left")
+    title(ax, "Preregistered hypotheses, scored by their own declared rules")
     return _save(fig, out)
 
 
@@ -411,7 +481,7 @@ def fig_cgp_structure(runs: list[dict], out: Path) -> Path:
         if k is not None:
             neutral.setdefault(r["task"], []).append(k)
 
-    fig, axes = _fig(1, 2, figsize=(11, 4.2))
+    fig, axes = _fig(2, 1, figsize=(WIDTH, 6.0))
     ax = axes[0]
     width = 0.34
     for ci, cond in enumerate(("cgp", "cgp_random_matched")):
@@ -422,34 +492,43 @@ def fig_cgp_structure(runs: list[dict], out: Path) -> Path:
         ax.bar(xs, vals, width=width * 0.9, color=STYLE[cond][0], label=LABEL[cond])
         for x, v in zip(xs, vals):
             if np.isfinite(v):
-                ax.text(x, v + 0.12, f"{v:.1f}", ha="center", fontsize=7, color=INK2)
+                ax.text(x, v + 0.12, f"{v:.1f}", ha="center", fontsize=ANNOT_SIZE,
+                        color=INK2)
     ax.set_xticks(range(len(ALL_TASKS)))
-    ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
-    ax.set_ylabel("active function nodes in the champion", fontsize=8, color=INK2)
-    ax.legend(fontsize=7, frameon=False)
-    ax.set_title("Phenotype size", color=INK, fontsize=10)
+    ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=TICK_SIZE,
+                       color=INK2)
+    ax.set_ylabel("active function nodes in the champion", fontsize=LABEL_SIZE,
+                  color=INK2)
+    ax.legend()
+    title(ax, "Phenotype size")
 
     ax = axes[1]
     vals = [neutral.get(t, []) for t in ALL_TASKS]
     parts = ax.violinplot([v or [0] for v in vals], showmedians=True, widths=0.8)
     for body in parts["bodies"]:
-        body.set_facecolor(colour_of("cgp"))
-        body.set_alpha(0.55)
+        # A flat pale fill rather than the hue at 55% opacity: a translucent
+        # body let the grid lines show through the distribution, which read as
+        # structure in the data that is not there.
+        body.set_facecolor(pale(colour_of("cgp"), 0.55))
+        body.set_alpha(1.0)
         body.set_edgecolor(INK2)
     for key in ("cmins", "cmaxes", "cbars", "cmedians"):
         if key in parts:
             parts[key].set_color(INK2)
     ax.set_xticks(range(1, len(ALL_TASKS) + 1))
-    ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
-    ax.set_ylabel("generations accepted at equal fitness", fontsize=8, color=INK2)
-    ax.set_title("Neutral drift, per run", color=INK, fontsize=10)
+    ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=TICK_SIZE,
+                       color=INK2)
+    ax.set_ylabel("generations accepted at equal fitness", fontsize=LABEL_SIZE,
+                  color=INK2)
+    title(ax, "Neutral drift, per run")
 
     fig.suptitle(
-        "CGP's genotype-phenotype map in use: small phenotypes, and how often "
-        "neutral offspring were accepted",
-        color=INK, fontsize=11,
+        "CGP's genotype-phenotype map in use: small phenotypes,\n"
+        "and how often neutral offspring were accepted",
+        x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    return _save(fig, out, top=0.86, bottom=0.1, left=0.07, right=0.985, wspace=0.2)
+    return _save(fig, out, top=0.88, bottom=0.06, left=0.135, right=0.99,
+                 hspace=0.28)
 
 
 def build_all(release_dir: Path, progress=print) -> list[Path]:

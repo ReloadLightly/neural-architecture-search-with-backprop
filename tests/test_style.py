@@ -1,19 +1,22 @@
 """One visual style, enforced rather than intended.
 
-Every figure in this repository is a plate: a warm near-black ground, bone
-line work, a double rule round the edge, serif lettering, and a small set of
-accent pigments. Not some of them, and not the plates only — all of them,
-including whatever is drawn from results that do not exist yet.
+Every figure in this repository is drawn in the style of the sibling project
+`competitive-coevolution-of-slimes`: white ground, no frame, top and right
+spines off, a very light grid behind the data, stock sans at 8.5pt, legends
+without a box, and a small fixed set of muted hues assigned to conditions by
+name. The two repositories are one body of work and should read as one.
 
-That is a claim about consistency, and consistency is exactly the kind of claim
-that decays quietly. So it is enforced here rather than intended: these gates
-parse every module that imports matplotlib and fail if it defines its own
-ground, its own ink, its own palette, or saves a figure without the frame.
+That is a claim about consistency, and consistency decays quietly. So these
+gates parse every module that imports matplotlib and fail if it defines its own
+ground, ink, grid or palette; if it hard-codes a colour, a density or a type
+size; or if a hue is chosen by a row's position rather than by what the row is.
 """
 
 from __future__ import annotations
 
 import ast
+import itertools
+import re
 import sys
 from pathlib import Path
 
@@ -27,20 +30,49 @@ from bpneat import style  # noqa: E402
 
 #: Names that define the look. No module but `style` may assign one.
 RESERVED = {
-    "SURFACE", "INK", "INK2", "INK_2", "GRID", "RULE", "SERIES",
-    "SEARCH_PRIMARY", "SEARCH_SECONDARY", "SEARCH_NULL",
-    "CONTROL_STARVED", "CONTROL_MATCHED", "CONTROL_BEST",
-    "ROLE_COLOUR", "REFERENCE_COLOUR", "WEIGHT_POS", "WEIGHT_NEG",
-    "PLATE_GROUND", "PLATE_BONE", "PLATE_BONE_DIM", "PLATE_RULE",
-    "PLATE_CAPTION", "PLATE_ACCENT", "PLATE_DPI",
-    "DISPLAY_FAMILY", "TEXT_FAMILY",
+    "SURFACE", "INK", "INK2", "INK_2", "GRID", "RULE", "SERIES", "PALETTE",
     "GOOD", "BAD", "NEUTRAL", "DPI",
     "BOUNDARY_COLOURS", "CLASS_COLOURS", "OP_COLOUR", "TASK_LABEL",
+    "SEARCH_PRIMARY", "SEARCH_SECONDARY", "SEARCH_NULL",
+    "CONTROL_STARVED", "CONTROL_MATCHED", "CONTROL_BEST",
+    "ROLE_COLOUR", "WEIGHT_POS", "WEIGHT_NEG",
     "TITLE_SIZE", "PANEL_TITLE_SIZE", "LABEL_SIZE", "TICK_SIZE",
     "ANNOT_SIZE", "LEGEND_SIZE",
 }
 
 STYLE_MODULE = ROOT / "src" / "bpneat" / "style.py"
+
+#: The upstream project this style is ported from, for the record.
+SLIMES_RCPARAMS = {
+    "figure.dpi": 200,
+    "savefig.dpi": 200,
+    "font.size": 8.5,
+    "axes.titlesize": 9.5,
+    "axes.labelsize": 8.5,
+    "axes.spines.top": False,
+    "axes.spines.right": False,
+    "axes.grid": True,
+    "grid.color": "#E6E6E6",
+    "grid.linewidth": 0.6,
+    "axes.axisbelow": True,
+    "legend.frameon": False,
+    "legend.fontsize": 7.5,
+    "xtick.labelsize": 7.5,
+    "ytick.labelsize": 7.5,
+    "savefig.bbox": "tight",
+}
+
+
+def _plotting_modules() -> list[Path]:
+    out = []
+    for base in (ROOT / "src" / "bpneat", ROOT / "bench"):
+        for path in sorted(base.rglob("*.py")):
+            if path == STYLE_MODULE:
+                continue
+            text = path.read_text()
+            if "matplotlib" in text or "plt." in text:
+                out.append(path)
+    return out
 
 
 def _luminance(colour: str) -> float:
@@ -58,21 +90,14 @@ def _contrast(a: str, b: str) -> float:
     return (hi + 0.05) / (lo + 0.05)
 
 
-def _plotting_modules() -> list[Path]:
-    out = []
-    for base in (ROOT / "src" / "bpneat", ROOT / "bench"):
-        for path in sorted(base.rglob("*.py")):
-            if path == STYLE_MODULE:
-                continue
-            text = path.read_text()
-            if "matplotlib" in text or "plt." in text:
-                out.append(path)
-    return out
+# --------------------------------------------------------------------------
+# One source
+# --------------------------------------------------------------------------
 
 
 def test_there_are_plotting_modules_to_check():
     mods = _plotting_modules()
-    assert len(mods) >= 6, f"only found {len(mods)}; the gate is not exercising anything"
+    assert len(mods) >= 5, f"only found {len(mods)}; the gate is not exercising anything"
 
 
 @pytest.mark.parametrize("path", _plotting_modules(), ids=lambda p: p.name)
@@ -98,6 +123,20 @@ def test_no_module_defines_its_own_style(path: Path):
 
 
 @pytest.mark.parametrize("path", _plotting_modules(), ids=lambda p: p.name)
+def test_no_module_hard_codes_a_colour(path: Path):
+    """Every hue in the project comes from the shared palette.
+
+    This is the gate that keeps the two repositories looking like one: a hex
+    literal in a figure module is a hue nobody chose on purpose.
+    """
+    hexes = re.findall(r"[\"']#[0-9a-fA-F]{3,8}[\"']", path.read_text())
+    assert not hexes, (
+        f"{path.relative_to(ROOT)} hard-codes {sorted(set(hexes))}; "
+        "take the hue from bpneat.style"
+    )
+
+
+@pytest.mark.parametrize("path", _plotting_modules(), ids=lambda p: p.name)
 def test_every_figure_is_saved_at_the_project_density(path: Path):
     """`savefig` must use the shared DPI token, never a literal."""
     tree = ast.parse(path.read_text())
@@ -108,82 +147,84 @@ def test_every_figure_is_saved_at_the_project_density(path: Path):
             continue
         for kw in node.keywords:
             if kw.arg == "dpi" and isinstance(kw.value, ast.Constant):
-                # An animation writer may legitimately render smaller; it is the
-                # one case, and it says so at the call site.
-                assert "movie" in path.name, (
+                raise AssertionError(
                     f"{path.relative_to(ROOT)} hard-codes dpi={kw.value.value}; "
                     "use bpneat.style.DPI"
                 )
 
 
-def test_the_ground_is_the_plate_ground():
-    """One ground, and it is the plate's. Pinned because every other colour in
-    the project was chosen against it."""
-    assert style.SURFACE == "#17150f"
-    assert style.PLATE_GROUND == style.SURFACE
-    assert style.PLATE_BONE == style.INK
-
-
-def test_nothing_is_lighter_than_the_ink_or_darker_than_the_ground():
-    """The ground is the floor and the bone is the ceiling: any pigment outside
-    that range is either invisible or shouting."""
-    named = {
-        **{k: v for k, v in style.OP_COLOUR.items()},
-        **style.ROLE_COLOUR,
-        "good": style.GOOD, "bad": style.BAD, "neutral": style.NEUTRAL,
-        "rule": style.RULE, "grid": style.GRID,
-    }
-    floor, ceiling = _luminance(style.SURFACE), _luminance(style.INK)
-    for name, colour in named.items():
-        assert floor <= _luminance(colour) <= ceiling, f"{name} is outside the plate"
-
-
-def test_status_colours_are_not_reused_as_series():
-    """good / warning / critical are reserved and must not double as series 4."""
-    assert style.BAD not in style.SERIES
-    assert style.NEUTRAL not in style.SERIES
-
-
-def test_the_boundary_ramp_is_diverging_with_a_neutral_midpoint():
-    """Two hues through a near-neutral middle — never a rainbow, never a hue
-    at the midpoint, because the midpoint is the decision boundary itself. On
-    a plate the middle is the ground showing through."""
-    import matplotlib.colors as mcolors
-
-    lo, mid, hi = (mcolors.to_rgb(c) for c in style.BOUNDARY_COLOURS)
-    spread = max(mid) - min(mid)
-    assert spread < 0.05, f"the diverging midpoint {mid} is a colour, not a neutral"
-    assert lo != hi
-    assert style.boundary_cmap()(0.5) is not None
-
-
-def test_every_operator_has_its_own_hue():
-    from bpneat.genome import OP_NAMES
-
-    assert set(OP_NAMES.values()) <= set(style.OP_COLOUR), "an operator has no colour"
-    evolvable = {k: v for k, v in style.OP_COLOUR.items() if k != "null"}
-    assert len(set(evolvable.values())) == len(evolvable), "two operators share a hue"
-
-
-def test_every_task_has_one_label():
-    from bpneat.v3.protocol import ALL_TASKS
-
-    assert set(ALL_TASKS) <= set(style.TASK_LABEL)
-    assert len(set(style.TASK_LABEL.values())) == len(style.TASK_LABEL)
+@pytest.mark.parametrize("path", _plotting_modules(), ids=lambda p: p.name)
+def test_nothing_draws_a_page_border(path: Path):
+    """The dark-plate experiment put a double rule round every figure. It is
+    gone, and `savefig.bbox="tight"` means there is no margin to put one in."""
+    text = path.read_text()
+    for banned in ("plate_frame", "FRAME_IN", "PLATE_", "DISPLAY_FAMILY"):
+        assert banned not in text, (
+            f"{path.relative_to(ROOT)} still references {banned}"
+        )
 
 
 # --------------------------------------------------------------------------
-# Semantic roles: colour encodes the argument, not the row index
+# The style is the sibling project's style
+# --------------------------------------------------------------------------
+
+
+def test_importing_style_installs_the_slimes_rcparams():
+    """Pinned against the upstream `make_figures.style()` it was ported from."""
+    import matplotlib as mpl
+
+    for key, want in SLIMES_RCPARAMS.items():
+        got = mpl.rcParams[key]
+        assert got == want, f"{key}: {got!r} != {want!r}"
+
+
+def test_the_ground_is_white_and_titles_are_left_aligned():
+    import matplotlib as mpl
+
+    assert style.SURFACE == "#ffffff"
+    assert mpl.rcParams["figure.facecolor"] == style.SURFACE
+    assert mpl.rcParams["savefig.facecolor"] == style.SURFACE
+    assert mpl.rcParams["axes.titlelocation"] == "left"
+
+
+def test_the_palette_is_the_sibling_projects_palette():
+    """These twelve hues are `competitive-coevolution-of-slimes`' `COLORS`.
+    Nothing here invents a hue; it only chooses which one a series gets."""
+    assert set(style.PALETTE.values()) == {
+        "#222222", "#3B6EA8", "#1F7A5A", "#E08B3C", "#B0413E", "#8C5A2B",
+        "#7A5EA6", "#C1445E", "#4C956C", "#946A9E", "#8A6A55", "#4FA3B8",
+    }
+    assert len(style.PALETTE) == 12
+
+
+def test_every_assigned_hue_comes_from_that_palette():
+    """Role colours and operator colours are drawn from the twelve, not mixed."""
+    allowed = set(style.PALETTE.values()) | {style.NEUTRAL}
+    for name, colour in style.ROLE_COLOUR.items():
+        assert colour in allowed, f"role {name} uses {colour}, not a palette hue"
+    for name, colour in style.OP_COLOUR.items():
+        assert colour in allowed, f"operator {name} uses {colour}, not a palette hue"
+
+
+def test_every_series_colour_carries_on_white():
+    """A hue that does not separate from the page is not a series colour."""
+    for name, colour in {**style.ROLE_COLOUR, **style.OP_COLOUR}.items():
+        if name == "null":
+            continue
+        assert _contrast(colour, style.SURFACE) >= 2.5, f"{name} is too pale"
+
+
+# --------------------------------------------------------------------------
+# Colour encodes the argument, not the row index
 # --------------------------------------------------------------------------
 
 
 def test_no_module_colours_by_list_position():
-    """`SERIES` is the old index-based palette. Nothing may read it any more.
+    """`SERIES` is the old index-based palette. Nothing may read it.
 
     Reading `SERIES[i]` is how Backprop-NEAT and "fixed mixed @ CGP budget"
     came out the same blue, and how one hue named a search in one figure and a
-    starved control in the next. Colour comes from `colour_of` / `ramp` /
-    `within`, which take a condition or a role, not a position.
+    starved control in the next.
     """
     offenders = []
     for path in _plotting_modules():
@@ -191,7 +232,6 @@ def test_no_module_colours_by_list_position():
         for node in ast.walk(tree):
             if isinstance(node, ast.Name) and node.id == "SERIES":
                 offenders.append(f"{path.relative_to(ROOT)}:{node.lineno}")
-            # champions.py reaches through a dict of style tokens.
             if (isinstance(node, ast.Constant) and node.value == "SERIES"
                     and path.name == "champions.py"):
                 offenders.append(f"{path.relative_to(ROOT)}:{node.lineno}")
@@ -211,51 +251,27 @@ def test_every_condition_in_every_protocol_has_a_declared_role():
     assert v4, "the v4 blocks declare no conditions; the gate checks nothing"
     declared = set(style._ROLE_OF)
     missing = {
-        c for c in set(CORE_CONDITIONS) | v4 | set(V5)
-        if c not in declared
+        c for c in set(CORE_CONDITIONS) | v4 | set(V5) if c not in declared
     }
     assert not missing, f"no declared role for {sorted(missing)}"
-    # v3 names its factor arms by level (prop_*, sel_*); those are all searches
-    # and `role_of` says so explicitly rather than by falling off the end.
     v3 = {c for b in BLOCKS for c in b.conditions}
     assert v3, "the v3 blocks declare no conditions; the gate checks nothing"
     for c in v3:
         assert style.role_of(c).startswith(("search", "control")), c
 
 
-def test_the_two_families_are_one_hue_each():
-    """Cold is "we searched", warm is "we fixed it". Two anchors, no third."""
+def test_the_two_families_stay_apart():
+    """Cold is "we searched", warm is "we fixed it in advance"."""
     import matplotlib.colors as mcolors
 
-    def hue(c):
-        return mcolors.rgb_to_hsv(mcolors.to_rgb(c))[0]
+    def warmth(c):
+        r, g, b = mcolors.to_rgb(c)
+        return r - b
 
     for c in style.SEARCH_RAMP:
-        assert 0.5 < hue(c) < 0.72, f"{c} is not in the cold family"
+        assert warmth(c) < 0.05, f"{c} is not in the cold family"
     for c in style.CONTROL_RAMP:
-        assert hue(c) < 0.11, f"{c} is not in the warm family"
-
-
-def test_role_ramps_are_monotonic_in_luminance():
-    """A sequential ramp's governing property is luminance.
-
-    On a dark ground the direction flips: weight is brightness, so the primary
-    search and the strongest control are the brightest members of their family
-    and the ramps run the opposite way from each other.
-    """
-    search = [_luminance(c) for c in style.SEARCH_RAMP]
-    control = [_luminance(c) for c in style.CONTROL_RAMP]
-    assert search == sorted(search, reverse=True), "the search ramp is not ordered"
-    assert control == sorted(control), "the control ramp is not ordered"
-    for role in ("search_primary", "control_matched"):
-        steps = [_luminance(c) for c in style.ramp(role, 6)]
-        assert steps == sorted(steps), f"{role} ramp is not monotonic"
-
-
-def test_every_role_colour_carries_on_the_ground():
-    """A pigment that does not clear 3:1 above the ground is not on the plate."""
-    for name, colour in style.ROLE_COLOUR.items():
-        assert _contrast(colour, style.SURFACE) >= 3.0, f"{name} sinks into the ground"
+        assert warmth(c) > 0.15, f"{c} is not in the warm family"
 
 
 def test_a_signed_quantity_uses_the_diverging_anchors():
@@ -264,81 +280,48 @@ def test_a_signed_quantity_uses_the_diverging_anchors():
     assert style.WEIGHT_NEG == style.BOUNDARY_COLOURS[-1]
 
 
-def test_status_colours_cannot_be_confused_with_a_condition():
-    """GOOD/BAD mark a verdict. No condition may be drawn in either."""
-    verdicts = {style.GOOD, style.BAD}
-    assert not (verdicts & set(style.ROLE_COLOUR.values()))
+def test_status_colours_are_not_reused_as_a_condition():
+    """good / failed mark a verdict. No condition may be drawn in either."""
+    assert style.NEUTRAL not in style.ROLE_COLOUR.values()
 
 
-# --------------------------------------------------------------------------
-# Typography
-# --------------------------------------------------------------------------
-
-
-def test_the_bundled_faces_are_present_and_registered():
-    """The committed PNGs must not depend on the machine that drew them."""
-    from matplotlib import font_manager
-
-    files = sorted(p.name for p in style.FONT_DIR.glob("*.ttf"))
-    assert len(files) >= 6, f"the bundled faces are missing: {files}"
-    assert (style.FONT_DIR / "LICENSE-source-serif.md").exists()
-    assert (style.FONT_DIR / "LICENSE-source-sans.md").exists()
-    names = {f.name for f in font_manager.fontManager.ttflist}
-    assert style.TEXT_FAMILY[0] in names, "the text face did not register"
-    assert style.DISPLAY_FAMILY[0] in names, "the display face did not register"
-
-
-def test_the_families_fall_back_rather_than_fail():
-    """A checkout without the bundled files still renders, in DejaVu."""
-    assert style.TEXT_FAMILY[-1].startswith("DejaVu")
-    assert style.DISPLAY_FAMILY[-1].startswith("DejaVu")
-
-
-def test_importing_style_installs_the_type():
-    """A plate is set in one face, and it is a serif."""
-    import matplotlib as mpl
-
-    assert mpl.rcParams["font.family"] == ["serif"]
-    assert mpl.rcParams["font.serif"][0] == style.TEXT_FAMILY[0]
-    assert "Serif" in style.TEXT_FAMILY[0] and "Serif" in style.DISPLAY_FAMILY[0]
-
-
-def test_titles_are_typeset_at_the_single_exit():
-    """`style.save` puts headings into the display face, so a module cannot
-    forget to at one of its ~60 title call sites."""
-    import matplotlib.pyplot as plt
-
-    fig, ax = plt.subplots()
-    fig.suptitle("headline")
-    ax.set_title("panel")
-    style.typeset(fig)
-    assert fig._suptitle.get_fontfamily()[0] == style.DISPLAY_FAMILY[0]
-    assert ax.title.get_fontfamily()[0] == style.DISPLAY_FAMILY[0]
-    plt.close(fig)
-
-
-# --------------------------------------------------------------------------
-# The plate language
-# --------------------------------------------------------------------------
-
-
-def test_the_plate_palette_lives_here_too():
-    """There is no second palette: the plate names are aliases of the one set."""
+def test_the_boundary_ramp_is_diverging_with_a_neutral_midpoint():
+    """Two hues through a near-neutral middle — never a rainbow, never a hue
+    at the midpoint, because the midpoint is the decision boundary itself."""
     import matplotlib.colors as mcolors
 
-    for name in ("PLATE_GROUND", "PLATE_BONE", "PLATE_BONE_DIM", "PLATE_RULE",
-                 "PLATE_CAPTION"):
-        mcolors.to_rgb(getattr(style, name))
+    lo, mid, hi = (mcolors.to_rgb(c) for c in style.BOUNDARY_COLOURS)
+    assert max(mid) - min(mid) < 0.05, f"the midpoint {mid} is a colour, not a neutral"
+    assert lo != hi
+    assert style.boundary_cmap()(0.5) is not None
+
+
+def test_every_operator_has_its_own_hue():
     from bpneat.genome import OP_NAMES
 
-    assert set(OP_NAMES.values()) <= set(style.PLATE_ACCENT)
-    for v in style.PLATE_ACCENT.values():
-        mcolors.to_rgb(v)
-    assert style.plate_accent("not-an-operator") == style.PLATE_BONE
+    assert set(OP_NAMES.values()) <= set(style.OP_COLOUR), "an operator has no colour"
+    evolvable = {k: v for k, v in style.OP_COLOUR.items() if k != "null"}
+    assert len(set(evolvable.values())) == len(evolvable), "two operators share a hue"
+
+
+def test_a_role_ramp_gives_distinct_hues_not_tints():
+    """Tints of one hue at small sizes were what stopped being legible."""
+    for role in style.ROLE_COLOUR:
+        for n in (2, 3, 6):
+            hues = style.ramp(role, n)
+            assert len(set(hues)) == n, f"{role} at n={n} repeats a hue"
+            assert set(hues) <= set(style.PALETTE.values())
+
+
+def test_every_task_has_one_label():
+    from bpneat.v3.protocol import ALL_TASKS
+
+    assert set(ALL_TASKS) <= set(style.TASK_LABEL)
+    assert len(set(style.TASK_LABEL.values())) == len(style.TASK_LABEL)
 
 
 # --------------------------------------------------------------------------
-# The operator palette is validated, not chosen
+# Colour-vision deficiency
 # --------------------------------------------------------------------------
 
 
@@ -382,8 +365,6 @@ def _delta_e(a, b):
 
 
 def _worst_pair(palette, kind):
-    import itertools
-
     worst = None
     for a, b in itertools.combinations(palette, 2):
         ca, cb = palette[a], palette[b]
@@ -395,107 +376,65 @@ def _worst_pair(palette, kind):
     return worst
 
 
-def test_the_operator_palette_separates_under_colour_vision_deficiency():
-    """Nine nominal hues is the hardest case; these are the measured floors.
+def test_the_roles_separate_under_colour_vision_deficiency():
+    """Which of the twelve hues each role gets was chosen by searching them
+    for the most separable six. These are the floors that search achieved,
+    rounded down; they are a ratchet."""
+    roles = {k: v for k, v in style.ROLE_COLOUR.items() if k != "reference"}
+    for kind, floor in {"normal": 15.0, "protan": 13.5, "deutan": 11.0}.items():
+        d, a, b = _worst_pair(roles, kind)
+        assert d >= floor, f"{kind}: {a} and {b} are only ΔE {d:.1f} apart"
 
-    The assignment this replaced took six of nine slots from the categorical
-    series, which put `tanh` and `square` at ΔE 2.0 under deuteranopia — the
-    same colour, for a deuteranope. The thresholds below are the numbers the
-    current set actually achieves, rounded down; they are a ratchet, so a
-    future edit cannot quietly give one back.
-    """
+
+def test_the_operator_palette_separates_under_colour_vision_deficiency():
+    """Nine nominal hues is the hardest case; these are the measured floors."""
     palette = {k: v for k, v in style.OP_COLOUR.items() if k != "null"}
-    floors = {"normal": 21.0, "protan": 14.0, "deutan": 13.0}
-    for kind, floor in floors.items():
+    for kind, floor in {"normal": 11.5, "protan": 7.5, "deutan": 8.5}.items():
         d, a, b = _worst_pair(palette, kind)
         assert d >= floor, f"{kind}: {a} and {b} are only ΔE {d:.1f} apart"
-    for name, colour in palette.items():
-        assert _contrast(colour, style.SURFACE) >= 4.0, f"{name} sinks into the ground"
-
-
-def test_any_pigment_too_close_to_the_ground_is_declared():
-    """The rule is about the ground, so it survives the ground changing: a
-    pigment that does not clear it has to be named as needing an outline."""
-    low = {
-        op for op, c in style.OP_COLOUR.items()
-        if op != "null" and _contrast(c, style.SURFACE) < 2.0
-    }
-    assert low == set(style.NEEDS_RELIEF), (
-        "undeclared pigments that sink into the ground: "
-        f"{sorted(low ^ set(style.NEEDS_RELIEF))}"
-    )
-
-
-def test_there_is_no_second_operator_palette():
-    """A reader who learns an operator's pigment on one figure keeps it on all
-    of them, because there is only one table."""
-    assert style.PLATE_ACCENT is style.OP_COLOUR
 
 
 # --------------------------------------------------------------------------
-# The plate register, applied to everything
+# Size — the largest single cause of an unreadable figure here
 # --------------------------------------------------------------------------
 
-
-def test_no_figure_is_written_without_the_frame():
-    """A plate without its rule is a chart, and the point of this style is that
-    there are no charts in here. Every `savefig` in the repository is either
-    reached through `style.save` or preceded by the finishing pass that draws
-    the frame."""
-    draws_the_frame = ("style.save", "plate_frame", "finish(fig")
-    offenders = []
-    for path in _plotting_modules():
-        lines = path.read_text().split("\n")
-        for i, line in enumerate(lines):
-            if ".savefig(" not in line:
-                continue
-            window = "\n".join(lines[max(0, i - 6):i])
-            if not any(marker in window for marker in draws_the_frame):
-                offenders.append(f"{path.relative_to(ROOT)}:{i + 1}")
-    assert not offenders, (
-        "figures written without the plate's rule at " + ", ".join(offenders)
-    )
+#: Inches. GitHub renders a README image at about 870 px; at 200 dpi a figure
+#: wider than this arrives below half size, and 7.5pt tick labels land at under
+#: 4pt. No palette fixes that. The sibling project's widest figure is 6.8.
+MAX_FIGURE_WIDTH_IN = 6.8
 
 
-def test_the_frame_is_drawn_in_inches_not_fractions():
-    """A plate's border is the same width on a tall plate and a wide one, so
-    the inset is an absolute measure. Taking it as a figure fraction would give
-    a 16-inch-wide figure a hairline down the sides and a band across the top.
+@pytest.mark.parametrize("path", _plotting_modules(), ids=lambda p: p.name)
+def test_no_figure_is_wider_than_the_page(path: Path):
+    """Panels stack downwards, never sideways.
+
+    A literal width is read straight off the `figsize=`; a computed one
+    (`figsize=(2.2 * len(tasks), 3.0)`) is evaluated at the largest number of
+    panels any protocol has, which is five.
     """
-    import matplotlib.pyplot as plt
-
-    for size in ((4.0, 4.0), (16.0, 4.4), (8.2, 13.6)):
-        fig = plt.figure(figsize=size)
-        style.plate_frame(fig)
-        rect = fig.artists[0]
-        inset_x = (size[0] - rect.get_width() * size[0]) / 2
-        inset_y = (size[1] - rect.get_height() * size[1]) / 2
-        assert abs(inset_x - style.FRAME_IN) < 1e-6, size
-        assert abs(inset_y - style.FRAME_IN) < 1e-6, size
-        plt.close(fig)
-
-
-def test_every_plotting_module_draws_on_the_shared_ground():
-    """A module may not set its own facecolor to anything but the ground."""
-    import re
-
-    pattern = re.compile(r"facecolor\s*=\s*[\"']#")
-    offenders = [
-        str(p.relative_to(ROOT)) for p in _plotting_modules()
-        if pattern.search(p.read_text())
-    ]
-    assert not offenders, f"hard-coded facecolors in {offenders}"
-
-
-def test_nothing_draws_in_white():
-    """White is not on this plate. A call site that wants "the paper" means the
-    ground, and must say `SURFACE` so it follows the ground if it moves."""
-    import re
-
-    pattern = re.compile(r"[\"'](?:white|#fff(?:fff)?)[\"']", re.IGNORECASE)
+    tree = ast.parse(path.read_text())
     offenders = []
-    for path in _plotting_modules():
-        for i, line in enumerate(path.read_text().split("\n")):
-            if pattern.search(line) and "noqa: plate" not in line:
-                offenders.append(f"{path.relative_to(ROOT)}:{i + 1}")
-    assert not offenders, "literal white at " + ", ".join(offenders)
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        for kw in node.keywords:
+            if kw.arg != "figsize" or not isinstance(kw.value, ast.Tuple):
+                continue
+            width = kw.value.elts[0]
+            value = None
+            if isinstance(width, ast.Constant):
+                value = float(width.value)
+            elif (isinstance(width, ast.BinOp) and isinstance(width.op, ast.Mult)
+                  and isinstance(width.left, ast.Constant)):
+                value = float(width.left.value) * 5  # the widest protocol
+            elif (isinstance(width, ast.BinOp) and isinstance(width.op, ast.Add)
+                  and isinstance(width.left, ast.BinOp)
+                  and isinstance(width.left.left, ast.Constant)
+                  and isinstance(width.right, ast.Constant)):
+                value = float(width.left.left.value) * 5 + float(width.right.value)
+            if value is not None and value > MAX_FIGURE_WIDTH_IN:
+                offenders.append(f"line {node.lineno}: {value:.1f}in")
+    assert not offenders, (
+        f"{path.relative_to(ROOT)} draws figures wider than "
+        f"{MAX_FIGURE_WIDTH_IN}in — {offenders}"
+    )

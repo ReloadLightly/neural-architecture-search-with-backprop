@@ -1,9 +1,17 @@
 """v5 figures: what NEAT's mechanisms did to the topologies and to the score.
 
-Same conventions as v3 and v4 — the validated categorical order (adjacent-pair
-CVD ΔE 9.1, normal-vision 19.6), hues assigned in fixed order and never cycled,
-identity never carried by colour alone, and a CSV beside every figure in the
-release.
+Every token — ground, ink, grid, palette, type scale, density — comes from
+`bpneat.style`, which is the `competitive-coevolution-of-slimes` style ported
+into this repository so that the two read as one body of work. Nothing here
+defines a hue or a size of its own, and every figure leaves through
+`style.save`, so the exit cannot be forgotten at a call site.
+
+The conventions this module keeps: a hue is assigned by what a row *is* and
+never by where it sits in a list; identity is never carried by colour alone
+(shape and dash separate the arms inside a band, and every mark is either
+directly labelled or listed in the CSV that ships beside the figure in the
+release); titles are left-aligned sentences that say what the panel shows; and
+there is a dashed grey reference line to measure everything against.
 """
 
 from __future__ import annotations
@@ -17,9 +25,9 @@ import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 
 from ..style import (  # noqa: E402
+    ANNOT_SIZE,
     BAD,
     GOOD,
-    GRID,
     INK,
     INK2,
     NEUTRAL,
@@ -28,11 +36,17 @@ from ..style import (  # noqa: E402
     SEARCH_PRIMARY,
     SEARCH_SECONDARY,
     SURFACE,
+    TASK_LABEL,
+    TITLE_SIZE,
     colour_of,
+    dot,
+    parity,
     save,
-    style_axes,
+    title,
+    vparity,
     within,
 )
+from ..style import figure as _fig  # noqa: E402
 from .analysis import (  # noqa: E402
     REFERENCE_CHAMPION,
     complexity,
@@ -53,20 +67,22 @@ LABEL = {
     "neat_deep_narrow": "deep & narrow",
     "fixed_mixed_matched": "fixed net (matched budget)",
 }
-from ..style import TASK_LABEL  # noqa: E402
 
-#: Every arm here is a search, so they all take the search family and differ by
-#: value rather than by hue. The three steps are not a decorative ramp: they are
-#: the preregistered question. Does releasing the brake on size make topologies
-#: grow? So the deep step is the arm with both brakes on, the middle step is the
-#: arms that release one or both, and the pale step is the arms that change the
-#: search without touching size at all. The reader sees the answer as three
+#: Every arm here is a search, so they all take the search family. The three
+#: bands are not decoration: they are the preregistered question. Does releasing
+#: the brake on size make topologies grow? So one band is the arm with both
+#: brakes on, one is the arms that release one or both, and one is the arms that
+#: change the search without touching size. The reader sees the answer as three
 #: bands before reading a single label.
 #:
-#: The scheme this replaced assigned colour by position over a six-slot
-#: categorical palette. With eight arms it cycled: "deep & narrow" came out the
-#: same blue as the reference, and the fixed control the same orange as "higher
-#: mutation rates".
+#: Two defects this scheme has had to fix in turn. First, colour was assigned by
+#: position over a six-slot categorical palette; with eight arms it cycled, so
+#: "deep & narrow" came out the same hue as the reference. Then the bands were
+#: drawn as three tints of one hue, and at this type size, with a white keyline
+#: round every mark, deep/mid/pale blue collapsed back into one blue and the
+#: banding carried nothing again. So the bands now take three *separate* palette
+#: hues — the role colours, which are the ones the palette search validated as
+#: mutually separable under normal, protanopic and deuteranopic vision.
 BRAKES_ON = ["neat_reference"]
 BRAKE_RELEASED = ["neat_no_penalty", "neat_complexify", "neat_complexify_no_penalty"]
 SEARCH_ALTERED = ["neat_no_speciation", "neat_no_crossover", "neat_deep_narrow"]
@@ -89,43 +105,42 @@ _BAND = (
     | dict.fromkeys(SEARCH_ALTERED, SEARCH_NULL)
 )
 
+#: How the bands are named in the captions, so the sentence under a figure and
+#: the ink in it cannot drift apart. Stated once, here.
+_BAND_NAME = {
+    SEARCH_PRIMARY: "blue",
+    SEARCH_SECONDARY: "green",
+    SEARCH_NULL: "purple",
+}
+_CONTROL_NAME = "rose"
+
 #: The one arm that is not a search at all keeps the control family.
 STYLE = {c: (_BAND.get(c, colour_of(c)), *MARKER[c]) for c in LABEL}
 
 #: Rows read in band order, so colour and vertical position agree.
 READING_ORDER = BRAKES_ON + BRAKE_RELEASED + SEARCH_ALTERED + ["fixed_mixed_matched"]
 
-#: Geometry as a series: three ordered steps inside the search family, used
-#: only where every arm in the figure is a search and the facet is the task.
+#: Geometry as a series: three distinct hues from inside one role, used only
+#: where every arm in the figure is a search and the series is the task. Three
+#: hues rather than three tints of one, for the reason the band comment gives.
 TASK_COLOUR = within("search_primary", ALL_TASKS)
-
-
-def _style(ax):
-    style_axes(ax)
-
-
-def _fig(nrows=1, ncols=1, figsize=(10, 4.2)):
-    fig, axes = plt.subplots(nrows, ncols, figsize=figsize, facecolor=SURFACE)
-    for ax in np.atleast_1d(axes).ravel():
-        _style(ax)
-    return fig, axes
-
-
-def _save(fig, path: Path, **kw):
-    # One exit for every figure in the module, so the typographic pass in
-    # `style.save` cannot be forgotten at a call site.
-    return save(fig, path, **kw)
 
 
 def fig_complexification(runs: list[dict], out: Path) -> Path:
     """The signature plot: does the topology actually augment, and how fast?
 
     Mean represented nodes across the population, per generation, averaged over
-    replicates. The dashed marker is the published Figure 10.3 champion, shown
-    as a scale reference and never pooled with anything measured here.
+    replicates. The dashed line is the published Figure 10.3 champion, shown as
+    a scale reference and never pooled with anything measured here.
     """
-    fig, axes = _fig(1, len(ALL_TASKS), figsize=(14, 4.4))
-    for ax, task in zip(np.atleast_1d(axes).ravel(), ALL_TASKS):
+    left = 0.135
+    # Three geometries, three rows. Side by side at a readable width each panel
+    # was 2.2 inches across and the whole figure 2055 px, which GitHub shows at
+    # 870 px — the tick labels arrived at about 2pt. Stacked, every panel gets
+    # the full 6.6 inches and the shared x axis makes the three comparable.
+    fig, axes = _fig(len(ALL_TASKS), 1, figsize=(6.6, 7.6))
+    axes = np.atleast_1d(axes).ravel()
+    for ax, task in zip(axes, ALL_TASKS):
         for cond in ALL_CONDITIONS:
             if cond == "fixed_mixed_matched":
                 continue  # a fixed network has no trajectory
@@ -146,51 +161,57 @@ def fig_complexification(runs: list[dict], out: Path) -> Path:
             )
             colour, marker, dash = STYLE[cond]
             # The reference is what every effect is measured against, so it is
-            # drawn heavier as well as deeper.
+            # drawn heavier as well as first in the key.
             ax.plot(gens, vals, color=colour, linestyle=dash,
-                    linewidth=2.8 if cond == REFERENCE else 1.8,
-                    marker=marker, markevery=max(n // 6, 1), markersize=5,
+                    linewidth=2.2 if cond == REFERENCE else 1.3,
+                    marker=marker, markevery=max(n // 6, 1), markersize=4,
                     label=LABEL[cond])
         if task == REFERENCE_CHAMPION["task"]:
-            ax.axhline(REFERENCE_CHAMPION["nodes"], color=RULE, linewidth=1.2,
-                       linestyle=(0, (4, 3)))
-            ax.text(0.98, REFERENCE_CHAMPION["nodes"], " Ha (2016) champion: 34 nodes",
-                    transform=ax.get_yaxis_transform(), ha="right", va="bottom",
-                    fontsize=7.5, color=INK2)
-        ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
-        ax.set_xlabel("progress through the run", fontsize=8, color=INK2)
+            # The house reference line: dashed, grey, behind the data, with its
+            # label in the same grey so the two read as one piece of furniture
+            # rather than as another series.
+            parity(ax, REFERENCE_CHAMPION["nodes"],
+                   f"Ha (2016) champion: {REFERENCE_CHAMPION['nodes']} nodes")
+        title(ax, TASK_LABEL[task])
         ax.set_xticks([0.0, 0.5, 1.0])
-        ax.set_xticklabels(["start", "half", "end"], fontsize=7.5)
-        if task == ALL_TASKS[0]:
-            ax.set_ylabel("mean nodes in the population", fontsize=8, color=INK2)
+        ax.set_xticklabels(["start", "half", "end"])
+        ax.set_ylabel("mean nodes in\nthe population")
+    axes[-1].set_xlabel("progress through the run")
     # A per-axes legend here lands on the reference line and its label, so the
-    # key moves below the panels and every panel stays readable.
+    # key moves below the panels. Three columns rather than seven: at this width
+    # seven put "fixed net (matched budget)" half outside the figure.
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, fontsize=8, frameon=False, ncol=7,
-               loc="lower center")
+    fig.legend(handles, labels, ncol=3, loc="lower center")
     fig.suptitle(
-        "Do the topologies augment? Population size over the run, at one shared "
-        "evaluation budget.\n"
-        "Mid blue released a brake on topology size; pale blue changed the search "
-        "without touching size; deep blue is the reference with both brakes on.",
-        color=INK, fontsize=10.5,
+        "Do the topologies augment? Mean population size over the run,\n"
+        "at one shared evaluation budget.\n"
+        f"{_BAND_NAME[SEARCH_PRIMARY].capitalize()}: both brakes on, the "
+        f"reference. {_BAND_NAME[SEARCH_SECONDARY].capitalize()}: a brake "
+        "released on\ntopology size. "
+        f"{_BAND_NAME[SEARCH_NULL].capitalize()}: the search changed without "
+        "touching size.",
+        color=INK, fontsize=TITLE_SIZE, x=left, ha="left",
     )
-    return _save(fig, out, top=0.78, bottom=0.23, left=0.055, right=0.99, wspace=0.16)
+    return save(fig, out, top=0.865, bottom=0.115, left=left, right=0.985,
+                hspace=0.42)
 
 
 def fig_size_vs_accuracy(comp: list[dict], out: Path) -> Path:
     """Does a bigger topology buy accuracy? One point per (task, condition)."""
-    fig, axes = _fig(1, len(ALL_TASKS), figsize=(13, 4.3))
-    for ax, task in zip(np.atleast_1d(axes).ravel(), ALL_TASKS):
+    left = 0.115
+    fig, axes = _fig(len(ALL_TASKS), 1, figsize=(6.6, 7.2))
+    axes = np.atleast_1d(axes).ravel()
+    for ax, task in zip(axes, ALL_TASKS):
         rows = [r for r in comp if r["task"] == task and r["test_accuracy_mean"] != ""]
         for r in rows:
             colour, marker, _ = STYLE[r["condition"]]
-            # A star's ink sits inside its bounding box, so at one shared size
-            # it renders half the weight of a filled circle.
-            ax.scatter(r["causal_hidden_nodes_mean"], float(r["test_accuracy_mean"]),
-                       s=230 if marker == "*" else 110, color=colour, marker=marker,
-                       zorder=3, edgecolors=SURFACE, linewidths=2,
-                       label=LABEL[r["condition"]])
+            # Every mark carries the white keyline, so two arms landing on the
+            # same size stay countable. A star's ink sits inside its bounding
+            # box, so at one shared size it renders half the weight of a filled
+            # circle and needs roughly twice the area.
+            dot(ax, r["causal_hidden_nodes_mean"], float(r["test_accuracy_mean"]),
+                colour, marker=marker, size=150 if marker == "*" else 70,
+                label=LABEL[r["condition"]])
         # Direct-label only the two that make the argument.
         for key, dy, ha, dx in ((REFERENCE, 10, "center", 0),
                                 ("fixed_mixed_matched", -17, "right", -8)):
@@ -199,18 +220,20 @@ def fig_size_vs_accuracy(comp: list[dict], out: Path) -> Path:
                 ax.annotate(LABEL[key],
                             (r["causal_hidden_nodes_mean"], float(r["test_accuracy_mean"])),
                             textcoords="offset points", xytext=(dx, dy), ha=ha,
-                            fontsize=7.5, color=INK2)
+                            fontsize=ANNOT_SIZE, color=INK2)
         # symlog, because one arm sits at 65 units and the rest below 11. Ticks
         # are set explicitly: with linthresh=10 matplotlib drew a single "10^1"
         # and a reader could not tell two causal units from nine.
         ax.set_xscale("symlog", linthresh=10)
         ax.set_xticks([0, 2, 4, 6, 8, 10, 20, 65])
-        ax.set_xticklabels(["0", "2", "4", "6", "8", "10", "20", "65"], fontsize=7.5)
+        ax.set_xticklabels(["0", "2", "4", "6", "8", "10", "20", "65"])
         ax.set_xlim(-0.4, 115)
-        ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
-        ax.set_xlabel("causally active hidden nodes", fontsize=8, color=INK2)
-        if task == ALL_TASKS[0]:
-            ax.set_ylabel("sealed-test accuracy", fontsize=8, color=INK2)
+        # A little air top and bottom: at the stacked height the extreme marks
+        # otherwise sit on the spine and lose half their ink to it.
+        ax.margins(y=0.14)
+        title(ax, TASK_LABEL[task])
+        ax.set_ylabel("sealed-test accuracy")
+    axes[-1].set_xlabel("causally active hidden nodes")
     handles, labels = axes[0].get_legend_handles_labels()
     seen, h2, l2 = set(), [], []
     for h, lab in zip(handles, labels):
@@ -218,48 +241,58 @@ def fig_size_vs_accuracy(comp: list[dict], out: Path) -> Path:
             seen.add(lab)
             h2.append(h)
             l2.append(lab)
-    fig.legend(h2, l2, fontsize=7.5, frameon=False, ncol=4, loc="lower center")
+    fig.legend(h2, l2, ncol=3, loc="lower center")
     fig.suptitle("Bigger is not better: champion size against what it scored",
-                 color=INK, fontsize=11)
-    return _save(fig, out, top=0.86, bottom=0.26, left=0.06, right=0.99, wspace=0.16)
+                 color=INK, fontsize=TITLE_SIZE, x=left, ha="left")
+    return save(fig, out, top=0.912, bottom=0.135, left=left, right=0.985,
+                hspace=0.46)
 
 
 def fig_mechanisms(effects: list[dict], out: Path) -> Path:
     """Each mechanism's effect on accuracy, paired and Holm-corrected."""
     conds = [c for c in ALL_CONDITIONS if c != REFERENCE]
-    fig, ax = _fig(figsize=(11, 4.6))
+    # Horizontal, because the categorical axis carries seven names as long as
+    # "fixed net (matched budget)". Upright and 6.6 inches wide they had to be
+    # raked over to fit and still collided; on the y axis each one gets its own
+    # line, set level, and the effect runs along x where zero is a clean rule.
+    fig, ax = _fig(figsize=(6.6, 5.0), grid_axis="x")
     width = 0.26
     for ti, task in enumerate(ALL_TASKS):
-        xs, med, lo, hi, sig = [], [], [], [], []
+        ys, med, lo, hi, sig = [], [], [], [], []
         for ci, cond in enumerate(conds):
             e = next((x for x in effects
                       if x["task"] == task and x["condition"] == cond
                       and x["metric"] == "test_accuracy"), None)
             if e is None:
                 continue
-            xs.append(ci + (ti - 1) * width)
-            # Plot condition minus reference, so "up" means the change helped.
+            # The axis is inverted, so a smaller y sits higher: this puts the
+            # three geometries down each cluster in the order the key lists them.
+            ys.append(ci + (ti - 1) * width)
+            # Plot condition minus reference, so "right" means the change helped.
             med.append(-e["median_difference"])
             lo.append(e["ci95_high"] - e["median_difference"])
             hi.append(e["median_difference"] - e["ci95_low"])
             sig.append(e.get("holm_p", e["wilcoxon_p"]) < 0.05)
         # The series here is the geometry, and every arm is a search, so the
-        # three tasks are value steps inside the search family rather than three
-        # hues that would read as three different kinds of thing. Significance
-        # is a second variable and gets a second channel: a hollow bar did not
-        # reach significance but still says which geometry it belongs to, where
-        # greying it out erased that on two thirds of the panel.
-        ax.bar(xs, med, width=width * 0.9,
-               color=[TASK_COLOUR[task] if s else SURFACE for s in sig],
-               edgecolor=TASK_COLOUR[task], linewidth=1.1,
-               yerr=[lo, hi], ecolor=INK2, capsize=2,
-               error_kw={"linewidth": 0.9})
-    ax.axhline(0.0, color=INK2, linewidth=1.0)
-    ax.set_xticks(range(len(conds)))
-    ax.set_xticklabels([LABEL[c] for c in conds], fontsize=8, color=INK2,
-                       rotation=18, ha="right")
-    ax.set_ylabel("median change in sealed-test accuracy\nagainst the reference",
-                  fontsize=8, color=INK2)
+        # three tasks are three distinct hues from inside the search family.
+        # Significance is a second variable and gets a second channel: an
+        # unfilled bar did not reach significance but still says which geometry
+        # it belongs to by its outline, where greying it out erased that on two
+        # thirds of the panel.
+        ax.barh(ys, med, height=width * 0.9,
+                color=[TASK_COLOUR[task] if s else SURFACE for s in sig],
+                edgecolor=TASK_COLOUR[task], linewidth=1.1,
+                xerr=[lo, hi], ecolor=INK2, capsize=2,
+                error_kw={"linewidth": 0.9})
+    # Zero is the line every effect is read against, so it is the house dashed
+    # grey reference rather than a second solid rule competing with the bars.
+    vparity(ax)
+    ax.set_yticks(range(len(conds)))
+    ax.set_yticklabels([LABEL[c] for c in conds])
+    # Headroom above the first row for the key: left of zero and above the
+    # smallest effects is the one region of this panel with no ink in it.
+    ax.set_ylim(len(conds) - 0.5, -1.6)
+    ax.set_xlabel("median change in sealed-test accuracy against the reference")
     # Explicit handles: matplotlib takes a bar container's legend colour from
     # its first patch, which here is whichever condition happened to come first,
     # so the key showed the wrong colour for two of the three geometries.
@@ -272,29 +305,35 @@ def fig_mechanisms(effects: list[dict], out: Path) -> Path:
             plt.Rectangle((0, 0), 1, 1, facecolor=SURFACE, edgecolor=INK2,
                           label="not significant (Holm)")
         ],
-        fontsize=8, frameon=False, loc="upper left", ncol=2,
+        loc="upper left", ncol=2,
     )
-    ax.set_title(
-        "What each NEAT mechanism is worth. Hollow bars are not significant after "
-        "Holm correction.", color=INK, fontsize=10,
-    )
-    return _save(fig, out)
+    title(ax, "What each NEAT mechanism is worth.\nUnfilled bars are not "
+              "significant after Holm correction.")
+    return save(fig, out)
 
 
 def fig_hypotheses(hyp: list[dict], out: Path) -> Path:
-    fig, ax = _fig(figsize=(11, 0.78 * len(hyp) + 1.6))
-    ax.grid(False)
+    # Three text rows per hypothesis rather than two: at 6.6 inches the rule and
+    # the observation no longer fit on one line beside a right-hand verdict, and
+    # the verdict is the thing a reader scans for, so it keeps the right edge and
+    # the rule drops to a line of its own.
+    fig, ax = _fig(figsize=(6.6, 0.74 * len(hyp) + 0.9), grid_axis=None)
     for i, h in enumerate(reversed(hyp)):
         good = h["verdict"] == "holds"
         colour = GOOD if good else (BAD if h["verdict"] == "fails" else NEUTRAL)
-        ax.add_patch(plt.Rectangle((0, i - 0.38), 0.06, 0.76,
+        ax.add_patch(plt.Rectangle((0, i - 0.34), 0.016, 0.68,
                                    facecolor=colour, edgecolor=SURFACE))
-        ax.text(0.09, i + 0.14, f"{h['hypothesis']}  {h['statement']}",
-                fontsize=9, color=INK, va="center")
-        ax.text(0.09, i - 0.19,
-                f"rule: {h['decision_rule']}   ·   observed: {h['observed']}",
-                fontsize=7.5, color=INK2, va="center")
-        ax.text(0.985, i, h["verdict"], fontsize=9, color=colour, ha="right",
+        # The undecided swatch is a pale grey: it reads as a filled block
+        # against white, but not as a word at this size. So the verdict that did
+        # not resolve is set in ink and lets the swatch alone carry the grey.
+        word = colour if h["verdict"] in ("holds", "fails") else INK2
+        ax.text(0.038, i + 0.22, f"{h['hypothesis']}  {h['statement']}",
+                color=INK, va="center")
+        ax.text(0.038, i - 0.06, f"rule: {h['decision_rule']}",
+                fontsize=ANNOT_SIZE, color=INK2, va="center")
+        ax.text(0.038, i - 0.29, f"observed: {h['observed']}",
+                fontsize=ANNOT_SIZE, color=INK2, va="center")
+        ax.text(0.995, i + 0.22, h["verdict"], color=word, ha="right",
                 va="center", fontweight="bold")
     ax.set_xlim(0, 1)
     ax.set_ylim(-0.6, len(hyp) - 0.4)
@@ -302,9 +341,8 @@ def fig_hypotheses(hyp: list[dict], out: Path) -> Path:
     ax.set_yticks([])
     for s in ax.spines.values():
         s.set_visible(False)
-    ax.set_title("Preregistered hypotheses, scored by their own declared rules",
-                 color=INK, fontsize=11, loc="left")
-    return _save(fig, out)
+    title(ax, "Preregistered hypotheses, scored by their own declared rules")
+    return save(fig, out)
 
 
 def fig_accuracy(summary: list[dict], out: Path) -> Path:
@@ -317,8 +355,13 @@ def fig_accuracy(summary: list[dict], out: Path) -> Path:
     """
     by = {(r["task"], r["condition"]): r for r in summary}
     chance = 0.5
-    fig, axes = _fig(1, len(ALL_TASKS), figsize=(13, 4.6))
-    for ax, task in zip(np.atleast_1d(axes).ravel(), ALL_TASKS):
+    left = 0.265
+    # The values run along x, so the grid that helps read them is the x grid.
+    # Stacked, so the eight condition names are set once per panel at full size
+    # rather than once for three panels crushed to 2.2 inches each.
+    fig, axes = _fig(len(ALL_TASKS), 1, figsize=(6.6, 8.4), grid_axis="x")
+    axes = np.atleast_1d(axes).ravel()
+    for ax, task in zip(axes, ALL_TASKS):
         vals, colours = [], []
         for c in READING_ORDER:
             row = by.get((task, c))
@@ -326,19 +369,19 @@ def fig_accuracy(summary: list[dict], out: Path) -> Path:
             vals.append(float(v) if v not in (None, "") else np.nan)
             colours.append(STYLE[c][0])
         y = np.arange(len(READING_ORDER))
-        ax.axvline(chance, color=RULE, linewidth=0.9, linestyle=(0, (4, 3)), zorder=1)
+        vparity(ax, chance, "chance" if task == ALL_TASKS[0] else None)
         for yi, v, colour in zip(y, vals, colours):
             if not np.isfinite(v):
                 continue
             ax.plot([chance, v], [yi, yi], color=colour, linewidth=2.0, alpha=0.5,
                     solid_capstyle="round", zorder=2)
-            ax.plot(v, yi, "o", color=colour, markersize=8, zorder=3,
-                    markeredgecolor=SURFACE, markeredgewidth=1.4)
-            ax.text(v + 0.012, yi, f"{v:.3f}", va="center", fontsize=7.5, color=INK2)
+            dot(ax, v, yi, colour, size=45)
+            ax.text(v + 0.012, yi, f"{v:.3f}", va="center", fontsize=ANNOT_SIZE,
+                    color=INK2)
         ax.set_yticks(y)
-        ax.set_yticklabels([LABEL[c] for c in READING_ORDER], fontsize=7.5, color=INK2)
-        # Hairlines where the band changes, so the three blues read as three
-        # groups rather than as three arbitrary tints.
+        ax.set_yticklabels([LABEL[c] for c in READING_ORDER])
+        # Hairlines where the band changes, so the three hues read as three
+        # groups and not as three arbitrary choices.
         for edge in (len(BRAKES_ON) - 0.5,
                      len(BRAKES_ON) + len(BRAKE_RELEASED) - 0.5,
                      len(READING_ORDER) - 1.5):
@@ -347,21 +390,18 @@ def fig_accuracy(summary: list[dict], out: Path) -> Path:
         ax.set_ylim(len(READING_ORDER) - 0.4, -1.05)
         ax.set_xlim(chance - 0.02, 1.05)
         ax.set_xticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
-        ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
-        ax.grid(axis="x", color=GRID, linewidth=0.8)
-        ax.grid(axis="y", visible=False)
-        if task == ALL_TASKS[0]:
-            ax.text(chance, -0.9, " chance", ha="left", va="center", fontsize=7.5,
-                    color=RULE, style="italic")
-        else:
-            ax.set_yticklabels([])
+        title(ax, TASK_LABEL[task])
     fig.suptitle(
-        "Sealed-test accuracy by condition. Deep blue is the reference; mid blue "
-        "released a brake on topology size;\npale blue changed the search without "
-        "touching size; orange is not a search.",
-        color=INK, fontsize=10.5,
+        "Sealed-test accuracy by condition.\n"
+        f"{_BAND_NAME[SEARCH_PRIMARY].capitalize()} is the reference, with both "
+        f"brakes on; {_BAND_NAME[SEARCH_SECONDARY]} released a brake\n"
+        f"on topology size; {_BAND_NAME[SEARCH_NULL]} changed the search "
+        f"without touching size;\n{_CONTROL_NAME} is the one arm that is not a "
+        "search.",
+        color=INK, fontsize=TITLE_SIZE, x=0.0, ha="left",
     )
-    return _save(fig, out, top=0.78, bottom=0.07, left=0.175, right=0.985, wspace=0.08)
+    return save(fig, out, top=0.872, bottom=0.045, left=left, right=0.985,
+                hspace=0.30)
 
 
 def build_all(release_dir: Path, progress=print) -> list[Path]:

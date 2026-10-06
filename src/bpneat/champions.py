@@ -23,6 +23,11 @@ Array computation is kept separate from rendering: :func:`boundary_field` and
 :func:`topology_layout` return plain arrays and dictionaries and import no
 plotting code, which is what lets the sealed-test poison gate test them
 directly.
+
+Every hue, type size and density below comes from :mod:`bpneat.style`, which is
+the `competitive-coevolution-of-slimes` look ported whole: white ground, no
+frame, a left-aligned sentence for a title, marks keylined in the page colour.
+Nothing here chooses a colour of its own.
 """
 
 from __future__ import annotations
@@ -342,41 +347,24 @@ def topology_layout(
 
 
 def _plotting():
-    """Deferred import so the computation above stays plot-free."""
-    from .figures import GRID, INK, INK_2, SURFACE, TASK_LABEL, _fig, _save, _style
-    from .style import (
-        BOUNDARY_COLOURS,
-        CLASS_COLOURS,
-        CONTROL_MATCHED,
-        OP_COLOUR,
-        RULE,
-        SEARCH_PRIMARY,
-    )
+    """Deferred import, so the computation above stays plot-free.
 
-    return {
-        "GRID": GRID,
-        "INK": INK,
-        "INK_2": INK_2,
-        "BOUNDARY_COLOURS": BOUNDARY_COLOURS,
-        "CLASS_COLOURS": CLASS_COLOURS,
-        "CONTROL_MATCHED": CONTROL_MATCHED,
-        "OP_COLOUR": OP_COLOUR,
-        "RULE": RULE,
-        "SEARCH_PRIMARY": SEARCH_PRIMARY,
-        "SURFACE": SURFACE,
-        "TASK_LABEL": TASK_LABEL,
-        "_fig": _fig,
-        "_save": _save,
-        "_style": _style,
-    }
+    Returns the style module itself rather than a dictionary of names copied
+    out of it. Two reasons: at the use site ``s.INK`` says where the ink came
+    from, and there is no second place in this file where a hue, a type size or
+    a density could be introduced. Previously these names were re-exported
+    through ``figures.py``'s private helpers, so this module's look depended on
+    another figure module's internals; now both read the same source.
+    """
+    import matplotlib
 
+    # A figure here is written to a file and never shown, and the release tests
+    # render it on machines with no display.
+    matplotlib.use("Agg")
 
-def _pale(colour: str, amount: float = 0.74):
-    """Toward white, so the field never competes with the data points on top."""
-    import matplotlib.colors as mcolors
+    from . import style
 
-    rgb = np.array(mcolors.to_rgb(colour))
-    return tuple(rgb + (1.0 - rgb) * amount)
+    return style
 
 
 def champion_boundaries(release_dir: Path, out: Path, track_dir: str = "track-b") -> Path | None:
@@ -387,16 +375,24 @@ def champion_boundaries(release_dir: Path, out: Path, track_dir: str = "track-b"
     if not chosen:
         return None
 
-    # The field is washed out and the points are saturated with a dark edge, so
-    # a class-1 point stays readable where the model also predicts class 1.
+    # The field is washed out toward the page and the points keep the saturated
+    # class colours, so a class-1 point stays readable where the model also
+    # predicts class 1. The middle of the ramp stays near-neutral because the
+    # midpoint *is* the decision boundary: it has to read as undecided rather
+    # than as a third class.
     cmap = mcolors.LinearSegmentedColormap.from_list(
         "bpneat-boundary",
-        [_pale(s["BOUNDARY_COLOURS"][0]), s["BOUNDARY_COLOURS"][1],
-         _pale(s["BOUNDARY_COLOURS"][2])],
+        [s.pale(s.BOUNDARY_COLOURS[0]), s.BOUNDARY_COLOURS[1],
+         s.pale(s.BOUNDARY_COLOURS[2])],
     )
     marker = {0: "o", 1: "^"}
     tasks = [t for t in TASKS if t in chosen]
-    fig, axes = s["_fig"](1, len(tasks), figsize=(3.7 * len(tasks), 4.6))
+    # No grid behind these panels: they are images of the input plane, and a
+    # ruler drawn across a continuous field measures nothing.
+    # Panels stack downwards: side by side, three of them made a figure wider
+    # than the page it is read on, which is what makes a label unreadable.
+    fig, axes = s.figure(len(tasks), 1, figsize=(6.6, 3.1 * len(tasks)),
+                         grid_axis=None)
     for ax, task in zip(np.atleast_1d(axes).ravel(), tasks):
         champ = chosen[task]
         field = boundary_field(champ, champion_bundle(champ))
@@ -406,38 +402,43 @@ def champion_boundaries(release_dir: Path, out: Path, track_dir: str = "track-b"
         )
         ax.contour(
             field["xx"], field["yy"], field["prob"],
-            levels=[0.5], colors=[s["INK"]], linewidths=1.3, zorder=1,
+            levels=[0.5], colors=[s.INK], linewidths=1.3, zorder=1,
         )
         X, y = field["train_X"], field["train_y"]
-        for cls, colour in enumerate(s["CLASS_COLOURS"]):
+        for cls, colour in enumerate(s.CLASS_COLOURS):
             m = y == cls
-            ax.scatter(
-                X[m, 0], X[m, 1], s=17, c=colour, marker=marker[cls],
-                linewidths=0.5, edgecolors=s["INK"], zorder=2, label=f"class {cls}",
-            )
+            # `style.dot` gives every mark the white keyline, which is what
+            # stops 200 overlapping points becoming one blob — and separates a
+            # point from the field of its own colour underneath it.
+            s.dot(ax, X[m, 0], X[m, 1], colour, marker=marker[cls], size=17,
+                  label=f"class {cls}")
         acc = "n/a" if champ.test_accuracy is None else f"{champ.test_accuracy:.3f}"
-        ax.set_title(
-            f"{s['TASK_LABEL'][task]}\nreplicate {champ.replicate} · sealed-test {acc}",
-            color=s["INK"], fontsize=9.5,
+        s.title(
+            ax,
+            f"{s.TASK_LABEL[task]}: what the champion learned\n"
+            f"replicate {champ.replicate}, sealed-test accuracy {acc}",
         )
         ax.set_aspect("equal")
-        ax.grid(False)
+    # No box round the legend: the field under it is washed out, so a frame
+    # would be the only hard edge in the panel.
     np.atleast_1d(axes).ravel()[0].legend(
-        frameon=True, facecolor=s["SURFACE"], edgecolor=s["GRID"],
-        fontsize=7.5, labelcolor=s["INK_2"], loc="upper left",
+        frameon=False, fontsize=s.LEGEND_SIZE, labelcolor=s.INK2, loc="upper left",
     )
     fig.suptitle(
         "Track B Backprop-NEAT champions: decision boundary over the training points",
-        color=s["INK"], fontsize=11, y=0.98,
+        x=0.0, ha="left", color=s.INK, fontsize=s.TITLE_SIZE, y=0.99,
     )
     fig.text(
-        0.5, 0.028,
+        0.0, 0.02,
         "Per task the replicate with the median sealed-test accuracy — a display "
         "choice fixed in advance, not a selection claim. The sealed test split is "
         "never read; the points are the training split.",
-        ha="center", color=s["INK_2"], fontsize=8,
+        ha="left", va="bottom", color=s.INK2, fontsize=s.ANNOT_SIZE,
     )
-    return s["_save"](fig, Path(out) / "champion-boundaries.png", bottom=0.11)
+    # The note below the panels needs room reserved for it; `savefig.bbox`
+    # crops to the ink, so these are proportions rather than padding.
+    return s.save(fig, Path(out) / "champion-boundaries.png",
+                  bottom=0.11, top=0.86, wspace=0.16)
 
 
 def champion_topologies(release_dir: Path, out: Path, track_dir: str = "track-b") -> Path | None:
@@ -453,9 +454,11 @@ def champion_topologies(release_dir: Path, out: Path, track_dir: str = "track-b"
     )
     # Operators have fixed hues shared with every other figure; cycling a
     # six-slot series over them made the same operator change colour.
-    palette = {op: s["OP_COLOUR"][op] for op in operators}
+    palette = {op: s.OP_COLOUR[op] for op in operators}
 
-    fig, axes = s["_fig"](1, len(tasks), figsize=(3.9 * len(tasks), 4.8))
+    # A graph drawing has no axes to rule, so no grid.
+    fig, axes = s.figure(len(tasks), 1, figsize=(6.6, 2.9 * len(tasks)),
+                         grid_axis=None)
     for ax, task in zip(np.atleast_1d(axes).ravel(), tasks):
         lay = layouts[task]
 
@@ -464,65 +467,71 @@ def champion_topologies(release_dir: Path, out: Path, track_dir: str = "track-b"
                 width = 0.6 + 2.2 * min(abs(e["weight"]), 3.0) / 3.0
                 ax.plot(
                     [e["x0"], e["x1"]], [e["y0"], e["y1"]],
-                    color=s["INK_2"], linewidth=width, alpha=0.8,
+                    color=s.INK2, linewidth=width, alpha=0.8,
                     solid_capstyle="round", zorder=1,
                 )
             else:
+                # Dead structure is a status, not a series, so it takes the
+                # reserved neutral: present, legible, and plainly not carrying
+                # signal.
                 ax.plot(
                     [e["x0"], e["x1"]], [e["y0"], e["y1"]],
-                    color="#b9b7b2", linewidth=1.0, alpha=0.95,
+                    color=s.NEUTRAL, linewidth=1.0, alpha=0.95,
                     linestyle=(0, (2, 2.5)), zorder=0,
                 )
 
         for n in lay["nodes"]:
             causal = n["causal"]
-            colour = s["INK_2"] if n["structural"] else palette.get(n["operator"], s["INK_2"])
+            colour = s.INK2 if n["structural"] else palette.get(n["operator"], s.INK2)
+            # A causal node is filled in its operator's hue; a dead one is
+            # filled with the page and keeps only a dashed ring of it, so the
+            # two read apart at a glance without a second encoding.
             ax.scatter(
                 n["x"], n["y"], s=190 if causal else 130,
-                c=[colour] if causal else [s["SURFACE"]],
+                c=[colour] if causal else [s.SURFACE],
                 edgecolors=colour, linewidths=1.5,
                 linestyle="solid" if causal else "dashed",
                 zorder=3,
             )
             # Labels sit under the node: "gaussian" and "sigmoid" do not fit
-            # inside a marker, and a pale operator colour makes an inset label
-            # unreadable.
+            # inside a marker, and a label inset on a filled mark is unreadable
+            # at this size.
             ax.text(
                 n["x"], n["y"] - 0.19, n["label"],
-                ha="center", va="top", zorder=4, fontsize=7,
-                color=s["INK"] if causal else s["INK_2"],
+                ha="center", va="top", zorder=4, fontsize=s.ANNOT_SIZE,
+                color=s.INK if causal else s.INK2,
                 style="normal" if causal else "italic",
             )
 
-        ax.set_title(
-            f"{s['TASK_LABEL'][task]}\n{lay['causal_hidden']} of "
-            f"{lay['represented_hidden']} hidden nodes causal · "
+        s.title(
+            ax,
+            f"{s.TASK_LABEL[task]}: {lay['causal_hidden']} of "
+            f"{lay['represented_hidden']} hidden nodes compute, "
             f"{lay['causal_connections']} of {lay['represented_connections']} "
             f"connections",
-            color=s["INK"], fontsize=9.5,
         )
         ax.set_xlim(-0.6, lay["n_columns"] - 0.4)
         ax.set_ylim(-1.55, 1.3)
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.grid(False)
         for side in ("left", "bottom"):
             ax.spines[side].set_visible(False)
 
     fig.suptitle(
         "Track B Backprop-NEAT champion topologies: what is represented against "
         "what computes",
-        color=s["INK"], fontsize=11, y=0.98,
+        x=0.0, ha="left", color=s.INK, fontsize=s.TITLE_SIZE, y=0.99,
     )
     fig.text(
-        0.5, 0.028,
-        "Solid node and line: reaches the output on the executed trace. Dashed and "
-        "hollow: represented but causally dead.\n"
+        0.0, 0.02,
+        "Solid node and line: reaches the output on the executed trace. Dashed ring "
+        "and no fill: represented but causally dead.\n"
         "Columns are BFS depth from the inputs, the output is forced rightmost, "
         "line width is |weight|.",
-        ha="center", color=s["INK_2"], fontsize=8,
+        ha="left", va="bottom", color=s.INK2, fontsize=s.ANNOT_SIZE,
     )
-    return s["_save"](fig, Path(out) / "champion-topologies.png", bottom=0.11)
+    return s.save(fig, Path(out) / "champion-topologies.png",
+                  bottom=0.11, top=0.86, wspace=0.16)
 
 
 def paired_test_loss(release_dir: Path, out: Path, track_dir: str = "track-b") -> Path | None:
@@ -542,7 +551,10 @@ def paired_test_loss(release_dir: Path, out: Path, track_dir: str = "track-b") -
 
     track_name = (runs[0].get("track") or track_dir[-1]).upper()
     tasks = [t for t in TASKS if any(r["task"] == t for r in rows)]
-    fig, axes = s["_fig"](1, len(tasks), figsize=(3.9 * len(tasks), 4.0))
+    # The grid runs along the measured axis only; a horizontal rule between
+    # named rows would only box them in.
+    fig, axes = s.figure(len(tasks), 1, figsize=(6.6, 2.4 * len(tasks)),
+                         grid_axis="x")
     for ax, task in zip(np.atleast_1d(axes).ravel(), tasks):
         items = sorted(
             [e for e in rows if e["task"] == task], key=lambda e: e["mean_difference"]
@@ -556,40 +568,35 @@ def paired_test_loss(release_dir: Path, out: Path, track_dir: str = "track-b") -
             lo, hi = e["ci95_low"], e["ci95_high"]
             # Loss: negative favours Backprop-NEAT, so the colours carry the
             # opposite sense to the accuracy version of this figure.
-            colour = (s["SEARCH_PRIMARY"] if e["mean_difference"] < 0
-                      else s["CONTROL_MATCHED"])
+            colour = s.SEARCH_PRIMARY if e["mean_difference"] < 0 else s.CONTROL_MATCHED
             ax.plot([lo, hi], [yi, yi], color=colour, linewidth=2.4, solid_capstyle="round")
-            ax.plot(
-                e["mean_difference"], yi, "o", color=colour, markersize=8,
-                markeredgecolor=s["SURFACE"], markeredgewidth=1.6,
-            )
+            # The point estimate keeps its white keyline, so it stays visible
+            # where it sits near an interval end.
+            s.dot(ax, e["mean_difference"], yi, colour, size=46)
             ax.text(
                 hi + pad, yi, f"{e['mean_difference']:+.3f}  {e['wins']}/{e['n_pairs']}",
-                va="center", fontsize=7.5, color=s["INK"],
+                va="center", fontsize=s.ANNOT_SIZE, color=s.INK,
             )
-        ax.axvline(0, color=s["RULE"], linewidth=1)
+        # Zero is the reference every interval is read against.
+        s.vparity(ax, 0.0)
         ax.set_yticks(y)
-        ax.set_yticklabels(
-            ["vs " + LABEL[e["comparison"].split(" - ")[1]] for e in items], fontsize=8.5
-        )
-        ax.set_title(s["TASK_LABEL"][task], color=s["INK"], fontsize=11)
-        ax.grid(axis="y", visible=False)
-        ax.grid(axis="x", color=s["GRID"], linewidth=0.8)
+        ax.set_yticklabels(["vs " + LABEL[e["comparison"].split(" - ")[1]] for e in items])
+        s.title(ax, f"{s.TASK_LABEL[task]}: Backprop-NEAT against each control")
         # The annotations sit to the right of each interval, so the room they
         # need is reserved rather than left to autoscaling.
         ax.set_xlim(lo_min - 0.10 * width, hi_max + 0.62 * width)
         ax.set_ylim(-0.7, len(items) - 0.3)
     np.atleast_1d(axes).ravel()[0].set_xlabel(
         "paired difference in sealed-test loss\n"
-        "(Backprop-NEAT − control; negative favours Backprop-NEAT)",
-        color=s["INK_2"], fontsize=8.5,
+        "(Backprop-NEAT − control; negative favours Backprop-NEAT)"
     )
     fig.suptitle(
         f"Track {track_name}: paired within-replicate sealed-test loss, "
         "95% bootstrap interval, wins out of pairs",
-        color=s["INK"], fontsize=11,
+        x=0.0, ha="left", color=s.INK, fontsize=s.TITLE_SIZE, y=0.99,
     )
-    return s["_save"](fig, Path(out) / f"paired-test-loss-track-{track_name.lower()}.png")
+    return s.save(fig, Path(out) / f"paired-test-loss-track-{track_name.lower()}.png",
+                  top=0.84, wspace=0.3)
 
 
 def build_all(root: Path, track_dir: str = "track-b", progress=print) -> list[Path]:

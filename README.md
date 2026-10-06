@@ -14,7 +14,7 @@ about four active units where the published demonstration shows thirty-four.**
 <td align="center" width="20%"><a href="docs/figures/champion-networks.png"><img src="docs/figures/champion-networks.png" alt="champion networks"></a><br><sub>The evolved graphs themselves</sub></td>
 <td align="center" width="20%"><a href="docs/figures/does-search-pay.png"><img src="docs/figures/does-search-pay.png" alt="search versus random sampling"></a><br><sub>Search against not searching</sub></td>
 <td align="center" width="20%"><a href="docs/figures/mechanism-boundaries.png"><img src="docs/figures/mechanism-boundaries.png" alt="NEAT mechanisms"></a><br><sub>What each NEAT mechanism changes</sub></td>
-<td align="center" width="20%"><a href="docs/figures/plate-ii-complexification.png"><img src="docs/figures/plate-ii-complexification.png" alt="a plate of evolved champion genomes"></a><br><sub>The champions, as a naturalist's plate</sub></td>
+<td align="center" width="20%"><a href="docs/figures/topologies-found.png"><img src="docs/figures/topologies-found.png" alt="topology sizes"></a><br><sub>Four active units against thirty-four</sub></td>
 </tr>
 </table>
 
@@ -51,11 +51,11 @@ three corrections are in the repository, with the invalidated data retained.
 
 ### The five geometries
 
-![the five task geometries](docs/figures/task-geometries.png)
-
-Two-dimensional binary classification, as in the original demonstration. XOR and
-circles are here for continuity and separate nothing: every condition in protocol
-v4 clears 0.97 on them. The three on the right are where the work happens.
+Two-dimensional binary classification, as in the original demonstration: XOR,
+circles, spirals, a checkerboard and a three-arm spiral. XOR and circles are
+here for continuity and separate nothing — every condition in protocol v4 clears
+0.97 on them. The other three are where the work happens, and every figure below
+shows their training points under each condition's own decision boundary.
 
 ## 1. Does the architecture search pay?
 
@@ -111,28 +111,6 @@ gradient updates.
 The graphs behind those pictures. Backprop-NEAT's median spiral champion is two
 hidden units; on checkerboard it is one. Edge width is |weight|, a hollow node is
 structure the genome carries that never reaches the output.
-
-### A plate of specimens
-
-[![Kunstformen der Architektur, Tafel I](docs/figures/plate-i-forms.png)](docs/figures/plate-i-forms.png)
-
-The same champions, drawn as Haeckel drew radiolaria: the output at the centre,
-the rest on rings by depth, one specimen per cell. Nothing here is idealised —
-the nodes, edges, operators and weights are the committed record's, structure
-that never reaches the output drifts outside the rim, and every specimen is the
-**median** replicate of thirty by sealed-test accuracy, never the best. The
-fixed network appears once at the foot rather than once per row, because its
-topology does not vary with the geometry; it is the only form on the plate that
-no search produced, and it is a different order of thing. These plates are a
-portrait, not a result: no number on them enters any claim.
-
-### One run, as it happens
-
-![one search, generation by generation](docs/figures/evolution.gif)
-
-A demonstration run on a burned pilot seed — outside every release, cited
-nowhere. It is here because no table in this repository conveys what "evolution
-found a topology" looks like.
 
 ### Augmenting topologies, by about four units
 
@@ -217,12 +195,6 @@ it is held down by its own defaults.
 | − crossover | 5.0 / 2.2 / 1.3 | 0.760 / 0.640 / 0.593 |
 | ¼ population, 4× generations | 10.3 / 4.1 / 1.4 | **0.864** / 0.632 / 0.599 |
 | fixed net, matched budget | 65 | **0.964 / 0.712 / 0.765** |
-
-[![Kunstformen der Architektur, Tafel II](docs/figures/plate-ii-complexification.png)](docs/figures/plate-ii-complexification.png)
-
-The same seven arms as specimens. Reading the plate left to right and top to
-bottom is reading the table above as form: the reference is a small thing, and
-each constraint released grows it.
 
 **Complexification is real, and two reference settings suppress it.** Removing
 the complexity penalty grows champions significantly (v5-H1, 2/3); raising the
@@ -508,7 +480,10 @@ A sister study in this line,
 reports from its own release that most of the instability it attributed to
 coevolution is injected by Ha's *champion-export rule*, which exports an
 individual ranking 60 of 128 in its own population. Two reconstructions of two
-Ha demos, failing the same way.
+Ha demos, failing the same way. Every figure here is drawn in that project's
+figure style, so the two read as one body of work;
+[`docs/figure-style.md`](docs/figure-style.md) is the contract and
+`tests/test_style.py` enforces it.
 
 ## 14. Repository map
 
@@ -523,8 +498,9 @@ Ha demos, failing the same way.
 | [`docs/v3-preregistration.md`](docs/v3-preregistration.md) | the frozen v3 contract |
 | [`docs/v2-errata.md`](docs/v2-errata.md) · [`docs/audit-2026-10.md`](docs/audit-2026-10.md) | what was wrong, and its reproduction |
 | [`docs/writeup.md`](docs/writeup.md) | the motivating argument — an argument, not evidence |
+| [`docs/figure-style.md`](docs/figure-style.md) | the figure contract, shared with the sister study |
 | `src/bpneat/` · `v3/` · `v4/` · `v5/` | frozen v2 science modules, then one package per protocol |
-| [`bench/portrait_figures.py`](bench/portrait_figures.py) · [`bench/evolution_movie.py`](bench/evolution_movie.py) | the boundary, network and animation figures |
+| [`bench/portrait_figures.py`](bench/portrait_figures.py) · [`bench/readme_figures.py`](bench/readme_figures.py) | the boundary, network and headline figures |
 
 ## License and citation
 

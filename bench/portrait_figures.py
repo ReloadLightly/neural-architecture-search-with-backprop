@@ -10,6 +10,16 @@ that champion evaluated on a grid spanning the *training* points. The sealed
 test split is never read — `bpneat.champions.boundary_field` takes its grid from
 `bundle.train` alone, which the poison gate asserts.
 
+Every panel here is a measured result. The five input geometries used to be
+drawn here as well; they are the problem setup rather than a finding, so that
+figure is gone and `tests/test_readme_figures.py` keeps it gone.
+
+Look: the project's one style, which is the style of
+`competitive-coevolution-of-slimes` — white ground, no frame and no border, a
+very light grid behind the data, and a left-aligned sentence over each panel
+saying what it shows. Every hue, type size and density here comes from
+`bpneat.style`; this module defines none of them.
+
 Reuses `bpneat.champions`, which has drawn boundaries and topologies since the
 v2 polish pass and was never pointed at the current releases.
 """
@@ -25,7 +35,6 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
-from matplotlib.colors import LinearSegmentedColormap  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -39,34 +48,34 @@ V5 = ROOT / "results" / "backprop-neat-v5"
 OUT = ROOT / "docs" / "figures"
 
 from bpneat.style import (  # noqa: E402
+    ANNOT_SIZE,
     CLASS_COLOURS,
-    DPI,
     GRID,
     INK,
-    FRAME_IN,
     INK2,
+    LABEL_SIZE,
+    LEGEND_SIZE,
+    NEUTRAL,
     OP_COLOUR,
     REFERENCE,
-    RULE,
     SURFACE,
+    TASK_LABEL,
+    TICK_SIZE,
+    TITLE_SIZE,
     WEIGHT_NEG,
     WEIGHT_POS,
     boundary_cmap,
     panel,
-    finish,
     ramp,
+    save,
     style_axes,
+    title,
 )
 
-#: Class 0 -> blue, class 1 -> orange, through a near-neutral midpoint. Two
-#: hues with a neutral middle is the diverging rule; the midpoint is the
-#: decision boundary, so it has to read as "undecided" rather than as a colour.
+#: Class 0 -> cool, class 1 -> warm, through a near-white midpoint. Two hues
+#: with a neutral middle is the diverging rule; the midpoint is the decision
+#: boundary, so it has to read as "undecided" rather than as a colour.
 BOUNDARY_CMAP = boundary_cmap()
-
-from bpneat.style import TASK_LABEL  # noqa: E402
-
-#: Operators get their own fixed hue order, never cycled; structural nodes are
-#: grey because they are not an operator choice.
 
 
 def _load(release: Path) -> tuple[list[dict], dict[str, dict]]:
@@ -102,48 +111,42 @@ def _median_champion(runs, final, task: str, condition: str) -> Champion | None:
     )
 
 
-def _style_panel(ax):
-    ax.set_xticks([])
-    ax.set_yticks([])
-    for s in ax.spines.values():
-        s.set_color(GRID)
-    ax.set_facecolor(SURFACE)
+def _save(fig, out: Path, **adjust) -> Path:
+    OUT.mkdir(parents=True, exist_ok=True)
+    path = save(fig, out, **adjust)
+    print(f"wrote {path.relative_to(ROOT)}")
+    return path
 
 
-def boundary_key(fig) -> float:
-    """What the two pigments mean, said once per figure, inside the rule.
+def boundary_key(fig, y: float = 0.05) -> None:
+    """What the two pigments mean, said once per figure, under the panels.
 
     Thirty-three two-colour panels went out with nothing anywhere stating that
-    cold is class 0, warm is class 1, and the ground showing through is the
-    model declining to decide. A figure that never names its encoding is asking
-    the reader to guess it.
+    cold is class 0, warm is class 1, and the near-white middle of the ramp is
+    the model declining to decide. A figure that never names its encoding is
+    asking the reader to guess it.
 
-    Returns the figure fraction the panels must stay above, so the caller can
-    reserve the band instead of discovering the collision in the PNG.
+    The earlier version measured this band off a page border and sat inside it.
+    There is no border any more, so the bar and its caption simply sit a fixed
+    distance up from the bottom edge and the caller reserves room for them with
+    `bottom=`; only the bar's thickness is in inches, so it is the same weight
+    on a tall figure as on a short one.
     """
     height = fig.get_size_inches()[1]
-    rule_in = FRAME_IN * 1.52
-    caption_in = rule_in + 0.16
-    bar_in = caption_in + 0.21
     gradient = np.linspace(0, 1, 256).reshape(1, -1)
-    bar = fig.add_axes([0.40, (bar_in - 0.045) / height, 0.20, 0.09 / height])
+    bar = fig.add_axes([0.40, y, 0.20, 0.09 / height])
     bar.imshow(gradient, aspect="auto", cmap=BOUNDARY_CMAP, vmin=0, vmax=1)
-    bar.set_xticks([])
-    bar.set_yticks([])
-    for spine in bar.spines.values():
-        spine.set_color(RULE)
-        spine.set_linewidth(0.6)
-    fig.text(0.395, bar_in / height, "predicts class 0", ha="right", va="center",
-             fontsize=8.5, color=INK2)
-    fig.text(0.605, bar_in / height, "predicts class 1", ha="left", va="center",
-             fontsize=8.5, color=INK2)
-    fig.text(0.5, caption_in / height,
-             "the ground showing through is undecided; the pale line is the 0.5 "
-             "contour; dots are training points, coloured by their true class",
-             ha="center", va="center", fontsize=8, color=RULE)
-    # The band the panels must stay above: the key itself, plus room for the
-    # accuracy label each bottom-row panel hangs below its own axes.
-    return (bar_in + 0.46) / height
+    panel(bar)
+    mid = y + 0.045 / height
+    fig.text(0.395, mid, "predicts class 0", ha="right", va="center",
+             fontsize=LABEL_SIZE, color=INK2)
+    fig.text(0.605, mid, "predicts class 1", ha="left", va="center",
+             fontsize=LABEL_SIZE, color=INK2)
+    fig.text(0.5, y - 0.19 / height,
+             "the near-white middle of the ramp is the model undecided; the dark "
+             "line is the 0.5 contour; dots are training points, coloured by "
+             "their true class",
+             ha="center", va="center", fontsize=ANNOT_SIZE, color=INK2)
 
 
 def _draw_boundary(ax, champ: Champion, show_points: bool = True):
@@ -160,9 +163,11 @@ def _draw_boundary(ax, champ: Champion, show_points: bool = True):
         X, y = field["train_X"], field["train_y"]
         for cls, colour in zip((0.0, 1.0), CLASS_COLOURS):
             m = y == cls
+            # The white keyline is what keeps two hundred overlapping dots
+            # readable as dots rather than as one dark mass.
             ax.scatter(X[m, 0], X[m, 1], s=5.5, c=colour, linewidths=0.4,
                        edgecolors=SURFACE, alpha=0.9, zorder=3)
-    _style_panel(ax)
+    panel(ax)
 
 
 def fig_decision_boundaries(out: Path) -> Path:
@@ -173,11 +178,11 @@ def fig_decision_boundaries(out: Path) -> Path:
         ("bpneat", "Backprop-NEAT"),
         ("cgp", "CGP"),
         ("cgp_random_matched", "random CGP\n(no selection)"),
-        ("fixed_tanh_ha", "fixed net,\nunmatched budget"),
-        ("fixed_mixed_matched_bpneat", "fixed net,\nmatched budget"),
+        ("fixed_tanh_ha", "fixed net,\nstarved"),
+        ("fixed_mixed_matched_bpneat", "fixed net,\nmatched"),
     ]
     fig, axes = plt.subplots(len(tasks), len(cols),
-                             figsize=(2.3 * len(cols), 2.42 * len(tasks)),
+                             figsize=(1.32 * len(cols), 1.46 * len(tasks)),
                              facecolor=SURFACE)
     for ri, task in enumerate(tasks):
         for ci, (cond, label) in enumerate(cols):
@@ -188,28 +193,25 @@ def fig_decision_boundaries(out: Path) -> Path:
                 continue
             _draw_boundary(ax, champ)
             acc = champ.test_accuracy
-            ax.set_xlabel(f"{acc:.3f}" if acc is not None else "", fontsize=9,
-                          color=INK, labelpad=3)
+            ax.set_xlabel(f"{acc:.3f}" if acc is not None else "",
+                          fontsize=LABEL_SIZE, color=INK, labelpad=3)
             if ri == 0:
-                ax.set_title(label, fontsize=9.5, color=INK, pad=7)
+                title(ax, label)
             if ci == 0:
-                ax.set_ylabel(TASK_LABEL[task], fontsize=10, color=INK, labelpad=7)
+                ax.set_ylabel(TASK_LABEL[task], fontsize=LABEL_SIZE, color=INK,
+                              labelpad=7)
+    # The headline is a sentence, flush left like every other title here.
     fig.suptitle(
         "What the search actually built — the median champion's decision boundary\n"
         "Sealed-test accuracy under each panel. Median replicate of 30, never the best.",
-        color=INK, fontsize=12,
+        x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    OUT.mkdir(parents=True, exist_ok=True)
-    band = boundary_key(fig)
-    finish(fig, top=0.86, bottom=band, left=0.055, right=0.99,
-           wspace=0.07, hspace=0.16)
-    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
-    print(f"wrote {out.relative_to(ROOT)}")
-    return out
+    boundary_key(fig)
+    return _save(fig, out, top=0.78, bottom=0.17, left=0.055, right=0.99,
+                 wspace=0.07, hspace=0.30)
 
 
-def _draw_network(ax, champ: Champion, title: str, subtitle: str):
+def _draw_network(ax, champ: Champion, heading: str, subtitle: str):
     bundle = make_bundle(champ.task, seed=champ.dataset_seed)
     lay = topology_layout(champ, bundle)
     wmax = max((abs(e["weight"]) for e in lay["edges"]), default=1.0) or 1.0
@@ -228,15 +230,18 @@ def _draw_network(ax, champ: Champion, title: str, subtitle: str):
             solid_capstyle="round",
         )
     for n in lay["nodes"]:
-        colour = OP_COLOUR.get(n["operator"], "#9a9a95")
+        colour = OP_COLOUR.get(n["operator"], NEUTRAL)
+        # A node that never reaches the output is drawn hollow: white fill, the
+        # grid's own grey for its ring, so it is plainly structure rather than
+        # a tenth operator.
         ax.scatter(n["x"], n["y"], s=150 if n["structural"] else 110,
                    c=colour if n["causal"] else SURFACE,
                    edgecolors=INK2 if n["causal"] else GRID,
                    linewidths=1.1, zorder=3,
                    marker="s" if n["structural"] else "o")
-    ax.set_title(title, fontsize=10, color=INK, pad=4)
+    title(ax, heading)
     ax.text(0.5, -0.09, subtitle, transform=ax.transAxes, ha="center",
-            fontsize=8.5, color=INK2)
+            fontsize=ANNOT_SIZE, color=INK2)
     ax.set_xlim(-0.6, lay["n_columns"] - 0.4)
     ax.set_ylim(-1.25, 1.25)
     ax.axis("off")
@@ -254,7 +259,7 @@ def fig_champion_networks(out: Path) -> Path:
         ("checkerboard", "cgp", "CGP"),
         ("checkerboard", "cgp_random_matched", "random CGP"),
     ]
-    fig, axes = plt.subplots(2, 3, figsize=(12.5, 6.0), facecolor=SURFACE)
+    fig, axes = plt.subplots(2, 3, figsize=(6.6, 3.9), facecolor=SURFACE)
     for ax, (task, cond, label) in zip(axes.ravel(), panels):
         champ = _median_champion(runs, final, task, cond)
         if champ is None:
@@ -274,10 +279,11 @@ def fig_champion_networks(out: Path) -> Path:
         for n in topology_layout(c, make_bundle(task, seed=c.dataset_seed))["nodes"]
         if not n["structural"]
     })
-    # Every swatch carries the same edge ring the nodes do: Okabe-Ito's yellow
-    # is below 3:1 against the surface and would otherwise read as a blank.
+    # Every swatch carries the same ink ring the nodes do: several of the
+    # palette's hues are light enough against the page that an unringed swatch
+    # at legend size reads as a blank rather than as a colour.
     handles = [plt.Line2D([], [], marker="o", linestyle="", markersize=8,
-                          markerfacecolor=OP_COLOUR.get(op, "#9a9a95"),
+                          markerfacecolor=OP_COLOUR.get(op, NEUTRAL),
                           markeredgecolor=INK2, markeredgewidth=1.0,
                           color="none", label=op)
                for op in ops_present]
@@ -287,19 +293,15 @@ def fig_champion_networks(out: Path) -> Path:
         plt.Line2D([], [], color=GRID, linewidth=1.2,
                    label="represented but never reaches the output"),
     ]
-    fig.legend(handles=handles, fontsize=8.5, frameon=False, ncol=6,
+    fig.legend(handles=handles, fontsize=LEGEND_SIZE, frameon=False, ncol=6,
                loc="lower center")
     fig.suptitle(
         "The networks themselves. Edge width is |weight|; a hollow node and a pale\n"
         "edge are structure the genome carries that never reaches the output.",
-        color=INK, fontsize=12,
+        x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    OUT.mkdir(parents=True, exist_ok=True)
-    finish(fig, top=0.84, bottom=0.17, left=0.02, right=0.98, wspace=0.05, hspace=0.30)
-    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
-    print(f"wrote {out.relative_to(ROOT)}")
-    return out
+    return _save(fig, out, top=0.80, bottom=0.17, left=0.02, right=0.98,
+                 wspace=0.05, hspace=0.30)
 
 
 def fig_mechanism_boundaries(out: Path) -> Path:
@@ -317,7 +319,7 @@ def fig_mechanism_boundaries(out: Path) -> Path:
     ]
     tasks = ("spiral", "checkerboard", "spiral3")
     fig, axes = plt.subplots(len(tasks), len(cols),
-                             figsize=(2.15 * len(cols), 2.42 * len(tasks)),
+                             figsize=(1.1 * len(cols), 1.34 * len(tasks)),
                              facecolor=SURFACE)
     for ri, task in enumerate(tasks):
         for ci, (cond, label) in enumerate(cols):
@@ -331,62 +333,20 @@ def fig_mechanism_boundaries(out: Path) -> Path:
             if acc is None:
                 acc = next(r["metrics"]["validation_accuracy"] for r in runs
                            if r["run_id"] == champ.run_id)
-            ax.set_xlabel(f"{acc:.3f}", fontsize=9, color=INK, labelpad=3)
+            ax.set_xlabel(f"{acc:.3f}", fontsize=LABEL_SIZE, color=INK, labelpad=3)
             if ri == 0:
-                ax.set_title(label, fontsize=9.5, color=INK, pad=7)
+                title(ax, label)
             if ci == 0:
-                ax.set_ylabel(TASK_LABEL[task], fontsize=10, color=INK, labelpad=7)
+                ax.set_ylabel(TASK_LABEL[task], fontsize=LABEL_SIZE, color=INK,
+                              labelpad=7)
     fig.suptitle(
         "What each NEAT mechanism changes about the function it finds\n"
         "Median champion of 30 replicates; accuracy under each panel.",
-        color=INK, fontsize=12,
+        x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    OUT.mkdir(parents=True, exist_ok=True)
-    band = boundary_key(fig)
-    finish(fig, top=0.86, bottom=band, left=0.06, right=0.99,
-           wspace=0.07, hspace=0.16)
-    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
-    print(f"wrote {out.relative_to(ROOT)}")
-    return out
-
-
-def fig_task_geometries(out: Path) -> Path:
-    """The five problems, drawn once, so the rest of the README has a referent."""
-    tasks = ("xor", "circle", "spiral", "checkerboard", "spiral3")
-    # Tall enough for a key that sits inside the plate's rule rather than
-    # under it; at 2.5 inches there was no band left for it.
-    fig, axes = plt.subplots(1, len(tasks), figsize=(2.2 * len(tasks), 3.1),
-                             facecolor=SURFACE)
-    for ax, task in zip(axes, tasks):
-        b = make_bundle(task, seed=50001)
-        for cls, colour in zip((0.0, 1.0), CLASS_COLOURS):
-            m = b.train.y == cls
-            ax.scatter(b.train.X[m, 0], b.train.X[m, 1], s=9, c=colour,
-                       linewidths=0.3, edgecolors=SURFACE, alpha=0.95)
-        ax.set_title(TASK_LABEL[task], fontsize=10, color=INK, pad=5)
-        ax.set_aspect("equal")
-        _style_panel(ax)
-    fig.suptitle("The five geometries. Two of them nothing can separate.",
-                 color=INK, fontsize=11.5)
-    # Name the two colours here too: these panels carry no boundary field, so
-    # the colour bar would be meaningless, but the classes still need saying.
-    fig.legend(
-        handles=[
-            plt.Line2D([], [], marker="o", linestyle="", markersize=7,
-                       color=CLASS_COLOURS[i], markeredgecolor=SURFACE,
-                       label=f"class {i}")
-            for i in (0, 1)
-        ],
-        fontsize=9, frameon=False, ncol=2, loc="lower center",
-        bbox_to_anchor=(0.5, 0.035),
-    )
-    OUT.mkdir(parents=True, exist_ok=True)
-    finish(fig, top=0.80, bottom=0.22, left=0.01, right=0.99, wspace=0.08)
-    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
-    print(f"wrote {out.relative_to(ROOT)}")
-    return out
+    boundary_key(fig)
+    return _save(fig, out, top=0.78, bottom=0.17, left=0.06, right=0.99,
+                 wspace=0.07, hspace=0.30)
 
 
 #: The qualitative reading in the published description (Neuroevolution §10.1,
@@ -425,7 +385,7 @@ def fig_operator_usage(out: Path) -> Path:
     tasks = [t for t in ("xor", "circle", "spiral", "checkerboard", "spiral3") if t in data]
     # Not sharex: each geometry concentrates its usage differently, and one
     # shared 0..0.88 range left three quarters of four panels empty.
-    fig, axes = plt.subplots(1, len(tasks), figsize=(2.75 * len(tasks), 4.6),
+    fig, axes = plt.subplots(len(tasks), 1, figsize=(6.6, 1.65 * len(tasks)),
                              facecolor=SURFACE)
     # Three protocols measuring the same reference search, so one family at
     # three values — not three unrelated hues, which previously drew the
@@ -434,6 +394,11 @@ def fig_operator_usage(out: Path) -> Path:
     style = {"v3": (_proto[0], "o"), "v4": (_proto[1], "s"), "v5": (_proto[2], "^")}
 
     for ax, task in zip(np.atleast_1d(axes).ravel(), tasks):
+        # A light grid along the value axis, behind the data: the shared
+        # recessive frame, with the left spine dropped because the operator
+        # names are the axis.
+        style_axes(ax, grid_axis="x")
+        ax.spines["left"].set_visible(False)
         per = data[task]
         ops = sorted(
             {o for d in per.values() for o in d},
@@ -454,7 +419,7 @@ def fig_operator_usage(out: Path) -> Path:
         ax.set_yticks(y)
         ax.set_yticklabels(
             [f"{op} *" if op in PREDICTED.get(task, ()) else op for op in ops],
-            fontsize=8.5,
+            fontsize=TICK_SIZE,
         )
         # The asterisk marks an operator the published description predicts for
         # this geometry, which is the figure's hypothesis test. Give those rows
@@ -463,44 +428,35 @@ def fig_operator_usage(out: Path) -> Path:
             predicted = op in PREDICTED.get(task, ())
             lab.set_color(INK if predicted else INK2)
             lab.set_fontweight("semibold" if predicted else "normal")
-        ax.set_title(TASK_LABEL[task], fontsize=10.5, color=INK, pad=6)
+        title(ax, TASK_LABEL[task])
         # Pinned per panel to where the data are: a shared 0..0.88 left three
         # quarters of four panels empty and compressed every difference that
         # matters into the leftmost eighth.
         top = max(max(d.values(), default=0.0) for d in per.values())
         ax.set_xlim(-0.02, min(0.9, top * 1.22 + 0.04))
-        ax.grid(axis="x", color=GRID, linewidth=0.8)
-        ax.set_axisbelow(True)
-        for sp in ("top", "right", "left"):
-            ax.spines[sp].set_visible(False)
-        ax.spines["bottom"].set_color(GRID)
-        ax.tick_params(colors=INK2, labelsize=8, length=0)
 
     handles = [plt.Line2D([], [], marker=m, linestyle="", markersize=8, color=c,
                           markeredgecolor=SURFACE, label=f"protocol {t}")
                for t, (c, m) in style.items()]
-    fig.legend(handles=handles, fontsize=9, frameon=False, ncol=3,
+    fig.legend(handles=handles, fontsize=LEGEND_SIZE, frameon=False, ncol=3,
                loc="lower center", bbox_to_anchor=(0.5, -0.005))
     fig.suptitle(
         "Which operators the search selects — and what the published description "
         "predicts (*)\n"
         "Fraction of causally active hidden nodes. Three protocols, disjoint seeds, "
         "separate code.",
-        color=INK, fontsize=11.5,
+        x=0.0, ha="left", color=INK, fontsize=TITLE_SIZE,
     )
-    OUT.mkdir(parents=True, exist_ok=True)
-    finish(fig, top=0.84, bottom=0.14, left=0.085, right=0.99, wspace=0.42)
-    fig.savefig(out, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
-    print(f"wrote {out.relative_to(ROOT)}")
-    return out
+    # Stacked, each panel carries its own x axis, so the gap between rows has
+    # to clear a tick row and the next panel's heading.
+    return _save(fig, out, top=0.895, bottom=0.07, left=0.13, right=0.99,
+                 hspace=0.62)
 
 
 def main() -> int:
     if not (V4 / "summary.csv").exists():
         print("v4 release missing", file=sys.stderr)
         return 1
-    fig_task_geometries(OUT / "task-geometries.png")
     fig_decision_boundaries(OUT / "decision-boundaries.png")
     fig_champion_networks(OUT / "champion-networks.png")
     fig_mechanism_boundaries(OUT / "mechanism-boundaries.png")

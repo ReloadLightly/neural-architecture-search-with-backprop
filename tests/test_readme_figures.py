@@ -48,6 +48,32 @@ def test_the_figures_exist_and_are_referenced():
         assert f"docs/figures/{name}" in text, f"{name} is rendered but never shown"
 
 
+def test_every_committed_figure_is_shown_and_is_a_result():
+    """Nothing is committed to `docs/figures/` that the README does not show.
+
+    The rule this enforces is that every visualization in the repository is a
+    measured result from a committed release record. A figure nobody points at
+    is how a picture of the problem setup, or of a pilot run that is explicitly
+    not evidence, ends up looking like a finding.
+    """
+    text = README.read_text()
+    orphans = [
+        p.name for p in sorted(FIGURES.iterdir())
+        if p.suffix.lower() in (".png", ".gif", ".svg")
+        and f"docs/figures/{p.name}" not in text
+    ]
+    assert not orphans, f"committed but shown nowhere: {orphans}"
+
+
+def test_no_figure_draws_the_problem_setup_rather_than_a_result():
+    """The input geometries and the pilot-seed animation were drawings of the
+    setup, not of a finding. They are gone; this keeps them gone."""
+    banned = {"task-geometries.png", "evolution.gif",
+              "plate-i-forms.png", "plate-ii-complexification.png"}
+    present = banned & {p.name for p in FIGURES.iterdir()}
+    assert not present, f"not a measured result: {sorted(present)}"
+
+
 def test_the_search_figure_draws_published_values():
     """Every accuracy the dumbbell figure plots must be in v4's summary table."""
     from bench.readme_figures import TASKS

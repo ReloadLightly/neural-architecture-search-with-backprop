@@ -6,7 +6,7 @@ V3_OUT  ?= results/backprop-neat-v3
 V4_OUT  ?= results/backprop-neat-v4
 V5_OUT  ?= results/backprop-neat-v5
 
-.PHONY: setup gates verify audit v3-run v3-status v3-finaltest v3-release \
+.PHONY: setup gates verify audit figures v3-run v3-status v3-finaltest v3-release \
         v4-run v4-status v4-bridge v4-sensitivity v4-finaltest v4-release \
         v5-run v5-status v5-finaltest v5-release clean-logs
 
@@ -18,6 +18,13 @@ setup:
 ## command locally is how an import error reached main twice.
 gates:
 	.venv/bin/pytest -q && .venv/bin/ruff check .
+
+## Regenerate the figures the README shows, from the committed releases.
+## The per-release figures come from `make vN-release`; these are the two
+## scripts that read across releases.
+figures:
+	$(PY) bench/readme_figures.py
+	$(PY) bench/portrait_figures.py
 
 ## Every committed release must regenerate from its own raw records.
 verify:
