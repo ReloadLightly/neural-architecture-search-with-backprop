@@ -5,10 +5,12 @@ SHARDS  ?= 4
 V3_OUT  ?= results/backprop-neat-v3
 V4_OUT  ?= results/backprop-neat-v4
 V5_OUT  ?= results/backprop-neat-v5
+V6_OUT  ?= results/backprop-neat-v6
 
 .PHONY: setup gates verify audit figures v3-run v3-status v3-finaltest v3-release \
         v4-run v4-status v4-bridge v4-sensitivity v4-finaltest v4-release \
-        v5-run v5-status v5-finaltest v5-release clean-logs
+        v5-run v5-status v5-finaltest v5-release \
+        v6-run v6-extension v6-status v6-finaltest v6-release clean-logs
 
 setup:
 	uv venv .venv && uv pip install --python $(PY) -e ".[dev]"
@@ -37,6 +39,9 @@ verify:
 	@test -f $(V5_OUT)/sha256sums.txt \
 	  && $(PY) -m bpneat.v5.verify --dir $(V5_OUT) \
 	  || echo "v5 release not sealed yet, skipped"
+	@test -f $(V6_OUT)/sha256sums.txt \
+	  && $(PY) -m bpneat.v6.verify --dir $(V6_OUT) \
+	  || echo "v6 release not sealed yet, skipped"
 
 audit:
 	$(PY) bench/audit_2026_10.py
@@ -107,6 +112,39 @@ v5-finaltest:
 
 v5-release:
 	$(PY) -m bpneat.v5.run --out $(V5_OUT) --release
+
+## Launch the whole v6 confirmatory ladder in the background, $(SHARDS) shards.
+## Four rungs: 500, 1000, 2100 and 6300 candidates. Safe to re-run; completed
+## runs are skipped by fingerprint.
+v6-run:
+	@mkdir -p logs
+	@for i in $$(seq 0 $$(( $(SHARDS) - 1 )) ); do \
+	  nohup $(PY) -u -m bpneat.v6.run --out $(V6_OUT) \
+	      --shard-index $$i --shard-total $(SHARDS) \
+	      > logs/v6-shard$$i.log 2>&1 & \
+	  echo "shard $$i -> logs/v6-shard$$i.log"; \
+	done
+
+## The declared extension rung (16800 candidates, 8x the reference). Run only
+## after `make v6-run` reports complete, and only before the sealed test. It
+## costs about three times the confirmatory ladder and scores no hypothesis.
+v6-extension:
+	@mkdir -p logs
+	@for i in $$(seq 0 $$(( $(SHARDS) - 1 )) ); do \
+	  nohup $(PY) -u -m bpneat.v6.run --out $(V6_OUT) --extension \
+	      --shard-index $$i --shard-total $(SHARDS) \
+	      > logs/v6-ext-shard$$i.log 2>&1 & \
+	  echo "shard $$i -> logs/v6-ext-shard$$i.log"; \
+	done
+
+v6-status:
+	@$(PY) -m bpneat.v6.run --out $(V6_OUT) --status
+
+v6-finaltest:
+	$(PY) -m bpneat.v6.run --out $(V6_OUT) --final-test
+
+v6-release:
+	$(PY) -m bpneat.v6.run --out $(V6_OUT) --release
 
 clean-logs:
 	rm -rf logs

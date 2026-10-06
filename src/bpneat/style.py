@@ -391,6 +391,21 @@ _ROLE_OF = {
     "fixed_mixed_matched": "control_best",
 }
 
+#: v6 names its conditions ``<arm>_b<candidates>``, so the grid is fifteen names
+#: for three roles. The budget is an ordered quantity and goes on an axis, never
+#: into a colour: a rung never changes a hue, and the three arms keep the hues
+#: they already have in v3, v4 and v5 — the search is `slate`, the
+#: candidate-matched null is `mauve`, the budget-matched fixed network is `rose`.
+V6_BUDGET_CANDIDATES = (500, 1000, 2100, 6300, 16800)
+_V6_ARM_ROLE = {
+    "search": "search_primary",
+    "null": "search_null",
+    "fixed": "control_best",
+}
+for _candidates in V6_BUDGET_CANDIDATES:
+    for _arm, _role in _V6_ARM_ROLE.items():
+        _ROLE_OF[f"{_arm}_b{_candidates}"] = _role
+
 
 def role_of(condition: str) -> str:
     """The semantic role of a condition, in any protocol.
@@ -406,6 +421,19 @@ def role_of(condition: str) -> str:
     if condition.startswith("fixed"):
         return "control_matched"
     return "search_secondary"
+
+
+def arm_role(arm: str) -> str:
+    """The role of a v6 arm, by arm name rather than condition name.
+
+    v6's figures put the budget on an axis and colour by arm, so they ask for a
+    hue once per arm instead of once per condition.
+    """
+    return _V6_ARM_ROLE[arm]
+
+
+def arm_colour(arm: str) -> str:
+    return ROLE_COLOUR[arm_role(arm)]
 
 
 def colour_of(condition: str) -> str:

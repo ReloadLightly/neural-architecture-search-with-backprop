@@ -1,0 +1,128 @@
+{
+  "dataset_seed": 9004,
+  "environment": {
+    "code_fingerprint": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "cpu_count": 4,
+    "git_commit": "8d3c75249f636456f38529e0123b40d3bc4c0dd2",
+    "machine": "x86_64",
+    "numpy": "2.4.6",
+    "platform": "Linux-6.18.44-fc-v70-x86_64-with-glibc2.39",
+    "python": "3.11.15"
+  },
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v4_frozen": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v5_frozen": "33f2c177be4b53350ec232fca6e0794acbd6a9ed8faea06ee60ca76d11b759de",
+    "v6": "f1205038f33ad77e9706d8a51fe04cd32de268ea19f060f03c891a536c493cc0",
+    "v6_modules": [
+      "conditions.py",
+      "protocol.py"
+    ]
+  },
+  "protocol_version": "v6",
+  "purpose": "cost calibration before the v6 freeze; decides which rungs are confirmatory and which is a declared extension",
+  "rows": [
+    {
+      "arm": "search",
+      "budget": "b500",
+      "candidate_budget": 500,
+      "causal_hidden_nodes": 1,
+      "condition": "search_b500",
+      "generations": 4,
+      "gradient_steps": 24680,
+      "matched_steps": null,
+      "steps_per_candidate": 49.36,
+      "task": "spiral",
+      "validation_accuracy": 0.7,
+      "wall_time_seconds": 2.810120105743408
+    },
+    {
+      "arm": "search",
+      "budget": "b1000",
+      "candidate_budget": 1000,
+      "causal_hidden_nodes": 3,
+      "condition": "search_b1000",
+      "generations": 9,
+      "gradient_steps": 56860,
+      "matched_steps": null,
+      "steps_per_candidate": 56.86,
+      "task": "spiral",
+      "validation_accuracy": 0.735,
+      "wall_time_seconds": 8.036686182022095
+    },
+    {
+      "arm": "search",
+      "budget": "b2100",
+      "candidate_budget": 2100,
+      "causal_hidden_nodes": 6,
+      "condition": "search_b2100",
+      "generations": 20,
+      "gradient_steps": 135880,
+      "matched_steps": null,
+      "steps_per_candidate": 64.70476190476191,
+      "task": "spiral",
+      "validation_accuracy": 0.855,
+      "wall_time_seconds": 27.905348777770996
+    },
+    {
+      "arm": "search",
+      "budget": "b6300",
+      "candidate_budget": 6300,
+      "causal_hidden_nodes": 12,
+      "condition": "search_b6300",
+      "generations": 62,
+      "gradient_steps": 518540,
+      "matched_steps": null,
+      "steps_per_candidate": 82.3079365079365,
+      "task": "spiral",
+      "validation_accuracy": 0.92,
+      "wall_time_seconds": 269.15031027793884
+    },
+    {
+      "arm": "null",
+      "budget": "b500",
+      "candidate_budget": 500,
+      "causal_hidden_nodes": 11,
+      "condition": "null_b500",
+      "generations": null,
+      "gradient_steps": 33420,
+      "matched_steps": null,
+      "steps_per_candidate": 66.84,
+      "task": "spiral",
+      "validation_accuracy": 0.73,
+      "wall_time_seconds": 16.210034608840942
+    },
+    {
+      "arm": "null",
+      "budget": "b1000",
+      "candidate_budget": 1000,
+      "causal_hidden_nodes": 14,
+      "condition": "null_b1000",
+      "generations": null,
+      "gradient_steps": 67820,
+      "matched_steps": null,
+      "steps_per_candidate": 67.82,
+      "task": "spiral",
+      "validation_accuracy": 0.74,
+      "wall_time_seconds": 34.453150510787964
+    },
+    {
+      "arm": "fixed",
+      "budget": "b2100",
+      "candidate_budget": 2100,
+      "causal_hidden_nodes": 65,
+      "condition": "fixed_b2100",
+      "generations": null,
+      "gradient_steps": 135840,
+      "matched_steps": 135880,
+      "steps_per_candidate": 64.68571428571428,
+      "task": "spiral",
+      "validation_accuracy": 0.955,
+      "wall_time_seconds": 50.50419497489929
+    }
+  ],
+  "scores": "nothing; pilot seeds, one geometry, one pilot replicate",
+  "search_seed": 19004,
+  "task": "spiral"
+}
