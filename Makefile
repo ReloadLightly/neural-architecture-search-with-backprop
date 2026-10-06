@@ -19,8 +19,9 @@ verify:
 	.venv/bin/bpneat verify --dir results/backprop-neat-v2/track-a
 	.venv/bin/bpneat verify --dir results/backprop-neat-v2/track-b
 	$(PY) -m bpneat.v3.verify --dir $(V3_OUT)
-	@test -d $(V4_OUT) && $(PY) -m bpneat.v4.verify --dir $(V4_OUT) \
-	  || echo "no v4 release yet, skipped"
+	@test -f $(V4_OUT)/sha256sums.txt \
+	  && $(PY) -m bpneat.v4.verify --dir $(V4_OUT) \
+	  || echo "v4 release not sealed yet, skipped"
 
 audit:
 	$(PY) bench/audit_2026_10.py

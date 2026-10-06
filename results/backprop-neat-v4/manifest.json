@@ -10,7 +10,7 @@
     "fixed_tanh_matched_bpneat",
     "fixed_tanh_matched_cgp"
   ],
-  "elapsed_seconds": 1.303929090499878,
+  "elapsed_seconds": 67.22532439231873,
   "failed": [],
   "fingerprints": {
     "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
@@ -65,7 +65,6 @@
     "checkerboard__cgp__r28",
     "checkerboard__cgp__r29",
     "checkerboard__cgp__r30",
-    "checkerboard__cgp_random_matched__r16",
     "checkerboard__cgp_random_matched__r19",
     "checkerboard__cgp_random_matched__r20",
     "checkerboard__cgp_random_matched__r21",
@@ -77,7 +76,6 @@
     "checkerboard__cgp_random_matched__r28",
     "checkerboard__cgp_random_matched__r29",
     "checkerboard__cgp_random_matched__r30",
-    "checkerboard__fixed_mixed_matched_bpneat__r15",
     "checkerboard__fixed_mixed_matched_bpneat__r16",
     "checkerboard__fixed_mixed_matched_bpneat__r19",
     "checkerboard__fixed_mixed_matched_bpneat__r20",
@@ -118,11 +116,9 @@
     "checkerboard__fixed_tanh_ha__r30",
     "checkerboard__fixed_tanh_matched_bpneat__r15",
     "checkerboard__fixed_tanh_matched_bpneat__r16",
-    "checkerboard__fixed_tanh_matched_bpneat__r17",
     "checkerboard__fixed_tanh_matched_bpneat__r19",
     "checkerboard__fixed_tanh_matched_bpneat__r20",
     "checkerboard__fixed_tanh_matched_bpneat__r21",
-    "checkerboard__fixed_tanh_matched_bpneat__r22",
     "checkerboard__fixed_tanh_matched_bpneat__r23",
     "checkerboard__fixed_tanh_matched_bpneat__r24",
     "checkerboard__fixed_tanh_matched_bpneat__r25",
@@ -133,11 +129,9 @@
     "checkerboard__fixed_tanh_matched_bpneat__r30",
     "checkerboard__fixed_tanh_matched_cgp__r15",
     "checkerboard__fixed_tanh_matched_cgp__r16",
-    "checkerboard__fixed_tanh_matched_cgp__r17",
     "checkerboard__fixed_tanh_matched_cgp__r19",
     "checkerboard__fixed_tanh_matched_cgp__r20",
     "checkerboard__fixed_tanh_matched_cgp__r21",
-    "checkerboard__fixed_tanh_matched_cgp__r22",
     "checkerboard__fixed_tanh_matched_cgp__r23",
     "checkerboard__fixed_tanh_matched_cgp__r24",
     "checkerboard__fixed_tanh_matched_cgp__r25",
@@ -388,12 +382,12 @@
     "spiral3__fixed_tanh_matched_cgp__r30"
   ],
   "planned": 1200,
-  "present": 857,
+  "present": 863,
   "protocol_version": "v4",
   "test_evaluated": false,
   "this_shard": {
-    "completed": 0,
-    "skipped": 216
+    "completed": 2,
+    "skipped": 214
   },
   "unexpected": []
 }

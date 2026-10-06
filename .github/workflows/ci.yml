@@ -55,24 +55,31 @@ jobs:
         run: bpneat verify --dir results/backprop-neat-v2/track-a
       - name: Track B
         run: bpneat verify --dir results/backprop-neat-v2/track-b
-      # v3 is verified once its release exists. Guarded rather than added
-      # later, so the check cannot be forgotten at release time.
+      # A release is verified once it is SEALED, which is what sha256sums.txt
+      # means: it is written only by `make vN-release`, after the suite is
+      # complete and the sealed test has been evaluated.
+      #
+      # The guard used to key on raw/runs existing instead. That is wrong while
+      # a suite is running, because raw records are committed at every
+      # checkpoint — so CI verified a half-finished release, failed on the
+      # missing checksum manifest, and sent a failure notification for every
+      # checkpoint commit. A run still in progress is not a broken release.
       - name: Track v3
         run: |
-          if [ -d results/backprop-neat-v3/raw/runs ]; then
+          if [ -f results/backprop-neat-v3/sha256sums.txt ]; then
             python -m bpneat.v3.verify --dir results/backprop-neat-v3
           else
-            echo "no v3 release yet — skipping"
+            echo "v3 release not sealed yet — skipping"
           fi
       # Same guard for v4. Its verifier additionally re-checks the v3 and v2
       # fingerprints recorded in the v4 manifest, so this step also asserts
       # that neither older release was edited to make the newer one work.
       - name: Track v4
         run: |
-          if [ -d results/backprop-neat-v4/raw/runs ]; then
+          if [ -f results/backprop-neat-v4/sha256sums.txt ]; then
             python -m bpneat.v4.verify --dir results/backprop-neat-v4
           else
-            echo "no v4 release yet — skipping"
+            echo "v4 release not sealed yet — skipping"
           fi
 
   lint:
