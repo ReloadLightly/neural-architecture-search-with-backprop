@@ -331,9 +331,9 @@ why it is declared separately rather than assumed.
 | Confirmatory runs | 1,080 across 90 cells |
 | Declared extension | 270 runs at `b16800`, scoring nothing |
 | Replicates | 30, dataset seeds `90001 + 13i`, search seeds `100001 + 13i` |
-| Freeze commit | `FREEZE_COMMIT` |
+| Freeze commit | `aa7e9f36d36dd894a5b3e23788cd7fabbec876c7` |
 
 > **The freeze tags exist only locally.** This session's GitHub proxy refuses tag
 > pushes (HTTP 403), so the commit hash above is the resolvable record; the tag is
 > a convenience that a maintainer with push rights can add with
-> `git tag v6-freeze FREEZE_COMMIT && git push origin v6-freeze`.
+> `git tag v6-freeze aa7e9f36d36dd894a5b3e23788cd7fabbec876c7 && git push origin v6-freeze`.

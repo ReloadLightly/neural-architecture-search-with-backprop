@@ -47,6 +47,21 @@ def _text() -> str:
 # --------------------------------------------------------------------------
 
 
+def test_the_preregistration_names_a_freeze_commit_that_exists():
+    """The tag cannot be pushed from here, so the hash is the only record."""
+    import re
+    import subprocess
+
+    text = PREREG.read_text()
+    m = re.search(r"\| Freeze commit \| `([0-9a-f]{40})` \|", text)
+    assert m, "the freeze record names no commit"
+    got = subprocess.run(
+        ["git", "cat-file", "-t", m.group(1)],
+        cwd=ROOT, capture_output=True, text=True,
+    )
+    assert got.stdout.strip() == "commit", m.group(1)
+
+
 def test_the_preregistration_records_the_live_science_fingerprint():
     """Edit a v6 science module and this fails, which is the point.
 
