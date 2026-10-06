@@ -201,6 +201,20 @@ Measured numbers: `docs/v4-sensitivity.md`. Gates:
 `tests/test_v4.py::test_candidate_training_is_chaotic`,
 `::test_rollback_matches_the_frozen_rule_on_a_stable_graph`.
 
+> **Erratum, 6 October 2026 — added after the freeze, correcting this section's
+> own wording, not its content.** The paragraph above says the perturbation
+> "moves the trained weights by order 0.1 within about twenty updates". That is
+> what the worst candidate in the pilot did, and it reads as though every
+> candidate does it. The full measurement in `docs/v4-sensitivity.md` shows the
+> effect is **bimodal**: over 40 CGP phenotypes at the full 600-update budget,
+> the median divergence is 1.3e-11 and 5% of candidates exceed 1e-6, with a
+> maximum of 4.8e-01. A minority of candidates diverges; the typical one does
+> not. Nothing downstream changes — the two binding consequences (claims rest on
+> distributions over replicates; the equivalence gate asserts only what holds)
+> follow from a 5% rate exactly as they would from a universal one — but the
+> sentence overstated a minority effect as a general one and is corrected here
+> rather than rewritten above.
+
 ## Freeze record
 
 Committed with the v4 gates passing and no v4 run record in existence. The
