@@ -439,9 +439,10 @@ def test_there_is_no_second_operator_palette():
 
 def test_no_figure_is_written_without_the_frame():
     """A plate without its rule is a chart, and the point of this style is that
-    there are no charts in here. Every `savefig` in the repository either goes
-    through `style.save`, which draws the frame, or draws it itself two
-    statements earlier."""
+    there are no charts in here. Every `savefig` in the repository is either
+    reached through `style.save` or preceded by the finishing pass that draws
+    the frame."""
+    draws_the_frame = ("style.save", "plate_frame", "finish(fig")
     offenders = []
     for path in _plotting_modules():
         lines = path.read_text().split("\n")
@@ -449,7 +450,7 @@ def test_no_figure_is_written_without_the_frame():
             if ".savefig(" not in line:
                 continue
             window = "\n".join(lines[max(0, i - 6):i])
-            if "plate_frame" not in window and "style.save" not in window:
+            if not any(marker in window for marker in draws_the_frame):
                 offenders.append(f"{path.relative_to(ROOT)}:{i + 1}")
     assert not offenders, (
         "figures written without the plate's rule at " + ", ".join(offenders)

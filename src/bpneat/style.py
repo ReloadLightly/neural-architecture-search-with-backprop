@@ -391,6 +391,42 @@ def _reserve_headline(fig, adjust: dict) -> dict:
     return adjust
 
 
+def _frame_pad(fig) -> tuple[float, float]:
+    """The inner rule's distance from the edge, as figure fractions."""
+    w_in, h_in = fig.get_size_inches()
+    inner = FRAME_IN * 1.52 + 0.07
+    return inner / w_in, inner / h_in
+
+
+def _reserve_footer(fig, adjust: dict) -> dict:
+    """Leave the panels clear of a key or caption placed below them.
+
+    The counterpart of `_reserve_headline`. A key at ``loc="lower center"`` is
+    anchored to the figure, not to the axes, so moving it inside the border
+    does not move the panels out of its way — it just lands the key on top of
+    the data. Measure how tall it is and give it its own band.
+    """
+    below = [
+        art for art in list(fig.legends) + [
+            txt for txt in fig.texts if txt is not getattr(fig, "_suptitle", None)
+        ]
+        if _artist_box(fig, art).y1 < 0.5
+    ]
+    if not below:
+        return adjust
+    _, pad_y = _frame_pad(fig)
+    needed = pad_y + max(_artist_box(fig, a).height for a in below) + 0.035
+    if adjust.get("bottom", 0.0) < needed:
+        adjust = dict(adjust, bottom=needed)
+    return adjust
+
+
+def _artist_box(fig, artist):
+    fig.canvas.draw()
+    renderer = fig.canvas.get_renderer()
+    return artist.get_window_extent(renderer).transformed(fig.transFigure.inverted())
+
+
 def _clear_the_frame(fig) -> None:
     """Move figure-level lettering out from under the plate's rule.
 
@@ -405,15 +441,9 @@ def _clear_the_frame(fig) -> None:
     ]
     if not artists:
         return
-    fig.canvas.draw()
-    renderer = fig.canvas.get_renderer()
-    inv = fig.transFigure.inverted()
-    w_in, h_in = fig.get_size_inches()
-    pad_y = (FRAME_IN * 1.52 + 0.07) / h_in
-    pad_x = (FRAME_IN * 1.52 + 0.07) / w_in
-
+    pad_x, pad_y = _frame_pad(fig)
     for art in artists:
-        box = art.get_window_extent(renderer).transformed(inv)
+        box = _artist_box(fig, art)
         dy = (pad_y - box.y0) if box.y0 < pad_y else (
             (1 - pad_y) - box.y1 if box.y1 > 1 - pad_y else 0.0)
         dx = (pad_x - box.x0) if box.x0 < pad_x else (
@@ -427,20 +457,32 @@ def _clear_the_frame(fig) -> None:
             art.set_position((x + dx, y + dy))
 
 
-def save(fig, path, **adjust) -> Any:
-    """Write a figure at the project's density, onto the project's ground."""
-    import matplotlib.pyplot as plt
+def finish(fig, **adjust) -> None:
+    """Everything between "the data is drawn" and "write the file".
 
+    Set the lettering, lay the panels out below the headline, move anything
+    that would sit under the border, and draw the border. A module that needs
+    its own margins calls this instead of reimplementing the parts it
+    remembers.
+    """
     typeset(fig)
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
     adjust = _reserve_headline(fig, adjust)
+    adjust = _reserve_footer(fig, adjust)
     if adjust:
         fig.subplots_adjust(**adjust)
     else:
         fig.tight_layout()
     _clear_the_frame(fig)
     plate_frame(fig)
+
+
+def save(fig, path, **adjust) -> Any:
+    """Write a figure at the project's density, onto the project's ground."""
+    import matplotlib.pyplot as plt
+
+    finish(fig, **adjust)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(path, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     return path

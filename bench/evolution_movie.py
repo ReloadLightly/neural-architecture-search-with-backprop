@@ -52,6 +52,7 @@ from bpneat.style import (  # noqa: E402
     OP_COLOUR,
     WEIGHT_NEG,
     WEIGHT_POS,
+    plate_frame,
     SURFACE,
     boundary_cmap,
     panel,
@@ -121,6 +122,8 @@ def render(bundle, frames, out: Path, fps: int = 3) -> Path:
         gridspec_kw={"width_ratios": [1.0, 1.25]},
     )
     OUT.mkdir(parents=True, exist_ok=True)
+    # The rule is a figure artist, so it survives the per-frame ax.clear().
+    plate_frame(fig)
     writer = PillowWriter(fps=fps)
     with writer.saving(fig, str(out), dpi=110):
         for frame in frames:

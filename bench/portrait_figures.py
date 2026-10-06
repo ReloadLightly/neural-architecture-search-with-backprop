@@ -43,18 +43,19 @@ from bpneat.style import (  # noqa: E402
     DPI,
     GRID,
     INK,
+    FRAME_IN,
     INK2,
     OP_COLOUR,
     REFERENCE,
+    RULE,
     SURFACE,
     WEIGHT_NEG,
     WEIGHT_POS,
     boundary_cmap,
     panel,
-    plate_frame,
+    finish,
     ramp,
     style_axes,
-    typeset,
 )
 
 #: Class 0 -> blue, class 1 -> orange, through a near-neutral midpoint. Two
@@ -109,29 +110,40 @@ def _style_panel(ax):
     ax.set_facecolor(SURFACE)
 
 
-def boundary_key(fig, y: float = 0.012) -> None:
-    """What the two colours mean, said once per figure.
+def boundary_key(fig) -> float:
+    """What the two pigments mean, said once per figure, inside the rule.
 
     Thirty-three two-colour panels went out with nothing anywhere stating that
-    blue is class 0, orange is class 1, and the pale middle is the model
-    declining to decide. A figure that never names its encoding is asking the
-    reader to guess it.
+    cold is class 0, warm is class 1, and the ground showing through is the
+    model declining to decide. A figure that never names its encoding is asking
+    the reader to guess it.
+
+    Returns the figure fraction the panels must stay above, so the caller can
+    reserve the band instead of discovering the collision in the PNG.
     """
+    height = fig.get_size_inches()[1]
+    rule_in = FRAME_IN * 1.52
+    caption_in = rule_in + 0.16
+    bar_in = caption_in + 0.21
     gradient = np.linspace(0, 1, 256).reshape(1, -1)
-    bar = fig.add_axes([0.40, y + 0.004, 0.20, 0.014])
+    bar = fig.add_axes([0.40, (bar_in - 0.045) / height, 0.20, 0.09 / height])
     bar.imshow(gradient, aspect="auto", cmap=BOUNDARY_CMAP, vmin=0, vmax=1)
     bar.set_xticks([])
     bar.set_yticks([])
-    for s in bar.spines.values():
-        s.set_color(GRID)
-    fig.text(0.395, y + 0.011, "predicts class 0", ha="right", va="center",
+    for spine in bar.spines.values():
+        spine.set_color(RULE)
+        spine.set_linewidth(0.6)
+    fig.text(0.395, bar_in / height, "predicts class 0", ha="right", va="center",
              fontsize=8.5, color=INK2)
-    fig.text(0.605, y + 0.011, "predicts class 1", ha="left", va="center",
+    fig.text(0.605, bar_in / height, "predicts class 1", ha="left", va="center",
              fontsize=8.5, color=INK2)
-    fig.text(0.5, y - 0.012, "the ground showing through is undecided; the pale "
-             "line is the 0.5 contour; dots are training points, coloured by "
-             "their true class",
-             ha="center", va="center", fontsize=8, color=INK2)
+    fig.text(0.5, caption_in / height,
+             "the ground showing through is undecided; the pale line is the 0.5 "
+             "contour; dots are training points, coloured by their true class",
+             ha="center", va="center", fontsize=8, color=RULE)
+    # The band the panels must stay above: the key itself, plus room for the
+    # accuracy label each bottom-row panel hangs below its own axes.
+    return (bar_in + 0.46) / height
 
 
 def _draw_boundary(ax, champ: Champion, show_points: bool = True):
@@ -187,12 +199,10 @@ def fig_decision_boundaries(out: Path) -> Path:
         "Sealed-test accuracy under each panel. Median replicate of 30, never the best.",
         color=INK, fontsize=12,
     )
-    fig.subplots_adjust(top=0.86, bottom=0.10, left=0.055, right=0.99,
-                        wspace=0.07, hspace=0.16)
-    boundary_key(fig, y=0.030)
     OUT.mkdir(parents=True, exist_ok=True)
-    typeset(fig)
-    plate_frame(fig)
+    band = boundary_key(fig)
+    finish(fig, top=0.86, bottom=band, left=0.055, right=0.99,
+           wspace=0.07, hspace=0.16)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -284,11 +294,8 @@ def fig_champion_networks(out: Path) -> Path:
         "edge are structure the genome carries that never reaches the output.",
         color=INK, fontsize=12,
     )
-    fig.subplots_adjust(top=0.84, bottom=0.17, left=0.02, right=0.98,
-                        wspace=0.05, hspace=0.30)
     OUT.mkdir(parents=True, exist_ok=True)
-    typeset(fig)
-    plate_frame(fig)
+    finish(fig, top=0.84, bottom=0.17, left=0.02, right=0.98, wspace=0.05, hspace=0.30)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -334,12 +341,10 @@ def fig_mechanism_boundaries(out: Path) -> Path:
         "Median champion of 30 replicates; accuracy under each panel.",
         color=INK, fontsize=12,
     )
-    fig.subplots_adjust(top=0.86, bottom=0.11, left=0.06, right=0.99,
-                        wspace=0.07, hspace=0.16)
-    boundary_key(fig, y=0.034)
     OUT.mkdir(parents=True, exist_ok=True)
-    typeset(fig)
-    plate_frame(fig)
+    band = boundary_key(fig)
+    finish(fig, top=0.86, bottom=band, left=0.06, right=0.99,
+           wspace=0.07, hspace=0.16)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -349,7 +354,9 @@ def fig_mechanism_boundaries(out: Path) -> Path:
 def fig_task_geometries(out: Path) -> Path:
     """The five problems, drawn once, so the rest of the README has a referent."""
     tasks = ("xor", "circle", "spiral", "checkerboard", "spiral3")
-    fig, axes = plt.subplots(1, len(tasks), figsize=(2.2 * len(tasks), 2.5),
+    # Tall enough for a key that sits inside the plate's rule rather than
+    # under it; at 2.5 inches there was no band left for it.
+    fig, axes = plt.subplots(1, len(tasks), figsize=(2.2 * len(tasks), 3.1),
                              facecolor=SURFACE)
     for ax, task in zip(axes, tasks):
         b = make_bundle(task, seed=50001)
@@ -371,13 +378,11 @@ def fig_task_geometries(out: Path) -> Path:
                        label=f"class {i}")
             for i in (0, 1)
         ],
-        fontsize=8.5, frameon=False, ncol=2, loc="lower center",
-        bbox_to_anchor=(0.5, 0.0),
+        fontsize=9, frameon=False, ncol=2, loc="lower center",
+        bbox_to_anchor=(0.5, 0.035),
     )
-    fig.subplots_adjust(top=0.76, bottom=0.14, left=0.01, right=0.99, wspace=0.08)
     OUT.mkdir(parents=True, exist_ok=True)
-    typeset(fig)
-    plate_frame(fig)
+    finish(fig, top=0.80, bottom=0.22, left=0.01, right=0.99, wspace=0.08)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
@@ -483,10 +488,8 @@ def fig_operator_usage(out: Path) -> Path:
         "separate code.",
         color=INK, fontsize=11.5,
     )
-    fig.subplots_adjust(top=0.84, bottom=0.14, left=0.085, right=0.99, wspace=0.42)
     OUT.mkdir(parents=True, exist_ok=True)
-    typeset(fig)
-    plate_frame(fig)
+    finish(fig, top=0.84, bottom=0.14, left=0.085, right=0.99, wspace=0.42)
     fig.savefig(out, dpi=DPI, facecolor=SURFACE)
     plt.close(fig)
     print(f"wrote {out.relative_to(ROOT)}")
