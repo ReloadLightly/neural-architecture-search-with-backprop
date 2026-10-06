@@ -173,4 +173,8 @@ exactly the kind of move these documents exist to prevent.
 | v2 fingerprint (frozen) | `cfdf1fa3198adc0e…` |
 | Planned runs | 720 across 90 cells |
 | Replicates | 30, dataset seeds `70001 + 13i`, search seeds `80001 + 13i` |
+| Freeze commit | `6f01738bbc6bfb4eef613415eba08917114d4b3f` |
 | Tag | `v5-freeze` |
+
+> **The freeze tags exist only locally.** This session's GitHub proxy refuses tag pushes (HTTP 403), so the commit hash above is the resolvable record; the tag is a convenience that a maintainer with push rights can add with `git tag v5-freeze 6f01738bbc6b && git push origin v5-freeze`.
+

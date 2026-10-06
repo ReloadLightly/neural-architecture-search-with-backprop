@@ -219,7 +219,13 @@ Measured numbers: `docs/v4-sensitivity.md`. Gates:
 
 Committed with the v4 gates passing and no v4 run record in existence. The
 commit that carries this file and the five fingerprinted modules is the freeze
-commit; the tag is `v4-freeze`.
+commit: **`4fa3009e54e3b3e85c82519969924f4eda530104`**, tagged `v4-freeze`.
+
+The whole of `src/bpneat/v4/` is in that commit, including `analysis.py` and
+therefore the operationalisation of every hypothesis below —
+`git ls-tree -r --name-only 4fa3009e54e3 src/bpneat/v4/` shows it.
+
+> **The freeze tags exist only locally.** This session's GitHub proxy refuses tag pushes (HTTP 403), so the commit hash above is the resolvable record; the tag is a convenience that a maintainer with push rights can add with `git tag v4-freeze 4fa3009e54e3 && git push origin v4-freeze`.
 
 | | |
 |---|---|
