@@ -420,6 +420,16 @@ restored; the preregistration was written to make either outcome publishable.
 
 ## 11. Limitations
 
+**One budget.** Every protocol above ran the search at 2,100 candidate
+evaluations — a population of 100 for twenty generations, inherited from the
+published description and never varied. So the headline is a statement about
+*that* budget: at 2,100 candidates the search does not beat sampling the same
+space at random, and does not beat a fixed network given the same gradient
+compute. Whether it would at 6,300 is not something these five releases can
+answer. Protocol v6 varies the budget over 12.6× and is **running now**; its
+contract is frozen at [`aa7e9f36`](docs/v6-preregistration.md) and **it has no
+results yet**. Nothing in this README depends on it.
+
 Five 2-D synthetic geometries. The genome encoding fixes two input nodes in a
 frozen module, so higher-dimensional real datasets were **skipped rather than
 attempted badly**. One algorithm, one reference implementation. Candidate count
@@ -442,7 +452,8 @@ make setup && make gates && make verify
 | `make gates` | the correctness gates, plus ruff |
 | `make verify` | proves the v2 release rebuilds from its raw records |
 | `make audit` | reproduces the October 2026 audit |
-| `make v3-run` · `v4-run` · `v5-run` | a suite, sharded and resumable, in the background |
+| `make v3-run` · `v4-run` · `v5-run` · `v6-run` | a suite, sharded and resumable, in the background |
+| `make v6-status` | per-rung progress of the v6 budget ladder |
 | `make v3-finaltest` / `make v3-release` | one-shot sealed test, then seal |
 
 `verify` rebuilds every derived table from `raw/runs/*.json` in a scratch
@@ -489,6 +500,7 @@ figure style, so the two read as one body of work;
 
 | Path | What |
 |---|---|
+| [`docs/v6-preregistration.md`](docs/v6-preregistration.md) | v6 — the frozen budget-ladder contract, **running, no results yet** |
 | [`results/backprop-neat-v5/`](results/backprop-neat-v5/) | v5 — NEAT's five mechanisms as factors |
 | [`results/backprop-neat-v4/`](results/backprop-neat-v4/) | v4 — a second search algorithm through the same controls |
 | [`results/backprop-neat-v3/`](results/backprop-neat-v3/) | the v3 release and its claim ladder |
@@ -499,7 +511,7 @@ figure style, so the two read as one body of work;
 | [`docs/v2-errata.md`](docs/v2-errata.md) · [`docs/audit-2026-10.md`](docs/audit-2026-10.md) | what was wrong, and its reproduction |
 | [`docs/writeup.md`](docs/writeup.md) | the motivating argument — an argument, not evidence |
 | [`docs/figure-style.md`](docs/figure-style.md) | the figure contract, shared with the sister study |
-| `src/bpneat/` · `v3/` · `v4/` · `v5/` | frozen v2 science modules, then one package per protocol |
+| `src/bpneat/` · `v3/` · `v4/` · `v5/` · `v6/` | frozen v2 science modules, then one package per protocol |
 | [`bench/portrait_figures.py`](bench/portrait_figures.py) · [`bench/readme_figures.py`](bench/readme_figures.py) | the boundary, network and headline figures |
 
 ## License and citation

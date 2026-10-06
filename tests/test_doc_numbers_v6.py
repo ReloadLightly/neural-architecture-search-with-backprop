@@ -62,6 +62,18 @@ def test_the_preregistration_names_a_freeze_commit_that_exists():
     assert got.stdout.strip() == "commit", m.group(1)
 
 
+def test_the_readme_names_the_same_freeze_commit_as_the_preregistration():
+    """Two places name the freeze; a gate keeps them one place in effect."""
+    import re
+
+    m = re.search(r"\| Freeze commit \| `([0-9a-f]{40})` \|", PREREG.read_text())
+    assert m
+    readme = (ROOT / "README.md").read_text()
+    assert "no results yet" in readme, "v6 is described as if it had results"
+    hashes = set(re.findall(r"`([0-9a-f]{8})`\]\(docs/v6-preregistration\.md\)", readme))
+    assert hashes == {m.group(1)[:8]}, hashes
+
+
 def test_the_preregistration_records_the_live_science_fingerprint():
     """Edit a v6 science module and this fails, which is the point.
 
