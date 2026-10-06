@@ -50,7 +50,7 @@ the fixed yardstick needs the budget the reference actually spent in that cell.
 | `neat_complexify_no_penalty` | both of the above — a planned interaction, declared, not discovered |
 | `neat_no_speciation` | `n_species` 5 → **1** |
 | `neat_no_crossover` | mutation only |
-| `neat_deep_narrow` | population 100 → **25**, generations ×4, candidate budget held |
+| `neat_deep_narrow` | population 100 → **25**, generations ×4, candidate budget held. **Compound:** see below |
 | `fixed_mixed_matched` | the yardstick: a fixed 32×32 heterogeneous-operator network at the reference's realized gradient budget |
 
 ### Three geometries, not five
@@ -60,6 +60,21 @@ condition, contributing nothing except to drag two hypotheses below their task
 thresholds. v5 keeps spirals, checkerboard and the 3-arm spiral — the three on
 which v3 and v4 separated conditions at all — and says so in the contract rather
 than discovering it again afterwards.
+
+### `neat_deep_narrow` is a compound arm, and is declared as one
+
+Holding the candidate budget while quartering the population necessarily
+quadruples the generations, and it also shrinks each species: with
+`n_species = 5`, a population of 100 gives about twenty individuals per species
+and a population of 25 gives about five. Species-level competition, the
+extinction draw and the per-species quota all behave differently at that size.
+
+The two cannot be separated — holding species size constant would mean changing
+`n_species` with the population, which is a third change. So this arm answers
+"does trading width for depth help, at a fixed evaluation budget" and **does
+not** isolate depth from species granularity. Any effect it shows is attributed
+to the trade as a whole, and the preregistered hypotheses do not name it as
+evidence about depth alone.
 
 ### Everything else is held
 
