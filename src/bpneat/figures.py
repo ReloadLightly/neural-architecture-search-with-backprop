@@ -24,10 +24,23 @@ from .analysis import load_final_test, load_runs, operation_usage, paired_effect
 from .conditions import CORE_CONDITIONS, SUCCESS_THRESHOLD  # noqa: E402
 from .datasets import make_bundle  # noqa: E402
 
-from .style import DPI, GRID, INK, SERIES, SURFACE  # noqa: E402
+from .style import (  # noqa: E402
+    CLASS_COLOURS,
+    CONTROL_MATCHED,
+    GRID,
+    INK,
+    OP_COLOUR,
+    SEARCH_PRIMARY,
+    SEARCH_SECONDARY,
+    SURFACE,
+    colour_of,
+    save,
+)
 from .style import INK2 as INK_2  # noqa: E402  (this module's long-standing name)
 from .style import style_axes  # noqa: E402
-CONDITION_COLOR = dict(zip(CORE_CONDITIONS, SERIES))
+#: Colour by what the condition *is*, not by where it sits in a list, and from
+#: the same table every other protocol uses.
+CONDITION_COLOR = {c: colour_of(c) for c in CORE_CONDITIONS}
 LABEL = {
     "backprop_neat": "Backprop-NEAT",
     "homogeneous_tanh": "Homog. tanh",
@@ -62,16 +75,12 @@ def _fig(nrows=1, ncols=1, figsize=(10, 4.2)):
 
 
 def _save(fig, path: Path, bottom: float | None = None) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
     if bottom is None:
-        fig.tight_layout()
-    else:
-        # Rotated category labels overflow the axes, so reserve the margin
-        # explicitly instead of letting tight_layout fight the annotations.
-        fig.subplots_adjust(bottom=bottom, top=0.84, left=0.075, right=0.985, wspace=0.22)
-    fig.savefig(path, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
-    return path
+        return save(fig, path)
+    # Rotated category labels overflow the axes, so reserve the margin
+    # explicitly instead of letting tight_layout fight the annotations.
+    return save(fig, path, bottom=bottom, top=0.84, left=0.075, right=0.985,
+                wspace=0.22)
 
 
 # --------------------------------------------------------------------------
@@ -82,7 +91,7 @@ def task_geometries(out: Path) -> Path:
     for ax, task in zip(axes, TASKS):
         b = make_bundle(task, seed=8101)
         X, y = b.train.X, b.train.y
-        for cls, colour in ((0, SERIES[0]), (1, SERIES[1])):
+        for cls, colour in enumerate(CLASS_COLOURS):
             m = y == cls
             ax.scatter(X[m, 0], X[m, 1], s=13, c=colour, linewidths=0, alpha=0.85,
                        label=f"class {cls}")
@@ -129,8 +138,9 @@ def track_contrast(rows_a: list[dict], rows_b: list[dict], out: Path) -> Path:
         x = np.arange(len(conds))
         va = [a[(task, c)]["validation_accuracy_mean"] for c in conds]
         vb = [b[(task, c)]["validation_accuracy_mean"] for c in conds]
-        ax.bar(x - 0.2, va, width=0.38, color=SERIES[0], label="Track A — ha2016")
-        ax.bar(x + 0.2, vb, width=0.38, color=SERIES[1], label="Track B — settled")
+        # Two propagation rules for the same search: one family, two values.
+        ax.bar(x - 0.2, va, width=0.38, color=SEARCH_PRIMARY, label="Track A — ha2016")
+        ax.bar(x + 0.2, vb, width=0.38, color=SEARCH_SECONDARY, label="Track B — settled")
         for xi, v in zip(x - 0.2, va):
             ax.text(xi, v + 0.03, f"{v:.2f}", ha="center", fontsize=7.5, color=INK)
         for xi, v in zip(x + 0.2, vb):
@@ -155,7 +165,9 @@ def paired_effects_figure(effects: list[dict], out: Path, track: str) -> Path:
         y = np.arange(len(items))
         for yi, e in zip(y, items):
             lo, hi = e["ci95_low"], e["ci95_high"]
-            colour = SERIES[0] if e["mean_difference"] > 0 else SERIES[1]
+            # Above zero the search is ahead, below it the control is; that is
+            # the project's one diverging encoding, so it uses its two anchors.
+            colour = SEARCH_PRIMARY if e["mean_difference"] > 0 else CONTROL_MATCHED
             ax.plot([lo, hi], [yi, yi], color=colour, linewidth=2.4, solid_capstyle="round")
             ax.plot(e["mean_difference"], yi, "o", color=colour, markersize=8,
                     markeredgecolor=SURFACE, markeredgewidth=1.6)
@@ -185,8 +197,11 @@ def represented_vs_causal(rows: list[dict], out: Path, track: str) -> Path:
         x = np.arange(len(conds))
         rep = [by[(task, c)]["represented_nodes_mean"] - 4 for c in conds]
         cau = [by[(task, c)]["causal_hidden_nodes_mean"] for c in conds]
-        ax.bar(x - 0.2, rep, width=0.38, color=SERIES[0], label="represented hidden")
-        ax.bar(x + 0.2, cau, width=0.38, color=SERIES[2], label="causally active")
+        # Carried structure against the structure that actually computes: the
+        # same quantity at two depths, so one hue at two values.
+        ax.bar(x - 0.2, rep, width=0.38, color=SEARCH_SECONDARY,
+               label="represented hidden")
+        ax.bar(x + 0.2, cau, width=0.38, color=SEARCH_PRIMARY, label="causally active")
         for xi, v in zip(x - 0.2, rep):
             ax.text(xi, v + 0.4, f"{v:.0f}", ha="center", fontsize=7.5, color=INK)
         for xi, v in zip(x + 0.2, cau):
@@ -211,8 +226,10 @@ def operator_usage(runs: list[dict], out: Path, track: str) -> Path:
         frac[u["task"]][u["operator"]] = u["fraction"]
     x = np.arange(len(TASKS))
     bottom = np.zeros(len(TASKS))
-    palette = (SERIES * 3)[: len(ops)]
-    for op, colour in zip(ops, palette):
+    # Operators have their own fixed hues; cycling a six-slot series over them
+    # meant the same operator changed colour between figures.
+    for op in ops:
+        colour = OP_COLOUR[op]
         vals = np.array([frac[t].get(op, 0.0) for t in TASKS])
         ax.bar(x, vals, width=0.6, bottom=bottom, color=colour, label=op,
                edgecolor=SURFACE, linewidth=2)

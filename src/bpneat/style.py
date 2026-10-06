@@ -28,6 +28,7 @@ paper shows them.
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
 
 # --------------------------------------------------------------------------
@@ -84,6 +85,93 @@ LEGEND_SIZE = 8.5
 #: Raster density for every committed figure.
 DPI = 170
 
+# --------------------------------------------------------------------------
+# Typeface
+# --------------------------------------------------------------------------
+#
+# Matplotlib's stock DejaVu Sans is the single loudest signal that a figure was
+# not designed, and no amount of palette work survives it. The project ships two
+# OFL faces in `assets/fonts` and registers them here, so the figures render the
+# same on this machine, in CI and on anyone's checkout — a system font would
+# make the committed PNGs depend on the machine that drew them, which for a
+# repository whose whole point is reproducibility would be the wrong trade.
+#
+#   Source Serif 4 Display — titles. A text face with real display cuts, so a
+#     suptitle reads as a statement rather than as a larger label.
+#   Source Sans 3 — axes, ticks, values. Lining figures of even width, which is
+#     what a column of numbers beside a bar needs.
+
+FONT_DIR = Path(__file__).resolve().parents[2] / "assets" / "fonts"
+
+#: Families, in the order a renderer should try them. DejaVu stays last so a
+#: checkout without the bundled files still produces a figure rather than an
+#: exception; `tests/test_style.py` checks the bundled files are there.
+DISPLAY_FAMILY = ["Source Serif 4 Display", "Source Serif 4", "DejaVu Serif"]
+TEXT_FAMILY = ["Source Sans 3", "DejaVu Sans"]
+
+
+def _register_fonts() -> None:
+    """Make the bundled faces visible to matplotlib, once per process."""
+    from matplotlib import font_manager
+
+    if not FONT_DIR.is_dir():
+        return
+    known = {f.fname for f in font_manager.fontManager.ttflist}
+    for path in sorted(FONT_DIR.glob("*.ttf")):
+        if str(path) not in known:
+            font_manager.fontManager.addfont(str(path))
+
+
+def use_project_typography() -> None:
+    """Install the project's type on the global rcParams.
+
+    Called at import, so a module that does nothing but ``import bpneat.style``
+    already draws in the right face. Sizes still come from the tokens below;
+    this sets family, weight and the small metrics that rcParams owns.
+    """
+    import matplotlib as mpl
+
+    _register_fonts()
+    mpl.rcParams.update({
+        "font.family": "sans-serif",
+        "font.sans-serif": TEXT_FAMILY,
+        "font.serif": DISPLAY_FAMILY,
+        "font.size": LABEL_SIZE,
+        "axes.titlesize": PANEL_TITLE_SIZE,
+        "axes.labelsize": LABEL_SIZE,
+        "xtick.labelsize": TICK_SIZE,
+        "ytick.labelsize": TICK_SIZE,
+        "legend.fontsize": LEGEND_SIZE,
+        "figure.titlesize": TITLE_SIZE,
+        "axes.titlecolor": INK,
+        "axes.labelcolor": INK2,
+        "text.color": INK,
+        "xtick.color": INK2,
+        "ytick.color": INK2,
+        "xtick.labelcolor": INK2,
+        "ytick.labelcolor": INK2,
+        # Ticks are a ruler, not a feature: short, thin and the label's colour.
+        "xtick.major.size": 3.0,
+        "ytick.major.size": 3.0,
+        "xtick.major.width": 0.7,
+        "ytick.major.width": 0.7,
+        "axes.linewidth": 0.8,
+        "legend.frameon": False,
+        "figure.facecolor": SURFACE,
+        "savefig.facecolor": SURFACE,
+        "axes.facecolor": SURFACE,
+        "figure.dpi": DPI,
+        "savefig.dpi": DPI,
+    })
+
+
+use_project_typography()
+
+
+def display_font(size: float, weight: str = "regular") -> dict:
+    """Keyword arguments for a title set in the display face."""
+    return {"family": DISPLAY_FAMILY, "fontsize": size, "fontweight": weight}
+
 
 def boundary_cmap():
     """The diverging ramp as a matplotlib colormap."""
@@ -134,12 +222,30 @@ def suptitle(fig, text: str, size: float = TITLE_SIZE) -> None:
     fig.suptitle(text, color=INK, fontsize=size)
 
 
+def typeset(fig) -> None:
+    """Put the figure's headline and panel titles into the display face.
+
+    Done here, at the single exit every figure passes through, rather than at
+    the ~60 call sites that pass ``fontsize=`` literals. A module can still say
+    how big a title is; it cannot say what it is set in, which is the part that
+    has to be the same everywhere.
+    """
+    sup = fig.get_suptitle()
+    if sup:
+        fig._suptitle.set_fontfamily(DISPLAY_FAMILY)
+        fig._suptitle.set_color(INK)
+        # A headline is a statement; give it room to breathe above the panels.
+        fig._suptitle.set_linespacing(1.45)
+    for ax in fig.axes:
+        if ax.get_title():
+            ax.title.set_fontfamily(DISPLAY_FAMILY)
+
+
 def save(fig, path, **adjust) -> Any:
     """Write a figure at the project's density, onto the project's surface."""
-    from pathlib import Path
-
     import matplotlib.pyplot as plt
 
+    typeset(fig)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     if adjust:
@@ -292,10 +398,13 @@ def ramp(role: str, n: int) -> list[str]:
     if n <= 1:
         return [base]
     rgb = np.array(mcolors.to_rgb(base))
-    # Toward white and toward black, never past either.
+    # Toward black and toward white, but not far enough toward white to fall
+    # below the palest colour this project already validated: SEARCH_NULL sits
+    # at 2.34:1 against the surface, and the pale end of a ramp lands at 2.25:1,
+    # which is the same perceptual territory rather than a new concession.
     out = []
     for i in range(n):
-        t = i / (n - 1) * 1.1 - 0.42
+        t = i / (n - 1) * 0.66 - 0.26
         mixed = rgb + (1.0 - rgb) * t if t > 0 else rgb * (1.0 + t)
         out.append(mcolors.to_hex(np.clip(mixed, 0.0, 1.0)))
     return out
@@ -347,3 +456,15 @@ PLATE_DPI = 200
 def plate_accent(op_name: str) -> str:
     """The accent for an operator, or bone for anything unnamed."""
     return PLATE_ACCENT.get(op_name, PLATE_BONE)
+
+
+def within(role: str, members) -> dict[str, str]:
+    """Distinct lightness steps inside one role, keyed by member name.
+
+    Use this only where the members are genuinely *ordered* — v5's NEAT arms
+    sorted by how much complexification the manipulation permits, say. A
+    sequential ramp over an unordered set would imply a progression that is
+    not there, which is the failure this whole module exists to prevent.
+    """
+    members = list(members)
+    return dict(zip(members, ramp(role, len(members))))

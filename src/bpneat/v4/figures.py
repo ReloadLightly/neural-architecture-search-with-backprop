@@ -1,9 +1,17 @@
 """v4 figures, rendered from the raw records.
 
-Same conventions as v3: the validated categorical order (adjacent-pair CVD
-ΔE 9.1), colour never carrying identity alone, and a CSV beside every figure in
-the release. Where a panel shows more series than the palette has hues, colour
-is paired with a marker shape so no hue is reused.
+Colour here is semantic, not positional. Every condition in this protocol is
+either something we searched for or something we fixed in advance, so blue
+means "searched" and orange means "fixed", with the ordered distinctions inside
+each family carried as lightness. The condition-to-colour table lives in
+``bpneat.style`` and is shared with every other protocol, so a condition cannot
+be one colour here and another in the README.
+
+The scheme this replaced assigned colour by row index over a six-slot
+categorical palette. With eight conditions it cycled: Backprop-NEAT and "fixed
+mixed @ CGP budget" came out the same blue, and the same control changed hue
+between figures. Every row was already labelled, so the hue carried nothing and
+actively misled.
 """
 
 from __future__ import annotations
@@ -18,14 +26,18 @@ import numpy as np  # noqa: E402
 
 from ..style import (  # noqa: E402
     BAD,
-    DPI,
+    CONTROL_BEST,
+    CONTROL_RAMP,
     GOOD,
     GRID,
     INK,
     INK2,
     NEUTRAL,
-    SERIES,
+    SEARCH_PRIMARY,
     SURFACE,
+    colour_of,
+    role_of,
+    save,
     style_axes,
 )
 from .analysis import (  # noqa: E402
@@ -52,21 +64,37 @@ LABEL = {
 }
 from ..style import TASK_LABEL  # noqa: E402
 
-#: One (hue, marker) pair per condition, so eight series never cycle a hue.
-STYLE = {
-    "bpneat": (SERIES[0], "o"),
-    "cgp": (SERIES[1], "s"),
-    "fixed_tanh_ha": (SERIES[2], "^"),
-    "fixed_tanh_matched_bpneat": (SERIES[3], "D"),
-    "fixed_mixed_matched_bpneat": (SERIES[4], "v"),
-    "fixed_tanh_matched_cgp": (SERIES[5], "P"),
-    "fixed_mixed_matched_cgp": (SERIES[0], "X"),
-    "cgp_random_matched": (SERIES[1], "*"),
+#: Marker shapes. Colour comes from the condition's role, so two conditions
+#: that *are* the same architecture at two budgets share a hue on purpose; the
+#: marker and the label separate them, and the shared hue says what is true.
+MARKER = {
+    "bpneat": "o",
+    "cgp": "s",
+    "fixed_tanh_ha": "^",
+    "fixed_tanh_matched_bpneat": "D",
+    "fixed_mixed_matched_bpneat": "v",
+    "fixed_tanh_matched_cgp": "P",
+    "fixed_mixed_matched_cgp": "X",
+    "cgp_random_matched": "*",
 }
 
+STYLE = {c: (colour_of(c), MARKER[c]) for c in LABEL}
+
+#: The reading order of `fig_accuracy_by_task`: the searched block, then the
+#: fixed block, each in its own order. Grouping the bars by what they are is
+#: what makes a shared hue legible instead of ambiguous.
+READING_ORDER = [
+    "bpneat", "cgp", "cgp_random_matched",
+    "fixed_tanh_ha",
+    "fixed_tanh_matched_bpneat", "fixed_tanh_matched_cgp",
+    "fixed_mixed_matched_bpneat", "fixed_mixed_matched_cgp",
+]
+
+#: A verdict is not a value judgement: "the fixed network won" is a result, not
+#: a failure, so it gets the control family's colour rather than the error red.
 SIGN_COLOUR = {
-    "search>fixed": SERIES[0],
-    "fixed>search": BAD,
+    "search>fixed": SEARCH_PRIMARY,
+    "fixed>search": CONTROL_BEST,
     "ns": NEUTRAL,
     "n/a": SURFACE,
 }
@@ -90,14 +118,9 @@ def _fig(nrows=1, ncols=1, figsize=(10, 4.2)):
 
 
 def _save(fig, path: Path, **kw):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if kw:
-        fig.subplots_adjust(**kw)
-    else:
-        fig.tight_layout()
-    fig.savefig(path, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
-    return path
+    # One exit for every figure in the module, so the typographic pass in
+    # `style.save` cannot be forgotten at a call site.
+    return save(fig, path, **kw)
 
 
 def _test_or_val(row) -> float:
@@ -148,10 +171,20 @@ def fig_sign_matrix(signs: list[dict], out: Path) -> Path:
 
 
 def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
-    """Every condition on every task, with the two references marked."""
+    """Every condition on every task, read as two families against chance.
+
+    Dots on a stem from chance, not bars from an arbitrary floor. These are
+    accuracies on balanced binary tasks, so the meaningful origin is 0.5 and
+    not 0; a bar drawn from 0.4 would make a 0.99 and a 0.97 look like the same
+    full block, which is exactly what the earlier version did on XOR and
+    Circles. With a dot, position carries the value and the axis may start
+    where the data live.
+    """
     by = {(r["task"], r["condition"]): r for r in summary}
-    conds = list(LABEL)
-    fig, axes = _fig(1, len(ALL_TASKS), figsize=(16, 4.4))
+    conds = READING_ORDER
+    split = sum(1 for c in conds if role_of(c).startswith("search"))
+    chance = 0.5
+    fig, axes = _fig(1, len(ALL_TASKS), figsize=(16, 4.6))
     for ax, task in zip(np.atleast_1d(axes).ravel(), ALL_TASKS):
         vals, colours = [], []
         for c in conds:
@@ -159,28 +192,49 @@ def fig_accuracy_by_task(summary: list[dict], out: Path) -> Path:
             vals.append(_test_or_val(row) if row else np.nan)
             colours.append(STYLE[c][0])
         y = np.arange(len(conds))
-        ax.barh(y, vals, color=colours, height=0.7)
-        for yi, v in zip(y, vals):
-            if np.isfinite(v):
-                ax.text(v + 0.012, yi, f"{v:.3f}", va="center", fontsize=7, color=INK2)
+        ax.axvline(chance, color=INK2, linewidth=0.9, linestyle=(0, (4, 3)),
+                   zorder=1)
+        for yi, v, colour in zip(y, vals, colours):
+            if not np.isfinite(v):
+                continue
+            ax.plot([chance, v], [yi, yi], color=colour, linewidth=2.0,
+                    alpha=0.5, solid_capstyle="round", zorder=2)
+            ax.plot(v, yi, "o", color=colour, markersize=8.5,
+                    markeredgecolor=SURFACE, markeredgewidth=1.4, zorder=3)
+            ax.text(v + 0.018, yi, f"{v:.3f}", va="center", fontsize=7.5,
+                    color=INK2, zorder=4)
         ax.set_yticks(y)
         ax.set_yticklabels(
             [LABEL[c] + ("  *" if c in ("bpneat", "cgp") else "") for c in conds],
-            fontsize=7, color=INK2,
+            fontsize=7.5, color=INK2,
         )
         ax.invert_yaxis()
-        ax.set_xlim(0.4, 1.09)
+        ax.set_ylim(len(conds) - 0.4, -1.05)
+        ax.set_xlim(chance - 0.03, 1.10)
+        ax.set_xticks([0.5, 0.6, 0.7, 0.8, 0.9, 1.0])
+        # The two families, separated by a rule rather than by eight hues.
+        ax.axhline(split - 0.5, color=INK2, linewidth=0.8, alpha=0.5)
         ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
         ax.grid(axis="x", color=GRID, linewidth=0.8)
         ax.grid(axis="y", visible=False)
-        if task != ALL_TASKS[0]:
+        if task == ALL_TASKS[0]:
+            ax.text(chance, -0.9, " chance", ha="left", va="center",
+                    fontsize=7.5, color=INK2, style="italic")
+        else:
             ax.set_yticklabels([])
+    # Family labels in the left margin, outside every panel.
+    for frac, text, colour in (
+        (0.80, "searched", SEARCH_PRIMARY),
+        (0.42, "fixed in advance", CONTROL_BEST),
+    ):
+        fig.text(0.012, frac, text, rotation=90, ha="left", va="center",
+                 fontsize=9, color=colour)
     fig.suptitle(
-        "Sealed-test accuracy by condition. * marks a search algorithm; "
-        "every other bar is a fixed architecture.",
+        "Sealed-test accuracy by condition. Blue was found by a search; "
+        "orange was fixed before the run. * marks a search algorithm.",
         color=INK, fontsize=11,
     )
-    return _save(fig, out, top=0.86, bottom=0.07, left=0.145, right=0.99, wspace=0.08)
+    return _save(fig, out, top=0.86, bottom=0.08, left=0.175, right=0.99, wspace=0.08)
 
 
 def fig_reversal(effects: list[dict], out: Path) -> Path:
@@ -209,19 +263,40 @@ def fig_reversal(effects: list[dict], out: Path) -> Path:
                 lo.append(e["median_difference"] - e["ci95_low"])
                 hi.append(e["ci95_high"] - e["median_difference"])
                 sig.append(e.get("holm_p", e["wilcoxon_p"]) < 0.05)
-            colour = [SERIES[ci] if s else NEUTRAL for s in sig]
-            ax.bar(xs, med, width=width * 0.9, color=colour,
-                   yerr=[lo, hi], ecolor=INK2, capsize=2, error_kw={"linewidth": 0.9},
-                   label=LABEL[ctl])
+            # starved -> matched -> strongest, which is exactly CONTROL_RAMP.
+            # Significance is a *second* variable, so it gets a second channel:
+            # a bar that did not reach significance is drawn hollow in its own
+            # colour rather than greyed out, which previously erased the
+            # control's identity on most of the panel.
+            colour = CONTROL_RAMP[ci]
+            ax.bar(xs, med, width=width * 0.9,
+                   color=[colour if s else SURFACE for s in sig],
+                   edgecolor=colour, linewidth=1.1,
+                   yerr=[lo, hi], ecolor=INK2, capsize=2,
+                   error_kw={"linewidth": 0.9})
+        # Legend handles built explicitly: matplotlib takes a bar container's
+        # legend colour from its first patch, which here is whichever task
+        # happened to come first — in the previous version that made the key
+        # read grey/grey/orange while the series were three different colours.
+        ax.legend(
+            handles=[
+                plt.Rectangle((0, 0), 1, 1, facecolor=CONTROL_RAMP[ci],
+                              edgecolor=CONTROL_RAMP[ci], label=LABEL[ctl])
+                for ci, ctl in enumerate(controls)
+            ] + [
+                plt.Rectangle((0, 0), 1, 1, facecolor=SURFACE, edgecolor=INK2,
+                              label="not significant (Holm)")
+            ],
+            fontsize=7.5, frameon=False, loc="lower left", ncol=1,
+        )
         ax.axhline(0.0, color=INK, linewidth=1.0)
         ax.set_xticks(range(len(ALL_TASKS)))
         ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
         ax.set_ylabel("median paired difference\n(search − fixed)", fontsize=8, color=INK2)
         ax.set_title(spec["algorithm"], color=INK, fontsize=10)
-        ax.legend(fontsize=7, frameon=False, loc="lower left", ncol=1)
     fig.suptitle(
-        "The reversal, both algorithms. Grey bars are not significant after Holm "
-        "correction in that algorithm's own family.",
+        "The reversal, both algorithms. A hollow bar did not reach significance "
+        "after Holm correction in that algorithm's own family.",
         color=INK, fontsize=11,
     )
     return _save(fig, out, top=0.85, bottom=0.11, left=0.085, right=0.985, wspace=0.22)
@@ -240,6 +315,11 @@ def fig_budget(budgets: list[dict], out: Path) -> Path:
         colour, _ = STYLE[c]
         ax.bar(xs, vals, width=width * 0.9, color=colour, label=LABEL[c])
     ax.set_yscale("log")
+    # A bar on a log axis measures from wherever autoscale put the floor, which
+    # is not a number anyone declared. Pin it to one gradient update, so a bar's
+    # length is "orders of magnitude above doing nothing" and the two-decade gap
+    # the title claims is the gap the reader sees.
+    ax.set_ylim(1, None)
     ax.set_xticks(range(len(ALL_TASKS)))
     ax.set_xticklabels([TASK_LABEL[t] for t in ALL_TASKS], fontsize=8, color=INK2)
     ax.set_ylabel("gradient updates per run (log)", fontsize=8, color=INK2)
@@ -262,9 +342,11 @@ def fig_cross_algorithm(cross: list[dict], out: Path) -> Path:
                        abs(r["median_matching_effect_cgp"])]))
         for r in cross
     ]
-    ax.bar(xs - 0.19, between, width=0.34, color=SERIES[4],
+    # Which algorithm you run is a question about the search (blue); how much
+    # budget the control gets is a question about the protocol (orange).
+    ax.bar(xs - 0.19, between, width=0.34, color=SEARCH_PRIMARY,
            label="|CGP − Backprop-NEAT|")
-    ax.bar(xs + 0.19, protocol, width=0.34, color=SERIES[0],
+    ax.bar(xs + 0.19, protocol, width=0.34, color=CONTROL_BEST,
            label="|effect of matching the budget| (mean of the two)")
     for x, b, p in zip(xs, between, protocol):
         ax.text(x - 0.19, b + 0.004, f"{b:.3f}", ha="center", fontsize=7, color=INK2)
@@ -286,14 +368,19 @@ def fig_hypotheses(hyp: list[dict], out: Path) -> Path:
     ax.grid(False)
     for i, h in enumerate(reversed(hyp)):
         good = h["verdict"] == "holds"
+        # A thin rule in the margin, not a 110px block of saturated colour:
+        # the verdict is one bit and it is already written out in words at the
+        # end of the row, so it needs a mark, not a field.
         ax.add_patch(
-            plt.Rectangle((0, i - 0.38), 0.06, 0.76,
-                          facecolor=GOOD if good else BAD, edgecolor=SURFACE)
+            plt.Rectangle((0, i - 0.38), 0.006, 0.76,
+                          facecolor=GOOD if good else BAD, edgecolor="none")
         )
-        ax.text(0.09, i + 0.14, f"{h['hypothesis']}  {h['statement']}",
-                fontsize=9, color=INK, va="center")
-        ax.text(0.09, i - 0.19, f"rule: {h['decision_rule']}   ·   observed: {h['observed']}",
-                fontsize=7.5, color=INK2, va="center")
+        ax.text(0.022, i + 0.14, f"{h['hypothesis']}  {h['statement']}",
+                fontsize=9.5, color=INK, va="center")
+        ax.text(0.022, i - 0.19,
+                f"rule: {h['decision_rule']}   ·   observed: {h['observed']}",
+                fontsize=8, color=INK2, va="center")
+        ax.axhline(i - 0.5, color=GRID, linewidth=0.7)
         ax.text(0.985, i, h["verdict"], fontsize=9, color=GOOD if good else BAD,
                 ha="right", va="center", fontweight="bold")
     ax.set_xlim(0, 1)
@@ -343,7 +430,7 @@ def fig_cgp_structure(runs: list[dict], out: Path) -> Path:
     vals = [neutral.get(t, []) for t in ALL_TASKS]
     parts = ax.violinplot([v or [0] for v in vals], showmedians=True, widths=0.8)
     for body in parts["bodies"]:
-        body.set_facecolor(SERIES[1])
+        body.set_facecolor(colour_of("cgp"))
         body.set_alpha(0.55)
         body.set_edgecolor(INK2)
     for key in ("cmins", "cmaxes", "cbars", "cmedians"):

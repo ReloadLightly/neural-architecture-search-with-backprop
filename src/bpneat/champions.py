@@ -343,13 +343,24 @@ def topology_layout(
 
 def _plotting():
     """Deferred import so the computation above stays plot-free."""
-    from .figures import GRID, INK, INK_2, SERIES, SURFACE, TASK_LABEL, _fig, _save, _style
+    from .figures import GRID, INK, INK_2, SURFACE, TASK_LABEL, _fig, _save, _style
+    from .style import (
+        BOUNDARY_COLOURS,
+        CLASS_COLOURS,
+        CONTROL_MATCHED,
+        OP_COLOUR,
+        SEARCH_PRIMARY,
+    )
 
     return {
         "GRID": GRID,
         "INK": INK,
         "INK_2": INK_2,
-        "SERIES": SERIES,
+        "BOUNDARY_COLOURS": BOUNDARY_COLOURS,
+        "CLASS_COLOURS": CLASS_COLOURS,
+        "CONTROL_MATCHED": CONTROL_MATCHED,
+        "OP_COLOUR": OP_COLOUR,
+        "SEARCH_PRIMARY": SEARCH_PRIMARY,
         "SURFACE": SURFACE,
         "TASK_LABEL": TASK_LABEL,
         "_fig": _fig,
@@ -377,7 +388,8 @@ def champion_boundaries(release_dir: Path, out: Path, track_dir: str = "track-b"
     # The field is washed out and the points are saturated with a dark edge, so
     # a class-1 point stays readable where the model also predicts class 1.
     cmap = mcolors.LinearSegmentedColormap.from_list(
-        "bpneat-boundary", [_pale(s["SERIES"][0]), "#ffffff", _pale(s["SERIES"][1])]
+        "bpneat-boundary",
+        [_pale(s["BOUNDARY_COLOURS"][0]), "#ffffff", _pale(s["BOUNDARY_COLOURS"][2])],
     )
     marker = {0: "o", 1: "^"}
     tasks = [t for t in TASKS if t in chosen]
@@ -394,7 +406,7 @@ def champion_boundaries(release_dir: Path, out: Path, track_dir: str = "track-b"
             levels=[0.5], colors=[s["INK"]], linewidths=1.3, zorder=1,
         )
         X, y = field["train_X"], field["train_y"]
-        for cls, colour in ((0, s["SERIES"][0]), (1, s["SERIES"][1])):
+        for cls, colour in enumerate(s["CLASS_COLOURS"]):
             m = y == cls
             ax.scatter(
                 X[m, 0], X[m, 1], s=17, c=colour, marker=marker[cls],
@@ -436,7 +448,9 @@ def champion_topologies(release_dir: Path, out: Path, track_dir: str = "track-b"
     operators = sorted(
         {n["operator"] for lay in layouts.values() for n in lay["nodes"] if not n["structural"]}
     )
-    palette = dict(zip(operators, (s["SERIES"] * 3)[: len(operators)]))
+    # Operators have fixed hues shared with every other figure; cycling a
+    # six-slot series over them made the same operator change colour.
+    palette = {op: s["OP_COLOUR"][op] for op in operators}
 
     fig, axes = s["_fig"](1, len(tasks), figsize=(3.9 * len(tasks), 4.8))
     for ax, task in zip(np.atleast_1d(axes).ravel(), tasks):
@@ -539,7 +553,8 @@ def paired_test_loss(release_dir: Path, out: Path, track_dir: str = "track-b") -
             lo, hi = e["ci95_low"], e["ci95_high"]
             # Loss: negative favours Backprop-NEAT, so the colours carry the
             # opposite sense to the accuracy version of this figure.
-            colour = s["SERIES"][0] if e["mean_difference"] < 0 else s["SERIES"][1]
+            colour = (s["SEARCH_PRIMARY"] if e["mean_difference"] < 0
+                      else s["CONTROL_MATCHED"])
             ax.plot([lo, hi], [yi, yi], color=colour, linewidth=2.4, solid_capstyle="round")
             ax.plot(
                 e["mean_difference"], yi, "o", color=colour, markersize=8,

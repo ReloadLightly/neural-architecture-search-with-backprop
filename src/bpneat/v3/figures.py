@@ -17,14 +17,18 @@ import numpy as np  # noqa: E402
 
 from ..style import (  # noqa: E402
     BAD,
-    DPI,
+    CLASS_COLOURS,
+    CONTROL_BEST,
     GOOD,
     GRID,
     INK,
     INK2,
     NEUTRAL,
-    SERIES,
+    SEARCH_NULL,
+    SEARCH_PRIMARY,
     SURFACE,
+    colour_of,
+    save,
     style_axes,
 )
 from .analysis import (  # noqa: E402
@@ -66,21 +70,16 @@ def _fig(nrows=1, ncols=1, figsize=(10, 4.2)):
 
 
 def _save(fig, path: Path, **kw):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    if kw:
-        fig.subplots_adjust(**kw)
-    else:
-        fig.tight_layout()
-    fig.savefig(path, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
-    return path
+    # One exit for every figure in the module, so the typographic pass in
+    # `style.save` cannot be forgotten at a call site.
+    return save(fig, path, **kw)
 
 
 def task_geometries(out: Path) -> Path:
     fig, axes = _fig(1, 5, figsize=(15, 3.3))
     for ax, task in zip(axes, TASKS):
         b = make_bundle(task, seed=30001)
-        for cls, c in ((0, SERIES[0]), (1, SERIES[1])):
+        for cls, c in enumerate(CLASS_COLOURS):
             m = b.train.y == cls
             ax.scatter(b.train.X[m, 0], b.train.X[m, 1], s=11, c=c, linewidths=0, alpha=0.85)
         ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
@@ -136,15 +135,19 @@ def stability(matrix: list[dict], out: Path) -> Path | None:
 #: Eight conditions over a six-hue validated palette. Hues are never cycled —
 #: a repeated hue is disambiguated by marker shape, so every condition has a
 #: unique (colour, marker) pair and identity never rests on colour alone.
+#: Shape per condition; colour comes from the condition's role, so a reader who
+#: learns "blue is a search, orange is a fixed network" on one figure keeps it
+#: on every other. Two conditions share a hue only where they are the same kind
+#: of thing, and the marker separates them.
 BLOCK_A_STYLE = {
-    "backprop_neat": (0, "o"),
-    "fixed_mlp_tanh_ha": (1, "o"),
-    "fixed_mlp_tanh_matched": (2, "o"),
-    "fixed_mlp_sin_matched": (3, "o"),
-    "fixed_mlp_mixed_matched": (4, "o"),
-    "random_search_matched": (5, "o"),
-    "homogeneous_tanh": (0, "s"),
-    "evolution_only": (1, "s"),
+    "backprop_neat": "o",
+    "fixed_mlp_tanh_ha": "^",
+    "fixed_mlp_tanh_matched": "v",
+    "fixed_mlp_sin_matched": "P",
+    "fixed_mlp_mixed_matched": "X",
+    "random_search_matched": "*",
+    "homogeneous_tanh": "s",
+    "evolution_only": "D",
 }
 
 BLOCK_A = (
@@ -179,10 +182,10 @@ def budget_vs_accuracy(summary: list[dict], out: Path) -> Path:
             r = by.get((task, c))
             if r is None or "test_accuracy_mean" not in r:
                 continue
-            slot, marker = BLOCK_A_STYLE[c]
+            marker = BLOCK_A_STYLE[c]
             x = max(r["gradient_steps_mean"], 1)
             y = r["test_accuracy_mean"]
-            (h,) = ax.plot(x, y, marker, markersize=9, color=SERIES[slot],
+            (h,) = ax.plot(x, y, marker, markersize=9, color=colour_of(c),
                            markeredgecolor=SURFACE, markeredgewidth=1.5)
             handles.setdefault(LABEL[c], h)
             if c in ("fixed_mlp_tanh_ha", best_matched):
@@ -190,7 +193,10 @@ def budget_vs_accuracy(summary: list[dict], out: Path) -> Path:
                     f"{y:.3f}", (x, y), textcoords="offset points",
                     xytext=(0, 11), ha="center", fontsize=8, color=INK,
                 )
+        # Explicit ticks: with linthresh=1000 the 0 tick and the 10^2 tick land
+        # a tenth of the linear segment apart and overprint into one glyph.
         ax.set_xscale("symlog", linthresh=1000)
+        ax.set_xticks([0, 1e3, 1e4, 1e5])
         ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
         ax.set_xlabel("realized gradient steps", color=INK2, fontsize=8)
         ax.set_ylim(0.45, 1.08)
@@ -210,14 +216,28 @@ def block_a_effects(effects: list[dict], out: Path) -> Path | None:
     if not rows:
         return None
     tasks = [t for t in TASKS if any(e["task"] == t for e in rows)]
-    fig, axes = _fig(1, len(tasks), figsize=(3.4 * len(tasks) + 2, 4.4))
+    # One row order for every panel, and one x range. Re-sorting inside each
+    # panel put the same condition at a different height in each, and letting
+    # each panel autoscale meant a +0.01 effect in XOR sat at the same screen
+    # position as a +0.08 effect in the 3-arm spiral.
+    order = sorted(
+        {e["condition"] for e in rows},
+        key=lambda c: np.median([e["median_difference"] for e in rows
+                                 if e["condition"] == c]),
+    )
+    span = max(abs(v) for e in rows for v in (e["ci95_low"], e["ci95_high"]))
+    fig, axes = _fig(1, len(tasks), figsize=(3.0 * len(tasks) + 2.2, 4.4))
     for ax, task in zip(np.atleast_1d(axes), tasks):
-        items = sorted([e for e in rows if e["task"] == task],
-                       key=lambda e: e["median_difference"])
+        by_cond = {e["condition"]: e for e in rows if e["task"] == task}
+        items = [by_cond[c] for c in order if c in by_cond]
         y = np.arange(len(items))
         for yi, e in zip(y, items):
             sig = e.get("holm_significant", False)
-            col = GOOD if e["median_difference"] > 0 else BAD
+            # Blue where the search is ahead, orange where the control is —
+            # the project's two families, not a green/red verdict. "The fixed
+            # network won" is a result, and colouring it as an error said
+            # otherwise.
+            col = SEARCH_PRIMARY if e["median_difference"] > 0 else CONTROL_BEST
             col = col if sig else NEUTRAL
             ax.plot([e["ci95_low"], e["ci95_high"]], [yi, yi], color=col, linewidth=2.6,
                     solid_capstyle="round")
@@ -225,15 +245,22 @@ def block_a_effects(effects: list[dict], out: Path) -> Path | None:
                     markeredgecolor=SURFACE, markeredgewidth=1.4)
         ax.axvline(0, color=INK2, linewidth=1)
         ax.set_yticks(y)
-        ax.set_yticklabels([LABEL.get(e["condition"], e["condition"]) for e in items],
-                           fontsize=7.5)
+        if task == tasks[0]:
+            ax.set_yticklabels(
+                [LABEL.get(e["condition"], e["condition"]) for e in items],
+                fontsize=8)
+        else:
+            ax.set_yticklabels([])
+        ax.set_xlim(-span * 1.08, span * 1.08)
         ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
         ax.grid(axis="y", visible=False)
         ax.grid(axis="x", color=GRID, linewidth=0.8)
     fig.suptitle("Block A: median paired difference in sealed-test accuracy "
-                 "(Backprop-NEAT − control); grey = not significant after Holm",
+                 "(Backprop-NEAT − control).\nBlue: the search is ahead. "
+                 "Orange: the fixed control is. Grey: not significant after Holm.",
                  color=INK, fontsize=10.5)
-    return _save(fig, out / "block-a-paired-effects.png")
+    return _save(fig, out / "block-a-paired-effects.png",
+                 top=0.85, bottom=0.08, left=0.155, right=0.99, wspace=0.08)
 
 
 def dose_response(dose: list[dict], out: Path) -> Path | None:
@@ -246,10 +273,15 @@ def dose_response(dose: list[dict], out: Path) -> Path | None:
         items = [d for d in dose if d["task"] == task and d["selection_intensity_mean"] != ""]
         items.sort(key=lambda d: d["selection_intensity_mean"])
         x = [d["selection_intensity_mean"] for d in items]
-        for j, (key, lab) in enumerate((("collapse_rate", "collapse rate"),
-                                        ("causal_hidden_nodes_mean", "causal hidden nodes"))):
+        # Two panels, two different measured quantities of one search. A failure
+        # rate is a failure rate, so it takes the project's warning colour; the
+        # size of what the search built takes the search colour.
+        for j, (key, lab, colour) in enumerate(
+            (("collapse_rate", "collapse rate", BAD),
+             ("causal_hidden_nodes_mean", "causal hidden nodes", SEARCH_PRIMARY))
+        ):
             ax = axes[ti * 2 + j]
-            ax.plot(x, [d[key] for d in items], "o-", color=SERIES[j], linewidth=2, markersize=7,
+            ax.plot(x, [d[key] for d in items], "o-", color=colour, linewidth=2, markersize=7,
                     markeredgecolor=SURFACE, markeredgewidth=1.3)
             for d in items:
                 if d["selector"] in ("roulette_s0.01", "v1_truncation"):
@@ -257,6 +289,15 @@ def dose_response(dose: list[dict], out: Path) -> Path | None:
                                 (d["selection_intensity_mean"], d[key]),
                                 textcoords="offset points", xytext=(0, 10),
                                 ha="center", fontsize=8, color=INK)
+            if key == "collapse_rate":
+                # Autoscale on an all-zero series produced a panel of negative
+                # collapse rates, which read as a measurement rather than a
+                # floor. The quantity is a share; show its whole domain.
+                ax.set_ylim(-0.02, 1.0)
+                if max(d[key] for d in items) == 0:
+                    ax.text(0.5, 0.5, "no run collapsed at any\nselection intensity",
+                            transform=ax.transAxes, ha="center", va="center",
+                            fontsize=8.5, color=INK2, style="italic")
             ax.set_xlabel("realized selection intensity", color=INK2, fontsize=8)
             ax.set_ylabel(lab, color=INK2, fontsize=8.5)
             ax.set_title(f"{TASK_LABEL[task]} — {lab}", color=INK, fontsize=9.5)
@@ -266,39 +307,69 @@ def dose_response(dose: list[dict], out: Path) -> Path | None:
 
 
 def propagation_grid(summary: list[dict], out: Path) -> Path | None:
-    """Block B: the 2x2 that v2 could not separate."""
+    """Block B: the 2x2 that v2 could not separate.
+
+    Two factors, so two visual channels: the propagation rule is the colour,
+    the fitness split is the position within a pair. The earlier version drew
+    all four bars in one blue and printed the collapse rate in white inside the
+    bar, where it was clipped against the axis whenever the bar was short — the
+    one number the figure exists to show was the one hardest to read.
+    """
     cells = {
         ("ha2016", "train"): "prop_ha_fit_train",
         ("ha2016", "validation"): "prop_ha_fit_val",
         ("settled", "train"): "prop_settled_fit_train",
         ("settled", "validation"): REFERENCE,
     }
+    #: One hue per propagation rule, two values of the search family: both are
+    #: searches, and the rule is the factor under test.
+    RULE_COLOUR = {"ha2016": SEARCH_NULL, "settled": SEARCH_PRIMARY}
     by = {(r["task"], r["condition"]): r for r in summary}
     tasks = [t for t in ("xor", "circle", "spiral")
              if all((t, c) in by for c in cells.values())]
     if not tasks:
         return None
-    fig, axes = _fig(1, len(tasks), figsize=(4.0 * len(tasks) + 1, 4.2))
+    fig, axes = _fig(1, len(tasks), figsize=(4.0 * len(tasks) + 1, 4.6))
     for ax, task in zip(np.atleast_1d(axes), tasks):
-        labels, accs, colls = [], [], []
+        labels, accs, colls, colours = [], [], [], []
         for (prop, split), cond in cells.items():
             r = by[(task, cond)]
-            labels.append(f"{prop}\n{split}")
+            labels.append(split)
             accs.append(r.get("test_accuracy_mean", r["validation_accuracy_mean"]))
             colls.append(r["collapse_rate"])
-        x = np.arange(len(labels))
-        ax.bar(x, accs, width=0.62, color=SERIES[0])
+            colours.append(RULE_COLOUR[prop])
+        # Grouped by rule, with a gap between the groups rather than a uniform row.
+        x = np.array([0.0, 0.85, 2.05, 2.90])
+        ax.bar(x, accs, width=0.68, color=colours)
+        ax.axhline(0.5, color=INK2, linewidth=0.9, linestyle=(0, (4, 3)))
+        ax.text(x[-1] + 0.5, 0.515, "chance", va="bottom", ha="right",
+                fontsize=7.5, color=INK2, style="italic")
         for xi, (a, c) in enumerate(zip(accs, colls)):
-            ax.text(xi, a + 0.02, f"{a:.2f}", ha="center", fontsize=8, color=INK)
+            ax.text(x[xi], a + 0.022, f"{a:.2f}", ha="center", fontsize=8.5, color=INK)
             if c > 0:
-                ax.text(xi, 0.04, f"collapse {c:.0%}", ha="center", fontsize=7, color="#ffffff")
+                # Outside the bar, under the axis, in the warning colour: a
+                # collapse rate is the figure's second finding, not a footnote.
+                # Just the number, because "collapse 20%" under adjacent bars
+                # is wider than the bar spacing and the two labels collided.
+                ax.text(x[xi], -0.145, f"{c:.0%}", ha="center",
+                        fontsize=8, color=BAD, clip_on=False)
         ax.set_xticks(x)
-        ax.set_xticklabels(labels, fontsize=8)
+        ax.set_xticklabels(labels, fontsize=8.5, color=INK2)
+        for cx, prop in ((x[:2].mean(), "ha2016"), (x[2:].mean(), "settled")):
+            ax.text(cx, -0.235, prop, ha="center", fontsize=9.5,
+                    color=RULE_COLOUR[prop], clip_on=False)
         ax.set_ylim(0, 1.15)
+        ax.set_xlim(-0.6, x[-1] + 1.1)
         ax.set_title(TASK_LABEL[task], color=INK, fontsize=10)
     np.atleast_1d(axes)[0].set_ylabel("sealed-test accuracy", color=INK2, fontsize=9)
-    fig.suptitle("Block B: propagation × fitness split, separated", color=INK, fontsize=11)
-    return _save(fig, out / "propagation-grid.png")
+    fig.suptitle(
+        "Block B: propagation rule x fitness split, separated. Colour is the "
+        "propagation rule; the pair is the split it was scored on.\n"
+        "The red figure under a bar is the share of that cell's runs that "
+        "collapsed to a constant output.",
+        color=INK, fontsize=10.5,
+    )
+    return _save(fig, out / "propagation-grid.png", top=0.80, bottom=0.20)
 
 
 def build_all(release_dir: Path, progress=print) -> list[Path]:

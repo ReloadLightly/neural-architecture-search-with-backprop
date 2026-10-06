@@ -41,7 +41,8 @@ from bpneat.style import (  # noqa: E402
     INK,
     INK2,
     OP_COLOUR,
-    SERIES,
+    colour_of,
+    save,
     SURFACE,
     boundary_cmap,
     panel,
@@ -75,13 +76,7 @@ def _style(ax):
 
 def _save(fig, name: str, **kw):
     OUT.mkdir(parents=True, exist_ok=True)
-    path = OUT / name
-    if kw:
-        fig.subplots_adjust(**kw)
-    else:
-        fig.tight_layout()
-    fig.savefig(path, dpi=DPI, facecolor=SURFACE)
-    plt.close(fig)
+    path = save(fig, OUT / name, **kw)
     print(f"wrote {path.relative_to(ROOT)}")
     return path
 
@@ -127,14 +122,14 @@ def fig_does_search_pay() -> Path:
         lo, hi = sorted((r["search"], r["null"]))
         ax.plot([lo, hi], [yi, yi], color=GRID, linewidth=6, solid_capstyle="round",
                 zorder=1)
-        ax.scatter(r["null"], yi, s=150, color=SERIES[3], zorder=3, marker="o",
-                   edgecolors=SURFACE, linewidths=2)
-        ax.scatter(r["search"], yi, s=150, color=SERIES[1], zorder=4, marker="s",
-                   edgecolors=SURFACE, linewidths=2)
-        ax.scatter(r["bpneat"], yi, s=150, color=SERIES[0], zorder=4, marker="^",
-                   edgecolors=SURFACE, linewidths=2)
-        ax.scatter(r["fixed"], yi, s=210, color=SERIES[2], zorder=5, marker="D",
-                   edgecolors=SURFACE, linewidths=2)
+        ax.scatter(r["null"], yi, s=150, color=colour_of("cgp_random_matched"),
+                   zorder=3, marker="o", edgecolors=SURFACE, linewidths=2)
+        ax.scatter(r["search"], yi, s=150, color=colour_of("cgp"),
+                   zorder=4, marker="s", edgecolors=SURFACE, linewidths=2)
+        ax.scatter(r["bpneat"], yi, s=150, color=colour_of("bpneat"),
+                   zorder=4, marker="^", edgecolors=SURFACE, linewidths=2)
+        ax.scatter(r["fixed"], yi, s=210, color=colour_of("fixed_tanh_matched_bpneat"),
+                   zorder=5, marker="D", edgecolors=SURFACE, linewidths=2)
 
         if min(values) >= saturated:
             ax.annotate("every condition ≥ 0.97 — nothing to separate",
@@ -166,14 +161,16 @@ def fig_does_search_pay() -> Path:
     ax.set_ylim(-0.75, len(rows) - 0.35)
 
     handles = [
-        plt.Line2D([], [], marker="^", color=SERIES[0], linestyle="", markersize=9,
-                   markeredgecolor=SURFACE, label="Backprop-NEAT"),
-        plt.Line2D([], [], marker="s", color=SERIES[1], linestyle="", markersize=9,
-                   markeredgecolor=SURFACE, label="CGP"),
-        plt.Line2D([], [], marker="o", color=SERIES[3], linestyle="", markersize=9,
-                   markeredgecolor=SURFACE, label="CGP with selection removed (matched)"),
-        plt.Line2D([], [], marker="D", color=SERIES[2], linestyle="", markersize=9,
-                   markeredgecolor=SURFACE, label="fixed network, matched budget"),
+        plt.Line2D([], [], marker="^", color=colour_of("bpneat"), linestyle="",
+                   markersize=9, markeredgecolor=SURFACE, label="Backprop-NEAT"),
+        plt.Line2D([], [], marker="s", color=colour_of("cgp"), linestyle="",
+                   markersize=9, markeredgecolor=SURFACE, label="CGP"),
+        plt.Line2D([], [], marker="o", color=colour_of("cgp_random_matched"),
+                   linestyle="", markersize=9, markeredgecolor=SURFACE,
+                   label="CGP with selection removed (matched)"),
+        plt.Line2D([], [], marker="D", color=colour_of("fixed_tanh_matched_bpneat"),
+                   linestyle="", markersize=9, markeredgecolor=SURFACE,
+                   label="fixed network, matched budget"),
     ]
     ax.legend(handles=handles, fontsize=8.5, frameon=False, ncol=2,
               loc="lower left", bbox_to_anchor=(0.0, -0.30))
@@ -197,12 +194,15 @@ def fig_topologies_found() -> Path:
     s3, s4 = summary(V3), summary(V4)
     bars = [
         ("Backprop-NEAT", float(s4[("spiral", "bpneat")]["causal_hidden_nodes_mean"]),
-         SERIES[0]),
-        ("CGP", float(s4[("spiral", "cgp")]["cgp_active_nodes_mean"]), SERIES[1]),
+         colour_of("bpneat")),
+        ("CGP", float(s4[("spiral", "cgp")]["cgp_active_nodes_mean"]),
+         colour_of("cgp")),
         ("CGP, selection removed",
-         float(s4[("spiral", "cgp_random_matched")]["cgp_active_nodes_mean"]), SERIES[3]),
+         float(s4[("spiral", "cgp_random_matched")]["cgp_active_nodes_mean"]),
+         colour_of("cgp_random_matched")),
         ("Backprop-NEAT (v3)",
-         float(s3[("spiral", "backprop_neat")]["causal_hidden_nodes_mean"]), SERIES[4]),
+         float(s3[("spiral", "backprop_neat")]["causal_hidden_nodes_mean"]),
+         colour_of("backprop_neat")),
     ]
 
     fig, ax = plt.subplots(figsize=(11, 4.4), facecolor=SURFACE)
@@ -248,9 +248,10 @@ def fig_budget_decides() -> Path:
     s4 = summary(V4)
     tasks = ("spiral", "checkerboard", "spiral3")
     groups = [
-        ("fixed net, unmatched", "fixed_tanh_ha", SERIES[4]),
-        ("fixed net, matched budget", "fixed_tanh_matched_bpneat", SERIES[2]),
-        ("Backprop-NEAT", "bpneat", SERIES[0]),
+        ("fixed net, unmatched", "fixed_tanh_ha", colour_of("fixed_tanh_ha")),
+        ("fixed net, matched budget", "fixed_tanh_matched_bpneat",
+         colour_of("fixed_tanh_matched_bpneat")),
+        ("Backprop-NEAT", "bpneat", colour_of("bpneat")),
     ]
     fig, ax = plt.subplots(figsize=(10, 4.4), facecolor=SURFACE)
     _style(ax)
