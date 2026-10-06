@@ -81,6 +81,13 @@ jobs:
           else
             echo "v4 release not sealed yet — skipping"
           fi
+      - name: Track v5
+        run: |
+          if [ -f results/backprop-neat-v5/sha256sums.txt ]; then
+            python -m bpneat.v5.verify --dir results/backprop-neat-v5
+          else
+            echo "v5 release not sealed yet — skipping"
+          fi
 
   lint:
     name: lint

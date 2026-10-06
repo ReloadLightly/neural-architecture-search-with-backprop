@@ -208,30 +208,48 @@ def test_the_sign_matrix_verdicts_match_the_published_table(published):
 
 
 def test_every_hypothesis_verdict_is_stated_as_published(published):
+    """Each hypothesis must be stated with the verdict the release published.
+
+    Checked over *every* occurrence of the label, not the first. v3 and v4 both
+    number their hypotheses from H1 and the paper discusses both, so taking the
+    first occurrence found v3's table and failed on a correct document.
+    """
     text = _text()
     assert published["hyp"], "hypotheses.csv is empty"
     for name, row in published["hyp"].items():
-        assert name in text, f"{name} is not mentioned in any document"
-        idx = text.index(name)
-        window = text[idx : idx + 400].lower()
-        assert row["verdict"] in window, (
-            f"{name} is published as '{row['verdict']}' but the document near it "
-            f"does not say so"
-        )
+        starts = [m.start() for m in re.finditer(rf"\b{name}\b", text)]
+        assert starts, f"{name} is not mentioned in any document"
+        assert any(
+            row["verdict"] in text[i : i + 400].lower() for i in starts
+        ), f"{name} is published as '{row['verdict']}' but no document says so near it"
 
 
 def test_no_document_claims_a_significance_the_release_does_not_support(release):
-    """Any quoted Holm p must appear in paired-effects.csv at that precision."""
-    text = _text()
-    with open(V4 / "paired-effects.csv") as fh:
-        rows = list(csv.DictReader(fh))
+    """Any quoted Holm p must appear in a committed release at that precision.
+
+    Both v3's and v4's published values are allowed: these documents discuss both
+    releases, and v3's 0.385 is a real number from a real table. What the check
+    forbids is a p value that appears in no release at all. The pattern must not
+    swallow a trailing sentence period, which is how it first failed.
+    """
     published_p = set()
-    for r in rows:
-        if r.get("holm_p"):
-            published_p.add(f"{float(r['holm_p']):.3f}")
-            published_p.add(f"{float(r['holm_p']):.2f}")
-    for match in re.finditer(r"Holm\s*\*?p\*?\s*=\s*([0-9.]+)", text):
-        assert match.group(1) in published_p, f"Holm p = {match.group(1)} is not in the release"
+    for rel in (V4, ROOT / "results" / "backprop-neat-v3"):
+        path = rel / "paired-effects.csv"
+        if not path.exists():
+            continue
+        with open(path) as fh:
+            for r in csv.DictReader(fh):
+                if r.get("holm_p"):
+                    published_p.add(f"{float(r['holm_p']):.3f}")
+                    published_p.add(f"{float(r['holm_p']):.2f}")
+    text = _text()
+    found = 0
+    for match in re.finditer(r"Holm[\s\n]*\*?p\*?\s*=\s*(\d+\.\d+)", text):
+        found += 1
+        assert match.group(1) in published_p, (
+            f"Holm p = {match.group(1)} appears in no committed release"
+        )
+    assert found >= 3, f"only {found} Holm p values quoted; the check is not exercised"
 
 
 def test_the_bridge_result_is_stated_accurately():

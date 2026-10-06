@@ -1,0 +1,413 @@
+{
+  "all_identical": true,
+  "condition": "backprop_neat",
+  "elapsed_seconds": 1029.730259180069,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ],
+    "v4": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v4_modules": [
+      "cgp.py",
+      "conditions.py",
+      "learners.py",
+      "protocol.py",
+      "search.py"
+    ]
+  },
+  "n_identical": 50,
+  "n_runs": 50,
+  "purpose": "reproducibility gate: v3's released backprop_neat condition, re-run under the current checkout on its own seeds. Not a v4 result.",
+  "results": [
+    {
+      "differences": [],
+      "gradient_steps": 101275,
+      "run_id": "xor__backprop_neat__r01",
+      "status": "identical",
+      "validation_accuracy": 1.0
+    },
+    {
+      "differences": [],
+      "gradient_steps": 83140,
+      "run_id": "xor__backprop_neat__r02",
+      "status": "identical",
+      "validation_accuracy": 0.995
+    },
+    {
+      "differences": [],
+      "gradient_steps": 81080,
+      "run_id": "xor__backprop_neat__r03",
+      "status": "identical",
+      "validation_accuracy": 0.975
+    },
+    {
+      "differences": [],
+      "gradient_steps": 98055,
+      "run_id": "xor__backprop_neat__r04",
+      "status": "identical",
+      "validation_accuracy": 1.0
+    },
+    {
+      "differences": [],
+      "gradient_steps": 105970,
+      "run_id": "xor__backprop_neat__r05",
+      "status": "identical",
+      "validation_accuracy": 1.0
+    },
+    {
+      "differences": [],
+      "gradient_steps": 79040,
+      "run_id": "xor__backprop_neat__r06",
+      "status": "identical",
+      "validation_accuracy": 0.98
+    },
+    {
+      "differences": [],
+      "gradient_steps": 83238,
+      "run_id": "xor__backprop_neat__r07",
+      "status": "identical",
+      "validation_accuracy": 1.0
+    },
+    {
+      "differences": [],
+      "gradient_steps": 101828,
+      "run_id": "xor__backprop_neat__r08",
+      "status": "identical",
+      "validation_accuracy": 1.0
+    },
+    {
+      "differences": [],
+      "gradient_steps": 89759,
+      "run_id": "xor__backprop_neat__r09",
+      "status": "identical",
+      "validation_accuracy": 1.0
+    },
+    {
+      "differences": [],
+      "gradient_steps": 71300,
+      "run_id": "xor__backprop_neat__r10",
+      "status": "identical",
+      "validation_accuracy": 1.0
+    },
+    {
+      "differences": [],
+      "gradient_steps": 89320,
+      "run_id": "circle__backprop_neat__r01",
+      "status": "identical",
+      "validation_accuracy": 0.985
+    },
+    {
+      "differences": [],
+      "gradient_steps": 85020,
+      "run_id": "circle__backprop_neat__r02",
+      "status": "identical",
+      "validation_accuracy": 0.965
+    },
+    {
+      "differences": [],
+      "gradient_steps": 78120,
+      "run_id": "circle__backprop_neat__r03",
+      "status": "identical",
+      "validation_accuracy": 0.99
+    },
+    {
+      "differences": [],
+      "gradient_steps": 82917,
+      "run_id": "circle__backprop_neat__r04",
+      "status": "identical",
+      "validation_accuracy": 0.97
+    },
+    {
+      "differences": [],
+      "gradient_steps": 72940,
+      "run_id": "circle__backprop_neat__r05",
+      "status": "identical",
+      "validation_accuracy": 1.0
+    },
+    {
+      "differences": [],
+      "gradient_steps": 84959,
+      "run_id": "circle__backprop_neat__r06",
+      "status": "identical",
+      "validation_accuracy": 0.985
+    },
+    {
+      "differences": [],
+      "gradient_steps": 81280,
+      "run_id": "circle__backprop_neat__r07",
+      "status": "identical",
+      "validation_accuracy": 0.99
+    },
+    {
+      "differences": [],
+      "gradient_steps": 92680,
+      "run_id": "circle__backprop_neat__r08",
+      "status": "identical",
+      "validation_accuracy": 0.985
+    },
+    {
+      "differences": [],
+      "gradient_steps": 80700,
+      "run_id": "circle__backprop_neat__r09",
+      "status": "identical",
+      "validation_accuracy": 0.99
+    },
+    {
+      "differences": [],
+      "gradient_steps": 80960,
+      "run_id": "circle__backprop_neat__r10",
+      "status": "identical",
+      "validation_accuracy": 0.995
+    },
+    {
+      "differences": [],
+      "gradient_steps": 139080,
+      "run_id": "spiral__backprop_neat__r01",
+      "status": "identical",
+      "validation_accuracy": 0.76
+    },
+    {
+      "differences": [],
+      "gradient_steps": 137920,
+      "run_id": "spiral__backprop_neat__r02",
+      "status": "identical",
+      "validation_accuracy": 0.85
+    },
+    {
+      "differences": [],
+      "gradient_steps": 132700,
+      "run_id": "spiral__backprop_neat__r03",
+      "status": "identical",
+      "validation_accuracy": 0.815
+    },
+    {
+      "differences": [],
+      "gradient_steps": 133140,
+      "run_id": "spiral__backprop_neat__r04",
+      "status": "identical",
+      "validation_accuracy": 0.815
+    },
+    {
+      "differences": [],
+      "gradient_steps": 129640,
+      "run_id": "spiral__backprop_neat__r05",
+      "status": "identical",
+      "validation_accuracy": 0.805
+    },
+    {
+      "differences": [],
+      "gradient_steps": 133980,
+      "run_id": "spiral__backprop_neat__r06",
+      "status": "identical",
+      "validation_accuracy": 0.785
+    },
+    {
+      "differences": [],
+      "gradient_steps": 133720,
+      "run_id": "spiral__backprop_neat__r07",
+      "status": "identical",
+      "validation_accuracy": 0.78
+    },
+    {
+      "differences": [],
+      "gradient_steps": 131220,
+      "run_id": "spiral__backprop_neat__r08",
+      "status": "identical",
+      "validation_accuracy": 0.8
+    },
+    {
+      "differences": [],
+      "gradient_steps": 135180,
+      "run_id": "spiral__backprop_neat__r09",
+      "status": "identical",
+      "validation_accuracy": 0.77
+    },
+    {
+      "differences": [],
+      "gradient_steps": 129040,
+      "run_id": "spiral__backprop_neat__r10",
+      "status": "identical",
+      "validation_accuracy": 0.82
+    },
+    {
+      "differences": [],
+      "gradient_steps": 112500,
+      "run_id": "checkerboard__backprop_neat__r01",
+      "status": "identical",
+      "validation_accuracy": 0.72
+    },
+    {
+      "differences": [],
+      "gradient_steps": 109540,
+      "run_id": "checkerboard__backprop_neat__r02",
+      "status": "identical",
+      "validation_accuracy": 0.695
+    },
+    {
+      "differences": [],
+      "gradient_steps": 120200,
+      "run_id": "checkerboard__backprop_neat__r03",
+      "status": "identical",
+      "validation_accuracy": 0.64
+    },
+    {
+      "differences": [],
+      "gradient_steps": 115260,
+      "run_id": "checkerboard__backprop_neat__r04",
+      "status": "identical",
+      "validation_accuracy": 0.69
+    },
+    {
+      "differences": [],
+      "gradient_steps": 111100,
+      "run_id": "checkerboard__backprop_neat__r05",
+      "status": "identical",
+      "validation_accuracy": 0.79
+    },
+    {
+      "differences": [],
+      "gradient_steps": 113820,
+      "run_id": "checkerboard__backprop_neat__r06",
+      "status": "identical",
+      "validation_accuracy": 0.735
+    },
+    {
+      "differences": [],
+      "gradient_steps": 125540,
+      "run_id": "checkerboard__backprop_neat__r07",
+      "status": "identical",
+      "validation_accuracy": 0.665
+    },
+    {
+      "differences": [],
+      "gradient_steps": 106060,
+      "run_id": "checkerboard__backprop_neat__r08",
+      "status": "identical",
+      "validation_accuracy": 0.6
+    },
+    {
+      "differences": [],
+      "gradient_steps": 115440,
+      "run_id": "checkerboard__backprop_neat__r09",
+      "status": "identical",
+      "validation_accuracy": 0.65
+    },
+    {
+      "differences": [],
+      "gradient_steps": 110880,
+      "run_id": "checkerboard__backprop_neat__r10",
+      "status": "identical",
+      "validation_accuracy": 0.7
+    },
+    {
+      "differences": [],
+      "gradient_steps": 110020,
+      "run_id": "spiral3__backprop_neat__r01",
+      "status": "identical",
+      "validation_accuracy": 0.625
+    },
+    {
+      "differences": [],
+      "gradient_steps": 111700,
+      "run_id": "spiral3__backprop_neat__r02",
+      "status": "identical",
+      "validation_accuracy": 0.625
+    },
+    {
+      "differences": [],
+      "gradient_steps": 114540,
+      "run_id": "spiral3__backprop_neat__r03",
+      "status": "identical",
+      "validation_accuracy": 0.66
+    },
+    {
+      "differences": [],
+      "gradient_steps": 109160,
+      "run_id": "spiral3__backprop_neat__r04",
+      "status": "identical",
+      "validation_accuracy": 0.615
+    },
+    {
+      "differences": [],
+      "gradient_steps": 104820,
+      "run_id": "spiral3__backprop_neat__r05",
+      "status": "identical",
+      "validation_accuracy": 0.605
+    },
+    {
+      "differences": [],
+      "gradient_steps": 106500,
+      "run_id": "spiral3__backprop_neat__r06",
+      "status": "identical",
+      "validation_accuracy": 0.605
+    },
+    {
+      "differences": [],
+      "gradient_steps": 110920,
+      "run_id": "spiral3__backprop_neat__r07",
+      "status": "identical",
+      "validation_accuracy": 0.615
+    },
+    {
+      "differences": [],
+      "gradient_steps": 102540,
+      "run_id": "spiral3__backprop_neat__r08",
+      "status": "identical",
+      "validation_accuracy": 0.655
+    },
+    {
+      "differences": [],
+      "gradient_steps": 107500,
+      "run_id": "spiral3__backprop_neat__r09",
+      "status": "identical",
+      "validation_accuracy": 0.64
+    },
+    {
+      "differences": [],
+      "gradient_steps": 112340,
+      "run_id": "spiral3__backprop_neat__r10",
+      "status": "identical",
+      "validation_accuracy": 0.66
+    }
+  ],
+  "v3_fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v2_modules": [
+      "baselines.py",
+      "conditions.py",
+      "datasets.py",
+      "evolve.py",
+      "genome.py",
+      "learn.py",
+      "protocol.py"
+    ],
+    "v3": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v3_modules": [
+      "conditions.py",
+      "datasets.py",
+      "learners.py",
+      "dense.py",
+      "protocol.py",
+      "search.py",
+      "selection.py"
+    ]
+  },
+  "v3_release": "results/backprop-neat-v3"
+}

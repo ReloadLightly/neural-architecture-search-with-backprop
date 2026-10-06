@@ -1,0 +1,11 @@
+algorithm,reference,task,vs_unmatched,vs_matched_tanh,vs_matched_mixed,median_vs_unmatched,median_vs_matched_tanh,median_vs_matched_mixed,reversed_by_matching
+Backprop-NEAT,bpneat,xor,ns,ns,search>fixed,0.012500000000000011,0.007500000000000007,0.015000000000000013,False
+Backprop-NEAT,bpneat,circle,search>fixed,ns,ns,0.015000000000000013,0.007500000000000007,0.0,False
+Backprop-NEAT,bpneat,spiral,search>fixed,fixed>search,fixed>search,0.14250000000000002,-0.10250000000000009,-0.18749999999999994,True
+Backprop-NEAT,bpneat,checkerboard,ns,ns,fixed>search,0.04749999999999999,-0.025000000000000022,-0.04500000000000004,False
+Backprop-NEAT,bpneat,spiral3,search>fixed,ns,fixed>search,0.06250000000000006,0.007500000000000007,-0.18750000000000006,False
+CGP,cgp,xor,ns,ns,search>fixed,0.0050000000000000044,0.0025000000000000022,0.010000000000000009,False
+CGP,cgp,circle,search>fixed,search>fixed,ns,0.015000000000000013,0.0050000000000000044,0.0,False
+CGP,cgp,spiral,search>fixed,fixed>search,fixed>search,0.11249999999999999,-0.1325,-0.21999999999999997,True
+CGP,cgp,checkerboard,ns,fixed>search,fixed>search,-0.0050000000000000044,-0.125,-0.14999999999999997,False
+CGP,cgp,spiral3,ns,ns,fixed>search,0.019999999999999962,-0.015000000000000013,-0.20249999999999996,False

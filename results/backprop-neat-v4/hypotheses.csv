@@ -1,0 +1,7 @@
+hypothesis,statement,decision_rule,observed,verdict
+H1,"the unmatched control is starved, not weak",matched beats unmatched on >=4 of 5 tasks,5/5,holds
+H2,Backprop-NEAT's advantage reverses under a matched budget,search>unmatched on >=4 tasks and matched>search on >=3 tasks,"beats unmatched 3/5, loses to matched 1/5",fails
+H3,CGP's advantage reverses under a matched budget,search>unmatched on >=4 tasks and matched>search on >=3 tasks,"beats unmatched 2/5, loses to matched 2/5",fails
+H4,"the sign is set by the budget protocol, not the algorithm",both signs agree across the two algorithms on >=4 of 5 tasks,2/5,fails
+H5,the algorithms differ less than the protocol does,|median(cgp-bpneat)| < 0.5x the matching effect on >=3 of 5 tasks,2/5,fails
+H6,CGP's selection adds little over its candidate-matched null,CGP beats its null on <=2 of 5 tasks,0/5,holds

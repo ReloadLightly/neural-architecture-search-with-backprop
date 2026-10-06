@@ -24,3 +24,5 @@ build/
 !results/backprop-neat-v3/**
 !results/backprop-neat-v4/
 !results/backprop-neat-v4/**
+!results/backprop-neat-v5/
+!results/backprop-neat-v5/**

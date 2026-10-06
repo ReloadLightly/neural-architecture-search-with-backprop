@@ -4,9 +4,11 @@ PY      ?= .venv/bin/python
 SHARDS  ?= 4
 V3_OUT  ?= results/backprop-neat-v3
 V4_OUT  ?= results/backprop-neat-v4
+V5_OUT  ?= results/backprop-neat-v5
 
 .PHONY: setup gates verify audit v3-run v3-status v3-finaltest v3-release \
-        v4-run v4-status v4-bridge v4-sensitivity v4-finaltest v4-release clean-logs
+        v4-run v4-status v4-bridge v4-sensitivity v4-finaltest v4-release \
+        v5-run v5-status v5-finaltest v5-release clean-logs
 
 setup:
 	uv venv .venv && uv pip install --python $(PY) -e ".[dev]"
@@ -22,6 +24,9 @@ verify:
 	@test -f $(V4_OUT)/sha256sums.txt \
 	  && $(PY) -m bpneat.v4.verify --dir $(V4_OUT) \
 	  || echo "v4 release not sealed yet, skipped"
+	@test -f $(V5_OUT)/sha256sums.txt \
+	  && $(PY) -m bpneat.v5.verify --dir $(V5_OUT) \
+	  || echo "v5 release not sealed yet, skipped"
 
 audit:
 	$(PY) bench/audit_2026_10.py
@@ -73,6 +78,25 @@ v4-finaltest:
 
 v4-release:
 	$(PY) -m bpneat.v4.run --out $(V4_OUT) --release
+
+## Launch the whole v5 confirmatory suite in the background, $(SHARDS) shards.
+v5-run:
+	@mkdir -p logs
+	@for i in $$(seq 0 $$(( $(SHARDS) - 1 )) ); do \
+	  nohup $(PY) -u -m bpneat.v5.run --out $(V5_OUT) \
+	      --shard-index $$i --shard-total $(SHARDS) \
+	      > logs/v5-shard$$i.log 2>&1 & \
+	  echo "shard $$i -> logs/v5-shard$$i.log"; \
+	done
+
+v5-status:
+	@$(PY) -m bpneat.v5.run --out $(V5_OUT) --status
+
+v5-finaltest:
+	$(PY) -m bpneat.v5.run --out $(V5_OUT) --final-test
+
+v5-release:
+	$(PY) -m bpneat.v5.run --out $(V5_OUT) --release
 
 clean-logs:
 	rm -rf logs
