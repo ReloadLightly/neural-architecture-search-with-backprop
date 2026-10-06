@@ -141,6 +141,39 @@ Both algorithms inherit the same complexity penalty from Ha's fitness,
 speciation and crossover into factors — and finds that the penalty is indeed most
 of the answer. §3 has what happens when it is removed.
 
+### Which operators the search actually chooses
+
+![operator usage across three protocols](docs/figures/operator-usage.png)
+
+The fraction of *causally active* hidden nodes carrying each operator, for the
+reference search in three protocols with disjoint seeds and separate code
+packages. The three dots per operator sit almost on top of each other: whatever
+else is unstable in this project, **what the search selects is highly
+reproducible**.
+
+The published description offers a qualitative reading of its own demonstration
+champions — that XOR relies on `abs` and `relu` to form long lines with sharp
+corners, and circles on `sine`, `square` and `gaussian` for a radially symmetric
+feature ([`docs/reference-targets.md`](docs/reference-targets.md), marked `*` in
+the figure). Measured over 30 replicates rather than one champion:
+
+- **Circles: partly.** `square` is the top operator in all three protocols
+  (0.33 / 0.43), which matches. But `abs`, which the reading does not name, comes
+  second (0.22 / 0.20), while the two that are named — `sin` and `gaussian` —
+  sit near 0.07.
+- **XOR: no.** `mult` dominates (0.32 / 0.24). `abs` is fifth and `relu` seventh.
+- **Spirals and the 3-arm spiral: `sin`, overwhelmingly** (0.47 / 0.54 and
+  0.80 / 0.72), which the reading does not discuss — it says only that spirals
+  need a large topology.
+
+This is a comparison between a 30-replicate distribution and a qualitative
+reading of individual demo champions, so it is evidence about this reconstruction
+under its frozen protocol, not a correction to the book. What it does establish
+is that the operator profile is a stable, measurable property of the search, and
+that the one operator doing most of the work on three of five geometries is
+`sin` — the same operator that, hard-coded into a *fixed* network, beat every
+evolved champion in protocol v3.
+
 ## 3. What NEAT's machinery actually does
 
 Nothing above touched NEAT's own mechanisms — every condition in protocols v3 and
