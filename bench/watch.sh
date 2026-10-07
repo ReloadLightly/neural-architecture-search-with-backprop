@@ -20,6 +20,7 @@ START=$(ls results/backprop-neat-v6/raw/runs/*.json 2>/dev/null | wc -l | tr -d 
 echo "start=$START at $(date -u +%H:%M:%SZ), watching for ${MINUTES}m"
 
 i=0
+IDLE=0
 while [ "$i" -lt "$MINUTES" ]; do
   sleep 60
   i=$((i + 1))
@@ -32,9 +33,26 @@ while [ "$i" -lt "$MINUTES" ]; do
     echo "QUEUE DONE — both sealed tests are available and neither has been taken"
     exit 0
   fi
+  # A zero here is not necessarily a failure. When one phase of the queue
+  # finishes, its shards exit and the next phase's are not up until the queue's
+  # next poll — up to two minutes of legitimate zero. Exiting on the first one
+  # dropped the watcher at exactly the moment v6's ladder completed, and the
+  # container would have been reclaimed during the handover. So a zero only
+  # counts once the queue itself is gone, or once it has persisted long enough
+  # to outlast a changeover.
   if [ "$SHARDS" -eq 0 ]; then
-    echo "SHARDS DIED — run ./bench/v6_checkpoint.sh && make v6-run"
-    exit 0
+    IDLE=$((IDLE + 1))
+    if [ "$QUEUE" -eq 0 ]; then
+      echo "SHARDS AND QUEUE BOTH GONE — run ./bench/v6_checkpoint.sh && ./bench/v6_launch.sh"
+      exit 0
+    fi
+    if [ "$IDLE" -ge 4 ]; then
+      echo "SHARDS DIED — no shard for ${IDLE}m while the queue is still up"
+      exit 0
+    fi
+    echo "  (no shards yet; the queue is between phases, ${IDLE}m)"
+  else
+    IDLE=0
   fi
 done
 echo "watch window elapsed at $(date -u +%H:%M:%SZ); re-arm it"
