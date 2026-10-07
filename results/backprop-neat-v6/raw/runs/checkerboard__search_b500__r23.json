@@ -1,0 +1,170 @@
+{
+  "arm": "search",
+  "budget": "b500",
+  "budget_multiplier": 0.23809523809523808,
+  "candidate_budget": 500,
+  "champion": {
+    "active": [
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "src": [
+      0,
+      1,
+      2
+    ],
+    "weights": [
+      0.18517634012183265,
+      0.08873381813279163,
+      0.02949561144944196
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 500,
+    "connection_additions": 146,
+    "crossovers": 372,
+    "gradient_steps": 26920,
+    "node_additions": 79,
+    "wall_time_seconds": 4.992837190628052
+  },
+  "condition": "search_b500",
+  "config": {
+    "arm": "search",
+    "batch_size": 10,
+    "budget": "b500",
+    "candidate_budget": 500,
+    "crossover": true,
+    "generations": 4,
+    "generator": "v3",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "matched_steps": null,
+    "matched_to": null,
+    "n_species": 5,
+    "noise": 0.5,
+    "p_add_connection": 0.5,
+    "p_add_node": 0.2,
+    "population": 100,
+    "restarts": null,
+    "success_threshold": 0.8,
+    "use_penalty": true
+  },
+  "dataset_seed": 90287,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v4_frozen": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v5_frozen": "33f2c177be4b53350ec232fca6e0794acbd6a9ed8faea06ee60ca76d11b759de",
+    "v6": "f1205038f33ad77e9706d8a51fe04cd32de268ea19f060f03c891a536c493cc0",
+    "v6_modules": [
+      "conditions.py",
+      "protocol.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.717192380335247,
+      "candidates": 100,
+      "champion_fitness": -0.717192380335247,
+      "champion_nodes": 4,
+      "generation": 0,
+      "gradient_steps": 6440,
+      "max_nodes": 4,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "n_species": 1
+    },
+    {
+      "best_fitness": -0.719118414561704,
+      "candidates": 200,
+      "champion_fitness": -0.717192380335247,
+      "champion_nodes": 4,
+      "generation": 1,
+      "gradient_steps": 11060,
+      "max_nodes": 5,
+      "mean_connections": 3.65,
+      "mean_nodes": 4.15,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7251075531131863,
+      "candidates": 300,
+      "champion_fitness": -0.717192380335247,
+      "champion_nodes": 4,
+      "generation": 2,
+      "gradient_steps": 16400,
+      "max_nodes": 6,
+      "mean_connections": 4.07,
+      "mean_nodes": 4.29,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7199390272837185,
+      "candidates": 400,
+      "champion_fitness": -0.717192380335247,
+      "champion_nodes": 4,
+      "generation": 3,
+      "gradient_steps": 21640,
+      "max_nodes": 6,
+      "mean_connections": 4.18,
+      "mean_nodes": 4.33,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7267843035274687,
+      "candidates": 500,
+      "champion_fitness": -0.717192380335247,
+      "champion_nodes": 4,
+      "generation": 4,
+      "gradient_steps": 26920,
+      "max_nodes": 7,
+      "mean_connections": 5.19,
+      "mean_nodes": 4.89,
+      "n_species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 3,
+    "causal_hidden_nodes": 0,
+    "causal_nodes": 4,
+    "causal_operators": {},
+    "collapsed": true,
+    "generalization_gap": -0.05999999999999994,
+    "represented_connections": 3,
+    "represented_nodes": 4,
+    "success": false,
+    "train_accuracy": 0.505,
+    "train_loss": 0.6988629682112769,
+    "validation_accuracy": 0.565,
+    "validation_loss": 0.681766741290474
+  },
+  "protocol_version": "v6",
+  "replicate": 23,
+  "run_id": "checkerboard__search_b500__r23",
+  "search_seed": 100287,
+  "task": "checkerboard",
+  "test_evaluated": false
+}
