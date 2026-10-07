@@ -47,6 +47,7 @@ from .protocol import (
     MATCHED_TO,
     MULTISTART_RESTARTS,
     REFERENCE_GENERATIONS,
+    TEST_ROWS,
 )
 
 __all__ = ["CONDITIONS", "config_for", "run_condition"]
@@ -183,7 +184,13 @@ def run_condition(
             "source": bundle.source,
             "train_rows": len(bundle.train),
             "validation_rows": len(bundle.validation),
-            "test_rows": len(bundle.test),
+            # From the contract, not from the bundle. The sealed split's *size*
+            # is what the equivalence margin rests on and belongs in a record,
+            # but nothing outside the firewall touches ``bundle.test`` — not
+            # even its length — because "the firewall is the only reader" is a
+            # rule a gate can check and "may read some of it" is not.
+            # ``TEST_ROWS`` is pinned to the loader by its own gate.
+            "sealed_test_rows": TEST_ROWS[task],
             "constant_features": list(bundle.constant_features),
         },
         "champion": serialise_genome(g, np.asarray(w, dtype=np.float64)),
