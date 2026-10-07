@@ -1,5 +1,5 @@
 {
-  "complete": false,
+  "complete": true,
   "conditions": [
     "fixed_b1000",
     "fixed_b16800",
@@ -17,7 +17,7 @@
     "search_b500",
     "search_b6300"
   ],
-  "elapsed_seconds": 5669.588507175446,
+  "elapsed_seconds": 6625.036115169525,
   "extension_complete": false,
   "extension_planned": 270,
   "extension_present": 0,
@@ -33,24 +33,14 @@
       "protocol.py"
     ]
   },
-  "missing": [
-    "checkerboard__fixed_b6300__r30",
-    "checkerboard__null_b6300__r30",
-    "checkerboard__search_b6300__r30",
-    "spiral3__fixed_b6300__r30",
-    "spiral3__null_b6300__r30",
-    "spiral3__search_b6300__r30",
-    "spiral__fixed_b6300__r30",
-    "spiral__null_b6300__r30",
-    "spiral__search_b6300__r30"
-  ],
+  "missing": [],
   "planned": 1080,
-  "present": 1071,
+  "present": 1080,
   "protocol_version": "v6",
   "test_evaluated": false,
   "this_shard": {
-    "completed": 47,
-    "skipped": 217
+    "completed": 50,
+    "skipped": 226
   },
   "unexpected": []
 }
