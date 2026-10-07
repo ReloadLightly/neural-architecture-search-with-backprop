@@ -113,17 +113,16 @@ v5-finaltest:
 v5-release:
 	$(PY) -m bpneat.v5.run --out $(V5_OUT) --release
 
-## Launch the whole v6 confirmatory ladder in the background, $(SHARDS) shards.
-## Four rungs: 500, 1000, 2100 and 6300 candidates. Safe to re-run; completed
-## runs are skipped by fingerprint.
+## Launch the whole v6 confirmatory ladder in the background, $(SHARDS) shards,
+## with the checkpoint timer that commits and pushes raw records and the
+## watcher that starts the declared extension rung once the ladder completes.
+##
+## This is also the recovery command. The container is ephemeral and has been
+## reclaimed mid-run; finished runs are skipped by fingerprint and the timer
+## has already pushed them, so `make v6-run` after a restart picks up where the
+## suite stopped. It declines to start a second set of shards.
 v6-run:
-	@mkdir -p logs
-	@for i in $$(seq 0 $$(( $(SHARDS) - 1 )) ); do \
-	  nohup $(PY) -u -m bpneat.v6.run --out $(V6_OUT) \
-	      --shard-index $$i --shard-total $(SHARDS) \
-	      > logs/v6-shard$$i.log 2>&1 & \
-	  echo "shard $$i -> logs/v6-shard$$i.log"; \
-	done
+	@./bench/v6_launch.sh
 
 ## The declared extension rung (16800 candidates, 8x the reference). Run only
 ## after `make v6-run` reports complete, and only before the sealed test. It
