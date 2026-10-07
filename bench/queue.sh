@@ -24,58 +24,68 @@ POLL=${POLL:-120}
 V6=results/backprop-neat-v6
 V8=results/backprop-neat-v8
 
-complete() {
-  [ -f "$1" ] || return 1
-  .venv/bin/python -c "
-import json, sys
-m = json.load(open('$1'))
-sys.exit(0 if m.get('$2') else 1)
-" 2>/dev/null
+# Everything below lives in a function called on the last line, for the same
+# reason as in watch.sh: dash reads a script incrementally, so editing this
+# file while the queue is running it would make the interpreter resume at a
+# byte offset that no longer lines up with a statement. This script runs for
+# days; it will be edited while running.
+main() {
+
+  complete() {
+    [ -f "$1" ] || return 1
+    .venv/bin/python -c "
+  import json, sys
+  m = json.load(open('$1'))
+  sys.exit(0 if m.get('$2') else 1)
+  " 2>/dev/null
+  }
+
+  await() {
+    echo "waiting for $3"
+    while ! complete "$1" "$2"; do sleep "$POLL"; done
+    echo "$3 complete at $(date -u +%H:%M:%SZ)"
+  }
+
+  launch() {
+    module=$1; out=$2; shift 2
+    mkdir -p logs
+    tag=$(echo "$module" | tr '.' '-')
+    i=0
+    while [ "$i" -lt "$SHARDS" ]; do
+      nohup .venv/bin/python -u -m "$module" --out "$out" "$@" \
+          --shard-index "$i" --shard-total "$SHARDS" \
+          > "logs/$tag-shard$i.log" 2>&1 &
+      i=$((i + 1))
+    done
+    echo "launched $SHARDS shards of $module $* at $(date -u +%H:%M:%SZ)"
+  }
+
+  await "$V6/manifest.json" complete "v6 confirmatory ladder"
+  ./bench/v6_checkpoint.sh || true
+
+  if ! complete "$V8/manifest.json" complete; then
+    launch bpneat.v8.run "$V8"
+    await "$V8/manifest.json" complete "v8 confirmatory suite"
+  fi
+  ./bench/v6_checkpoint.sh || true
+
+  if ! complete "$V6/manifest.json" extension_complete; then
+    launch bpneat.v6.run "$V6" --extension
+    await "$V6/manifest.json" extension_complete "v6 extension rung"
+  fi
+  ./bench/v6_checkpoint.sh || true
+
+  if ! complete "$V8/manifest.json" extension_complete; then
+    launch bpneat.v8.run "$V8" --extension
+    await "$V8/manifest.json" extension_complete "v8 extension dataset"
+  fi
+  ./bench/v6_checkpoint.sh || true
+
+  echo "ALL COMPUTE COMPLETE at $(date -u +%H:%M:%SZ)."
+  echo "Two sealed tests are now available and neither has been taken."
+  echo "They are touched once each and wait for a person:"
+  echo "  make v6-finaltest && make v6-release"
+  echo "  make v8-finaltest && make v8-release"
 }
 
-await() {
-  echo "waiting for $3"
-  while ! complete "$1" "$2"; do sleep "$POLL"; done
-  echo "$3 complete at $(date -u +%H:%M:%SZ)"
-}
-
-launch() {
-  module=$1; out=$2; shift 2
-  mkdir -p logs
-  tag=$(echo "$module" | tr '.' '-')
-  i=0
-  while [ "$i" -lt "$SHARDS" ]; do
-    nohup .venv/bin/python -u -m "$module" --out "$out" "$@" \
-        --shard-index "$i" --shard-total "$SHARDS" \
-        > "logs/$tag-shard$i.log" 2>&1 &
-    i=$((i + 1))
-  done
-  echo "launched $SHARDS shards of $module $* at $(date -u +%H:%M:%SZ)"
-}
-
-await "$V6/manifest.json" complete "v6 confirmatory ladder"
-./bench/v6_checkpoint.sh || true
-
-if ! complete "$V8/manifest.json" complete; then
-  launch bpneat.v8.run "$V8"
-  await "$V8/manifest.json" complete "v8 confirmatory suite"
-fi
-./bench/v6_checkpoint.sh || true
-
-if ! complete "$V6/manifest.json" extension_complete; then
-  launch bpneat.v6.run "$V6" --extension
-  await "$V6/manifest.json" extension_complete "v6 extension rung"
-fi
-./bench/v6_checkpoint.sh || true
-
-if ! complete "$V8/manifest.json" extension_complete; then
-  launch bpneat.v8.run "$V8" --extension
-  await "$V8/manifest.json" extension_complete "v8 extension dataset"
-fi
-./bench/v6_checkpoint.sh || true
-
-echo "ALL COMPUTE COMPLETE at $(date -u +%H:%M:%SZ)."
-echo "Two sealed tests are now available and neither has been taken."
-echo "They are touched once each and wait for a person:"
-echo "  make v6-finaltest && make v6-release"
-echo "  make v8-finaltest && make v8-release"
+main
