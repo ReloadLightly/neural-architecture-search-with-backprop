@@ -22,11 +22,16 @@ mkdir -p logs
 # running this script has the script's own text on its command line, so a
 # substring match finds "a shard" that is really the launcher looking at
 # itself, and the launcher then declines to launch anything.
-running() {
-  ps -eo args= | grep -E "^[^ ]*/python[0-9.]* .*$1" | grep -v grep | grep -c . || true
+# Anchored on the command line's FIRST word in every case. A substring match
+# finds this launcher's own invocation — and, worse, any shell whose command
+# line happens to quote the script's text — so the guard then reports that
+# everything is already running and starts nothing. That has now happened three
+# times; it is an anchored match from here on.
+running() {   # running <extended regex anchored at the start of argv>
+  ps -eo args= | grep -cE "$1" || true
 }
 
-if [ "$(running 'bpneat\.v6\.run')" -gt 0 ]; then
+if [ "$(running '^[^ ]*python[0-9.]* .*bpneat\.v6\.run')" -gt 0 ]; then
   echo "shards are already running; nothing to do"
   exit 0
 fi
@@ -40,13 +45,13 @@ while [ "$i" -lt "$SHARDS" ]; do
   i=$((i + 1))
 done
 
-if ! ps -eo args= | grep -q "[v]6_checkpoint.sh; done"; then
+if [ "$(running '^sh -c while true; do sleep')" -eq 0 ]; then
   nohup sh -c "while true; do sleep $INTERVAL; ./bench/v6_checkpoint.sh; done" \
       > logs/v6-checkpoint.log 2>&1 &
   echo "checkpoint every ${INTERVAL}s -> logs/v6-checkpoint.log"
 fi
 
-if ! ps -eo args= | grep -q "[q]ueue.sh"; then
+if [ "$(running '^/bin/sh \./bench/queue\.sh')" -eq 0 ]; then
   nohup ./bench/queue.sh > logs/queue.log 2>&1 &
   echo "queue armed: v8 confirmatory, then both extensions -> logs/queue.log"
 fi

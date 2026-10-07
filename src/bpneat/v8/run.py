@@ -24,6 +24,7 @@ for _var in (
 
 import argparse  # noqa: E402
 import json  # noqa: E402
+import sys  # noqa: E402
 from collections import defaultdict  # noqa: E402
 from pathlib import Path  # noqa: E402
 
@@ -105,4 +106,14 @@ def main(argv=None) -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except BrokenPipeError:  # `make vN-status | head -1` closes the pipe
+        # Python would otherwise print the traceback at shutdown, when stderr
+        # is flushed, and exit non-zero. The status command is read through a
+        # pipe by the keepalive routine, so a non-zero exit there looks like a
+        # dead run.
+        import os
+
+        os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+        raise SystemExit(0) from None
