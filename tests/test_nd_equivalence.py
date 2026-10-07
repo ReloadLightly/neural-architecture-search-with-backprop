@@ -220,6 +220,72 @@ def test_the_equivalence_is_tested_on_graphs_that_actually_use_the_machinery():
 
 
 # --------------------------------------------------------------------------
+# The inner learner takes the same path, not just to the same place
+# --------------------------------------------------------------------------
+
+
+def _labels(X):
+    return (X[:, 0] * X[:, 1] > 0).astype(np.float64)
+
+
+def test_the_loss_and_the_accuracy_are_bit_identical():
+    from bpneat import learn as fl
+    from bpneat.nd import learn as ndl
+
+    for seed in SEEDS:
+        a, b = _pair(seed)
+        rng = np.random.default_rng(9000 + seed)
+        X = _inputs(rng, 60)
+        y = _labels(X)
+        w = rng.normal(0.0, 1.0, len(a.src))
+        assert fl.total_error(a, w, X, y) == ndl.total_error(b, w, X, y), seed
+        assert fl.accuracy(a, w, X, y) == ndl.accuracy(b, w, X, y), seed
+        assert fl.penalty_factor(a) == ndl.penalty_factor(b), seed
+        assert fl.fitness_from_error(a, 0.37) == ndl.fitness_from_error(b, 0.37)
+
+
+def test_a_full_inner_budget_returns_identical_weights():
+    """The strongest statement available about the two learners.
+
+    Rollback makes training a path-dependent process: a revert at update 40
+    changes every update after it. Identical weights after a full budget means
+    the two learners made the same decision at every rollback check, from the
+    same gradients, in the same order — not that they happened to land close.
+    """
+    from bpneat import learn as fl
+    from bpneat.nd import learn as ndl
+
+    for seed in SEEDS:
+        a, b = _pair(seed)
+        rng = np.random.default_rng(10_000 + seed)
+        X = _inputs(rng, 80)
+        y = _labels(X)
+        w = np.asarray(a.weight, dtype=np.float64)
+
+        ra = fl.train(a, w, X, y, np.random.default_rng(seed), n_cycles=200)
+        rb = ndl.train(b, w, X, y, np.random.default_rng(seed), n_cycles=200)
+        assert np.array_equal(ra.weights, rb.weights), f"seed {seed}: weights"
+        assert ra.error == rb.error, f"seed {seed}: error"
+        assert ra.gradient_steps == rb.gradient_steps, f"seed {seed}: steps"
+
+
+def test_rollback_actually_fires_in_that_comparison():
+    """Otherwise the identical-weights test is only comparing 200 clean steps."""
+    from bpneat import learn as fl
+
+    rolled = 0
+    for seed in SEEDS:
+        a, _ = _pair(seed)
+        rng = np.random.default_rng(10_000 + seed)
+        X = _inputs(rng, 80)
+        y = _labels(X)
+        w = np.asarray(a.weight, dtype=np.float64)
+        r = fl.train(a, w, X, y, np.random.default_rng(seed), n_cycles=200)
+        rolled += int(r.gradient_steps < 200)
+    assert rolled, "no run hit the rollback path, so path-dependence is untested"
+
+
+# --------------------------------------------------------------------------
 # Above two inputs it has to be correct on its own terms
 # --------------------------------------------------------------------------
 
@@ -279,6 +345,62 @@ def test_the_analytic_gradient_matches_finite_differences(d, k):
             f"d={d} k={k} connection {ci}: analytic {analytic[ci]:.8f} vs "
             f"numeric {numeric:.8f}"
         )
+
+
+@pytest.mark.parametrize("d,k", [(3, 3), (5, 4)])
+def test_the_softmax_loss_gradient_is_the_gradient_of_the_softmax_loss(d, k):
+    """The multi-class branch is new maths, so it is checked as maths.
+
+    Central differences of ``total_error`` against the analytic chain through
+    ``_d_out`` and ``backward``. This composes the two pieces that have no
+    frozen counterpart — the softmax loss and its derivative — so a sign slip
+    or a missing normalisation in either one fails here.
+    """
+    from bpneat.nd import learn as ndl
+
+    rng = np.random.default_rng(1234 + d * 10 + k)
+    g = nd.logistic_genome(rng, nd.Layout(d, k))
+    _grow(g, rng, 4, 3, frozen.ACTIVATIONS)
+    X = rng.normal(0.0, 0.8, size=(24, d))
+    y = rng.integers(0, k, size=len(X))
+    w = rng.normal(0.0, 0.5, len(g.src))
+
+    tape = ndl.forward(g, X, w, settle=True)
+    z = np.stack([tape.vals[v] for v in tape.out_vars], axis=1)
+    analytic = ndl.backward(tape, ndl._d_out(g, z, y, len(X)), w)
+
+    eps = 1e-6
+    for ci in range(len(w)):
+        up, down = w.copy(), w.copy()
+        up[ci] += eps
+        down[ci] -= eps
+        numeric = (
+            ndl.total_error(g, up, X, y, True) - ndl.total_error(g, down, X, y, True)
+        ) / (2 * eps)
+        scale = max(1.0, abs(numeric), abs(analytic[ci]))
+        assert abs(numeric - analytic[ci]) / scale < 2e-5, (
+            f"d={d} k={k} connection {ci}: analytic {analytic[ci]:.8f} vs "
+            f"numeric {numeric:.8f}"
+        )
+
+
+def test_a_multi_class_graph_can_actually_learn():
+    """A loss that is differentiable but unlearnable would pass every gate above."""
+    from bpneat.nd import learn as ndl
+
+    rng = np.random.default_rng(5)
+    d, k = 4, 3
+    centres = rng.normal(0.0, 2.5, size=(k, d))
+    y = rng.integers(0, k, size=300)
+    X = centres[y] + rng.normal(0.0, 0.6, size=(300, d))
+
+    g = nd.logistic_genome(rng, nd.Layout(d, k))
+    w = np.asarray(g.weight, dtype=np.float64)
+    before = ndl.accuracy(g, w, X, y)
+    out = ndl.train(g, w, X, y, np.random.default_rng(6), n_cycles=600, batch_size=32)
+    after = ndl.accuracy(g, out.weights, X, y)
+    assert out.error < ndl.total_error(g, w, X, y)
+    assert after > max(0.6, before), f"{before:.3f} -> {after:.3f} on a 3-class task"
 
 
 def test_a_genome_refuses_data_of_the_wrong_width():
