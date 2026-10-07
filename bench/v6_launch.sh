@@ -55,3 +55,13 @@ if [ "$(running '^/bin/sh \./bench/queue\.sh')" -eq 0 ]; then
   nohup ./bench/queue.sh > logs/queue.log 2>&1 &
   echo "queue armed: v8 confirmatory, then both extensions -> logs/queue.log"
 fi
+
+# The shards above will only run while the container is alive, and the
+# container is reclaimed within minutes of this session going idle — measured
+# at 4 runs an hour idle against 109 with a tracked task holding it open. So
+# the last step is not something this script can do: the session has to run
+# `./bench/watch.sh` through its Bash tool with run_in_background and a long
+# timeout, and re-arm it each time it returns.
+echo
+echo "NOW ARM THE WATCHER, or none of the above will get any compute:"
+echo "  ./bench/watch.sh 110   (Bash tool, run_in_background, timeout 7200000)"
