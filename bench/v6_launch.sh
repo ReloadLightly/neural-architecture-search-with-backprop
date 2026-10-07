@@ -46,7 +46,7 @@ if ! ps -eo args= | grep -q "[v]6_checkpoint.sh; done"; then
   echo "checkpoint every ${INTERVAL}s -> logs/v6-checkpoint.log"
 fi
 
-if ! ps -eo args= | grep -q "[v]6_chain_extension.sh"; then
-  nohup ./bench/v6_chain_extension.sh > logs/v6-chain.log 2>&1 &
-  echo "extension rung will start when the confirmatory ladder completes"
+if ! ps -eo args= | grep -q "[q]ueue.sh"; then
+  nohup ./bench/queue.sh > logs/queue.log 2>&1 &
+  echo "queue armed: v8 confirmatory, then both extensions -> logs/queue.log"
 fi
