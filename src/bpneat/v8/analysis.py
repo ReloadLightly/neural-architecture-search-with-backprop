@@ -137,7 +137,7 @@ def summarise(runs: list[dict], final: dict[str, dict]) -> list[dict]:
             "kind": "extension" if task in EXTENSION_TASKS else "confirmatory",
             "n_features": first["config"]["n_features"],
             "n_classes": first["config"]["n_classes"],
-            "test_rows": first["config"]["test_rows"],
+            "sealed_test_rows": first["config"]["sealed_test_rows"],
             "n": len(items),
             "validation_accuracy_mean": float(va.mean()),
             "causal_hidden_nodes_mean": float(causal.mean()),

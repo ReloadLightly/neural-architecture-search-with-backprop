@@ -52,12 +52,21 @@ from .analysis import (  # noqa: E402
 )
 from .protocol import ALL_TASKS, ARMS, EQUIVALENCE_DELTA, EXTENSION_TASKS  # noqa: E402
 
+#: One word per arm. Four two-line labels under four panels overlapped into
+#: each other; what each word means goes in the title, where there is room for
+#: a sentence, rather than under a tick, where there is not.
 ARM_LABEL = {
-    "search": "Backprop-NEAT",
-    "null": "same candidates,\nsampled",
-    "linear": "linear\n(no architecture)",
-    "fixed": "fixed 32×32\n(matched budget)",
+    "search": "search",
+    "null": "sampled",
+    "linear": "linear",
+    "fixed": "fixed 32×32",
 }
+
+ARM_GLOSS = (
+    "search is Backprop-NEAT at 2,100 candidates; sampled is the same candidate "
+    "count drawn at random; linear is the seed genome with no hidden units at "
+    "all; fixed is a 32×32 network at the search's gradient budget."
+)
 ARM_MARKER = {"search": "o", "null": "s", "linear": "D", "fixed": "^"}
 
 DATASET_LABEL = {
@@ -105,22 +114,17 @@ def fig_accuracy_by_arm(runs, final, summary, out: Path):
         linear = groups[ARMS.index("linear")]
         if linear:
             parity(ax, float(np.median(linear)))
-        row = next((s for s in summary if s["task"] == task and s["arm"] == "linear"), None)
-        if row is not None and ti == 0:
-            ax.annotate("median of the linear arm", xy=(0.02, float(np.median(linear))),
-                        xycoords=("axes fraction", "data"), xytext=(0, 3),
-                        textcoords="offset points", ha="left", va="bottom",
-                        fontsize=ANNOT_SIZE, color=RULE)
         for label in ax.get_xticklabels():
-            label.set_rotation(35)
+            label.set_rotation(45)
             label.set_ha("right")
     suptitle(
         fig,
         "Does architecture search beat having no architecture? One dot per "
         "replicate, thirty of them; the bar is the median; the dashed line is "
-        "the arm with no hidden units at all.",
+        "the linear arm's median. " + ARM_GLOSS + " Accuracy on a finite test "
+        "split is granular — the bands are rows, not clusters.",
     )
-    return save(fig, out, bottom=0.30, wspace=0.14)
+    return save(fig, out, bottom=0.26, wspace=0.34)
 
 
 def fig_contrasts(contrasts, equiv, out: Path):
