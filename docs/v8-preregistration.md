@@ -288,9 +288,9 @@ rather than from a guess.
 | Confirmatory runs | 360 across 90 cells |
 | Declared extension | 120 runs on `digits`, scoring nothing |
 | Replicates | 30, split seeds `110001 + 13i`, search seeds `120001 + 13i` |
-| Freeze commit | `FREEZE_COMMIT` |
+| Freeze commit | `264b3757c0c16f96025d8bffd5353a09d0fe5062` |
 
 > **The freeze tags exist only locally.** This session's GitHub proxy refuses tag
 > pushes (HTTP 403), so the commit hash above is the resolvable record; the tag
 > is a convenience that a maintainer with push rights can add with
-> `git tag v8-freeze FREEZE_COMMIT && git push origin v8-freeze`.
+> `git tag v8-freeze 264b3757c0c16f96025d8bffd5353a09d0fe5062 && git push origin v8-freeze`.

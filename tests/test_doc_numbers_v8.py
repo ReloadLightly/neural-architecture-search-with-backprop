@@ -155,7 +155,11 @@ def test_every_pilot_cost_in_the_preregistration_comes_from_the_pilot_record():
         if row["arm"] != "search":
             continue
         minutes = row["full_budget_minutes_linear_scaling"]
-        assert f"| `{row['task']}` | {minutes:.1f} |" in text, row["task"]
+        # The dataset cell may carry a tag — `digits` is marked as the
+        # extension — so the name and the number are matched with the cell
+        # between them left free, rather than by a substring that a tag breaks.
+        pattern = rf"\| `{row['task']}`[^|]*\| {minutes:.1f} \|"
+        assert re.search(pattern, text), f"{row['task']}: no cost row for {minutes:.1f}"
 
 
 def test_the_pilot_seeds_are_burned_and_no_replicate_uses_them():
