@@ -11,7 +11,7 @@
     "iris",
     "wine"
   ],
-  "elapsed_seconds": 10787.597504615784,
+  "elapsed_seconds": 10869.686417341232,
   "extension_complete": false,
   "extension_planned": 120,
   "extension_present": 0,
@@ -65,7 +65,6 @@
     "breast_cancer__search__r28",
     "breast_cancer__search__r29",
     "breast_cancer__search__r30",
-    "iris__fixed__r22",
     "iris__fixed__r23",
     "iris__fixed__r24",
     "iris__fixed__r25",
@@ -138,7 +137,7 @@
     "wine__search__r30"
   ],
   "planned": 360,
-  "present": 253,
+  "present": 254,
   "protocol_version": "v8",
   "test_evaluated": false,
   "this_shard": {
