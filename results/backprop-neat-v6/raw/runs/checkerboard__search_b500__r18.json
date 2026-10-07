@@ -1,0 +1,199 @@
+{
+  "arm": "search",
+  "budget": "b500",
+  "budget_multiplier": 0.23809523809523808,
+  "candidate_budget": 500,
+  "champion": {
+    "active": [
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      3,
+      4,
+      3,
+      4,
+      4
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      0,
+      3,
+      2,
+      4,
+      1
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sin"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      5
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      3,
+      2,
+      4,
+      1,
+      0
+    ],
+    "weights": [
+      0.1981687022380683,
+      0.3308514155764797,
+      0.04241222778619661,
+      -0.7907069277191917,
+      1.2000148607402839,
+      -1.3608034512202183,
+      -1.289297958034797,
+      -1.529951098764692
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 500,
+    "connection_additions": 122,
+    "crossovers": 372,
+    "gradient_steps": 26400,
+    "node_additions": 87,
+    "wall_time_seconds": 5.662822246551514
+  },
+  "condition": "search_b500",
+  "config": {
+    "arm": "search",
+    "batch_size": 10,
+    "budget": "b500",
+    "candidate_budget": 500,
+    "crossover": true,
+    "generations": 4,
+    "generator": "v3",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "matched_steps": null,
+    "matched_to": null,
+    "n_species": 5,
+    "noise": 0.5,
+    "p_add_connection": 0.5,
+    "p_add_node": 0.2,
+    "population": 100,
+    "restarts": null,
+    "success_threshold": 0.8,
+    "use_penalty": true
+  },
+  "dataset_seed": 90222,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v4_frozen": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v5_frozen": "33f2c177be4b53350ec232fca6e0794acbd6a9ed8faea06ee60ca76d11b759de",
+    "v6": "f1205038f33ad77e9706d8a51fe04cd32de268ea19f060f03c891a536c493cc0",
+    "v6_modules": [
+      "conditions.py",
+      "protocol.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.7260686792045533,
+      "candidates": 100,
+      "champion_fitness": -0.7260686792045533,
+      "champion_nodes": 4,
+      "generation": 0,
+      "gradient_steps": 6500,
+      "max_nodes": 4,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "n_species": 1
+    },
+    {
+      "best_fitness": -0.731086174503175,
+      "candidates": 200,
+      "champion_fitness": -0.7260686792045533,
+      "champion_nodes": 4,
+      "generation": 1,
+      "gradient_steps": 11160,
+      "max_nodes": 5,
+      "mean_connections": 3.72,
+      "mean_nodes": 4.24,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7326331519580155,
+      "candidates": 300,
+      "champion_fitness": -0.7260686792045533,
+      "champion_nodes": 4,
+      "generation": 2,
+      "gradient_steps": 16220,
+      "max_nodes": 6,
+      "mean_connections": 4.3,
+      "mean_nodes": 4.41,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7328216594164578,
+      "candidates": 400,
+      "champion_fitness": -0.7260686792045533,
+      "champion_nodes": 4,
+      "generation": 3,
+      "gradient_steps": 21680,
+      "max_nodes": 7,
+      "mean_connections": 4.79,
+      "mean_nodes": 4.66,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7034140835996292,
+      "candidates": 500,
+      "champion_fitness": -0.7034140835996292,
+      "champion_nodes": 5,
+      "generation": 4,
+      "gradient_steps": 26400,
+      "max_nodes": 7,
+      "mean_connections": 5.16,
+      "mean_nodes": 4.79,
+      "n_species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 7,
+    "causal_hidden_nodes": 1,
+    "causal_nodes": 5,
+    "causal_operators": {
+      "sin": 1
+    },
+    "collapsed": false,
+    "generalization_gap": 0.05999999999999994,
+    "represented_connections": 7,
+    "represented_nodes": 5,
+    "success": false,
+    "train_accuracy": 0.715,
+    "train_loss": 0.5744242128126963,
+    "validation_accuracy": 0.655,
+    "validation_loss": 0.6483958696415985
+  },
+  "protocol_version": "v6",
+  "replicate": 18,
+  "run_id": "checkerboard__search_b500__r18",
+  "search_seed": 100222,
+  "task": "checkerboard",
+  "test_evaluated": false
+}
