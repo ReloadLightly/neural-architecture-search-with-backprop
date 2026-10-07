@@ -10,7 +10,8 @@ V6_OUT  ?= results/backprop-neat-v6
 .PHONY: setup gates verify audit figures v3-run v3-status v3-finaltest v3-release \
         v4-run v4-status v4-bridge v4-sensitivity v4-finaltest v4-release \
         v5-run v5-status v5-finaltest v5-release \
-        v6-run v6-extension v6-status v6-finaltest v6-release clean-logs
+        v6-run v6-extension v6-status v6-finaltest v6-release \
+        vendor-data clean-logs
 
 setup:
 	uv venv .venv && uv pip install --python $(PY) -e ".[dev]"
@@ -20,6 +21,13 @@ setup:
 ## command locally is how an import error reached main twice.
 gates:
 	.venv/bin/pytest -q && .venv/bin/ruff check .
+
+## Re-extract the real tabular datasets from their bundled copies. The CSVs
+## under data/tabular/ are committed, so a reader never needs this; it exists so
+## that how they were made is a command rather than a description. It refuses to
+## overwrite a file whose checksum has changed.
+vendor-data:
+	$(PY) bench/vendor_datasets.py
 
 ## Regenerate the figures the README shows, from the committed releases.
 ## The per-release figures come from `make vN-release`; these are the two

@@ -509,6 +509,9 @@ figure style, so the two read as one body of work;
 | [`docs/paper/main.md`](docs/paper/main.md) | GECCO-format draft |
 | [`docs/v3-preregistration.md`](docs/v3-preregistration.md) | the frozen v3 contract |
 | [`docs/v2-errata.md`](docs/v2-errata.md) · [`docs/audit-2026-10.md`](docs/audit-2026-10.md) | what was wrong, and its reproduction |
+| [`docs/audit-dense-ordering.md`](docs/audit-dense-ordering.md) | a latent defect in the fast evaluator, reached by no result |
+| [`docs/research-programme.md`](docs/research-programme.md) | what v7 and v8 would have to do — a plan, not a result |
+| `src/bpneat/nd/` · [`data/tabular/`](data/tabular/) | the n-dimensional core and four real datasets, **no protocol yet** |
 | [`docs/writeup.md`](docs/writeup.md) | the motivating argument — an argument, not evidence |
 | [`docs/figure-style.md`](docs/figure-style.md) | the figure contract, shared with the sister study |
 | `src/bpneat/` · `v3/` · `v4/` · `v5/` · `v6/` | frozen v2 science modules, then one package per protocol |

@@ -1,0 +1,259 @@
+{
+  "arm": "search",
+  "budget": "b1000",
+  "budget_multiplier": 0.47619047619047616,
+  "candidate_budget": 1000,
+  "champion": {
+    "active": [
+      true,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      4,
+      3,
+      3,
+      4,
+      4
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      2,
+      0,
+      4,
+      1
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sin"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      5
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      2,
+      4,
+      3,
+      1,
+      0
+    ],
+    "weights": [
+      -0.5990479755095364,
+      0.2582956723073032,
+      0.0014870221461611972,
+      1.153277714353582,
+      0.9766343450911469,
+      -0.8813348846973856,
+      -1.1283202809419954,
+      1.2211628866806243
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1000,
+    "connection_additions": 378,
+    "crossovers": 831,
+    "gradient_steps": 52100,
+    "node_additions": 195,
+    "wall_time_seconds": 18.13599443435669
+  },
+  "condition": "search_b1000",
+  "config": {
+    "arm": "search",
+    "batch_size": 10,
+    "budget": "b1000",
+    "candidate_budget": 1000,
+    "crossover": true,
+    "generations": 9,
+    "generator": "v3",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "matched_steps": null,
+    "matched_to": null,
+    "n_species": 5,
+    "noise": 0.5,
+    "p_add_connection": 0.5,
+    "p_add_node": 0.2,
+    "population": 100,
+    "restarts": null,
+    "success_threshold": 0.8,
+    "use_penalty": true
+  },
+  "dataset_seed": 90053,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v4_frozen": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v5_frozen": "33f2c177be4b53350ec232fca6e0794acbd6a9ed8faea06ee60ca76d11b759de",
+    "v6": "f1205038f33ad77e9706d8a51fe04cd32de268ea19f060f03c891a536c493cc0",
+    "v6_modules": [
+      "conditions.py",
+      "protocol.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.7270720705790767,
+      "candidates": 100,
+      "champion_fitness": -0.7270720705790767,
+      "champion_nodes": 4,
+      "generation": 0,
+      "gradient_steps": 6460,
+      "max_nodes": 4,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "n_species": 1
+    },
+    {
+      "best_fitness": -0.7273706364934217,
+      "candidates": 200,
+      "champion_fitness": -0.7270720705790767,
+      "champion_nodes": 4,
+      "generation": 1,
+      "gradient_steps": 10760,
+      "max_nodes": 5,
+      "mean_connections": 3.63,
+      "mean_nodes": 4.2,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7303418511336722,
+      "candidates": 300,
+      "champion_fitness": -0.7270720705790767,
+      "champion_nodes": 4,
+      "generation": 2,
+      "gradient_steps": 15200,
+      "max_nodes": 6,
+      "mean_connections": 4.33,
+      "mean_nodes": 4.59,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7326806913998538,
+      "candidates": 400,
+      "champion_fitness": -0.7270720705790767,
+      "champion_nodes": 4,
+      "generation": 3,
+      "gradient_steps": 20300,
+      "max_nodes": 7,
+      "mean_connections": 5.04,
+      "mean_nodes": 4.8,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6516220949727763,
+      "candidates": 500,
+      "champion_fitness": -0.6516220949727763,
+      "champion_nodes": 5,
+      "generation": 4,
+      "gradient_steps": 25600,
+      "max_nodes": 7,
+      "mean_connections": 5.6,
+      "mean_nodes": 5.09,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7117182248892817,
+      "candidates": 600,
+      "champion_fitness": -0.6516220949727763,
+      "champion_nodes": 5,
+      "generation": 5,
+      "gradient_steps": 31140,
+      "max_nodes": 7,
+      "mean_connections": 6.56,
+      "mean_nodes": 5.33,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6598230625474476,
+      "candidates": 700,
+      "champion_fitness": -0.6516220949727763,
+      "champion_nodes": 5,
+      "generation": 6,
+      "gradient_steps": 36460,
+      "max_nodes": 7,
+      "mean_connections": 7.01,
+      "mean_nodes": 5.43,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6538933586912872,
+      "candidates": 800,
+      "champion_fitness": -0.6516220949727763,
+      "champion_nodes": 5,
+      "generation": 7,
+      "gradient_steps": 41760,
+      "max_nodes": 8,
+      "mean_connections": 8.0,
+      "mean_nodes": 6.13,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6629456700153638,
+      "candidates": 900,
+      "champion_fitness": -0.6516220949727763,
+      "champion_nodes": 5,
+      "generation": 8,
+      "gradient_steps": 46620,
+      "max_nodes": 9,
+      "mean_connections": 8.14,
+      "mean_nodes": 5.95,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6697822003852094,
+      "candidates": 1000,
+      "champion_fitness": -0.6516220949727763,
+      "champion_nodes": 5,
+      "generation": 9,
+      "gradient_steps": 52100,
+      "max_nodes": 9,
+      "mean_connections": 8.81,
+      "mean_nodes": 6.53,
+      "n_species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 7,
+    "causal_hidden_nodes": 1,
+    "causal_nodes": 5,
+    "causal_operators": {
+      "sin": 1
+    },
+    "collapsed": false,
+    "generalization_gap": 0.0,
+    "represented_connections": 7,
+    "represented_nodes": 5,
+    "success": false,
+    "train_accuracy": 0.685,
+    "train_loss": 0.6073687893523035,
+    "validation_accuracy": 0.685,
+    "validation_loss": 0.6006548415769825
+  },
+  "protocol_version": "v6",
+  "replicate": 5,
+  "run_id": "checkerboard__search_b1000__r05",
+  "search_seed": 100053,
+  "task": "checkerboard",
+  "test_evaluated": false
+}

@@ -428,12 +428,20 @@ def champion_boundaries(release_dir: Path, out: Path, track_dir: str = "track-b"
         "Track B Backprop-NEAT champions: decision boundary over the training points",
         x=0.0, ha="left", color=s.INK, fontsize=s.TITLE_SIZE, y=0.99,
     )
+    # Wrapped to the figure. An unwrapped figure-level caption is the same
+    # defect as an unwrapped title: `savefig.bbox="tight"` crops to the ink, so
+    # a caption wider than the page grows the saved image rather than wrapping,
+    # and this one was making an 8.84-inch file out of a 6.6-inch figure.
     fig.text(
         0.0, 0.02,
-        "Per task the replicate with the median sealed-test accuracy — a display "
-        "choice fixed in advance, not a selection claim. The sealed test split is "
-        "never read; the points are the training split.",
+        s.wrap_to(
+            "Per task the replicate with the median sealed-test accuracy — a "
+            "display choice fixed in advance, not a selection claim. The sealed "
+            "test split is never read; the points are the training split.",
+            fig.get_size_inches()[0] - 0.1, s.ANNOT_SIZE, fig,
+        ),
         ha="left", va="bottom", color=s.INK2, fontsize=s.ANNOT_SIZE,
+        linespacing=1.45,
     )
     # The note below the panels needs room reserved for it; `savefig.bbox`
     # crops to the ink, so these are proportions rather than padding.

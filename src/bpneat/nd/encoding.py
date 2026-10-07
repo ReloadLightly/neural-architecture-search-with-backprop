@@ -54,6 +54,7 @@ __all__ = [
     "Trace",
     "backward",
     "causal_subgraph",
+    "deserialise",
     "forward",
     "logistic_genome",
     "predict_logits",
@@ -402,6 +403,29 @@ def backward(tape: Trace, d_out: np.ndarray, weights: np.ndarray) -> np.ndarray:
             accum(src, g_out * (np.abs(tape.vals[src]) <= NODE_CLAMP))
 
     return dW
+
+
+def deserialise(d: dict, layout: Layout) -> tuple[NdGenome, np.ndarray]:
+    """Rebuild a champion from a record, as a graph of the recorded width.
+
+    :func:`bpneat.record.deserialise_genome` returns the frozen two-input
+    genome, which is the right object for every protocol before v8 and the wrong
+    one after it. The record carries its layout for this reason: a champion that
+    came back as a two-input graph would be read with its inputs silently
+    truncated, and would score.
+    """
+    g = NdGenome(
+        layout=layout,
+        ops=list(d["ops"]),
+        src=list(d["src"]),
+        dst=list(d["dst"]),
+        weight=[float(w) for w in d["weights"]],
+        active=[bool(a) for a in d["active"]],
+        innovation=list(d["innovation"]),
+    )
+    if max(g.src + g.dst, default=0) >= g.n_nodes:
+        raise ValueError("the record references a node the genome does not have")
+    return g, np.array(d["weights"], dtype=np.float64)
 
 
 def predict_logits(

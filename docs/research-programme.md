@@ -87,6 +87,43 @@ Until (2) is green, (3) is not attempted. If (2) cannot be made green, that is
 reported as a failure of the generalisation and v8 stops; it is not worked
 around by relaxing the gate.
 
+### What the data turned out to be like, measured before anything was designed
+
+(1) and (2) are done — `src/bpneat/nd/`, 29 gates. (3) now has four real
+datasets vendored into `data/tabular/`, and measuring them changed the design.
+
+| dataset | features | classes | majority class | **linear model, validation** |
+|---|---|---|---|---|
+| `iris` | 4 | 3 | 0.333 | **0.967** |
+| `wine` | 13 | 3 | 0.389 | **0.972** |
+| `breast_cancer` | 30 | 2 | 0.628 | **0.982** |
+| `digits` | 64 | 10 | 0.103 | **0.946** |
+
+The "linear model" there is the *seed genome* — bias and every input wired
+straight to the outputs, no hidden units at all — trained by the frozen inner
+learner, best of six restarts, on three splits. It is within two to five points
+of a ceiling on every one of them. A first look at the search agrees from the
+other direction: on `iris` and `breast_cancer` its champions come back with
+**zero causally active hidden units**.
+
+Two consequences, both of which belong in the design rather than in a later
+discussion section:
+
+**The linear model has to be an arm.** Not a footnote — an arm, at the same
+matched gradient budget as everything else. On data like this the sharpest
+version of this project's question is not "does the search beat a fixed
+network" but *does architecture search beat having no architecture*, and that
+has to be measured rather than inferred from a champion's node count.
+
+**`digits` is the only one with real headroom, and it is the expensive one.**
+Measured on this machine, one search at the reference budget of 2,100
+candidates costs 3.8 minutes on `iris`, 5.3 on `wine`, 1.6 on `breast_cancer`
+and **58 on `digits`**. So v8 will follow v6's shape: three confirmatory
+datasets and `digits` as a declared extension, run only if the confirmatory
+suite completes, scoring no hypothesis. Saying that in advance is the point —
+discovering it halfway through and dropping the expensive one is the move these
+documents exist to prevent.
+
 ---
 
 ## Three things that are not protocols
