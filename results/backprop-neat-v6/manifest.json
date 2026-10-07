@@ -17,7 +17,7 @@
     "search_b500",
     "search_b6300"
   ],
-  "elapsed_seconds": 0.12140798568725586,
+  "elapsed_seconds": 427.21065855026245,
   "extension_complete": false,
   "extension_planned": 270,
   "extension_present": 0,
@@ -203,7 +203,6 @@
     "checkerboard__null_b500__r28",
     "checkerboard__null_b500__r29",
     "checkerboard__null_b500__r30",
-    "checkerboard__null_b6300__r06",
     "checkerboard__null_b6300__r07",
     "checkerboard__null_b6300__r08",
     "checkerboard__null_b6300__r09",
@@ -590,7 +589,6 @@
     "spiral3__search_b500__r28",
     "spiral3__search_b500__r29",
     "spiral3__search_b500__r30",
-    "spiral3__search_b6300__r06",
     "spiral3__search_b6300__r07",
     "spiral3__search_b6300__r08",
     "spiral3__search_b6300__r09",
@@ -684,7 +682,6 @@
     "spiral__fixed_b500__r28",
     "spiral__fixed_b500__r29",
     "spiral__fixed_b500__r30",
-    "spiral__fixed_b6300__r06",
     "spiral__fixed_b6300__r07",
     "spiral__fixed_b6300__r08",
     "spiral__fixed_b6300__r09",
@@ -897,12 +894,12 @@
     "spiral__search_b6300__r30"
   ],
   "planned": 1080,
-  "present": 219,
+  "present": 222,
   "protocol_version": "v6",
   "test_evaluated": false,
   "this_shard": {
-    "completed": 0,
-    "skipped": 48
+    "completed": 1,
+    "skipped": 47
   },
   "unexpected": []
 }
