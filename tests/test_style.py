@@ -247,12 +247,14 @@ def test_every_condition_in_every_protocol_has_a_declared_role():
     from bpneat.v4.protocol import BLOCKS as V4_BLOCKS
     from bpneat.v5.protocol import ALL_CONDITIONS as V5
     from bpneat.v6.protocol import EVERY_CONDITION as V6
+    from bpneat.v8.protocol import ARMS as V8
 
     v4 = {c for b in V4_BLOCKS for c in b.conditions}
     assert v4, "the v4 blocks declare no conditions; the gate checks nothing"
     declared = set(style._ROLE_OF)
     missing = {
-        c for c in set(CORE_CONDITIONS) | v4 | set(V5) | set(V6) if c not in declared
+        c for c in set(CORE_CONDITIONS) | v4 | set(V5) | set(V6) | set(V8)
+        if c not in declared
     }
     assert not missing, f"no declared role for {sorted(missing)}"
     v3 = {c for b in BLOCKS for c in b.conditions}
@@ -276,6 +278,30 @@ def test_the_budget_ladder_is_an_axis_and_never_a_hue():
         assert len(hues) == 1, f"{arm} changes hue with its budget"
         assert hues == {style.arm_colour(arm)}
     assert len({style.arm_colour(a) for a in ARMS}) == len(ARMS)
+
+
+def test_v8s_four_arms_get_four_distinct_hues():
+    """Four arms on one panel, so four hues — and the right families.
+
+    `search` and `null` are things somebody searched for and so are cold;
+    `linear` and `fixed` were decided in advance and so are warm. The linear
+    arm is the one that could be miscoloured: it is an *absence* of
+    architecture, but it is still a fixed thing given a matched budget, which
+    is the warm family.
+    """
+    import matplotlib.colors as mcolors
+
+    from bpneat.v8.protocol import ARMS
+
+    hues = {arm: style.colour_of(arm) for arm in ARMS}
+    assert len(set(hues.values())) == len(ARMS), hues
+
+    def warmth(c):
+        r, _, b = mcolors.to_rgb(c)
+        return r - b
+
+    assert warmth(hues["search"]) < 0.05 and warmth(hues["null"]) < 0.05
+    assert warmth(hues["linear"]) > 0.15 and warmth(hues["fixed"]) > 0.15
 
 
 def test_the_two_families_stay_apart():

@@ -6,11 +6,13 @@ V3_OUT  ?= results/backprop-neat-v3
 V4_OUT  ?= results/backprop-neat-v4
 V5_OUT  ?= results/backprop-neat-v5
 V6_OUT  ?= results/backprop-neat-v6
+V8_OUT  ?= results/backprop-neat-v8
 
 .PHONY: setup gates verify audit figures v3-run v3-status v3-finaltest v3-release \
         v4-run v4-status v4-bridge v4-sensitivity v4-finaltest v4-release \
         v5-run v5-status v5-finaltest v5-release \
         v6-run v6-extension v6-status v6-finaltest v6-release \
+        v8-run v8-extension v8-status v8-finaltest v8-release \
         vendor-data clean-logs
 
 setup:
@@ -21,6 +23,39 @@ setup:
 ## command locally is how an import error reached main twice.
 gates:
 	.venv/bin/pytest -q && .venv/bin/ruff check .
+
+## The v8 suite: four arms on three real datasets, sharded and resumable.
+## Do not start this while v6 is running — they would share four cores.
+v8-run:
+	@mkdir -p logs
+	@for i in $$(seq 0 $$(( $(SHARDS) - 1 )) ); do \
+	  nohup $(PY) -u -m bpneat.v8.run --out $(V8_OUT) \
+	      --shard-index $$i --shard-total $(SHARDS) \
+	      > logs/v8-shard$$i.log 2>&1 & \
+	  echo "shard $$i -> logs/v8-shard$$i.log"; \
+	done
+
+## The declared extension dataset (digits: 64 features, 10 classes). One search
+## on it costs about as much as the whole confirmatory suite, which is why it is
+## declared separately. Run only after `make v8-run` reports complete, and only
+## before the sealed test. It scores no hypothesis.
+v8-extension:
+	@mkdir -p logs
+	@for i in $$(seq 0 $$(( $(SHARDS) - 1 )) ); do \
+	  nohup $(PY) -u -m bpneat.v8.run --out $(V8_OUT) --extension \
+	      --shard-index $$i --shard-total $(SHARDS) \
+	      > logs/v8-ext-shard$$i.log 2>&1 & \
+	  echo "shard $$i -> logs/v8-ext-shard$$i.log"; \
+	done
+
+v8-status:
+	@$(PY) -m bpneat.v8.run --out $(V8_OUT) --status
+
+v8-finaltest:
+	$(PY) -m bpneat.v8.run --out $(V8_OUT) --final-test
+
+v8-release:
+	$(PY) -m bpneat.v8.run --out $(V8_OUT) --release
 
 ## Re-extract the real tabular datasets from their bundled copies. The CSVs
 ## under data/tabular/ are committed, so a reader never needs this; it exists so
@@ -50,6 +85,9 @@ verify:
 	@test -f $(V6_OUT)/sha256sums.txt \
 	  && $(PY) -m bpneat.v6.verify --dir $(V6_OUT) \
 	  || echo "v6 release not sealed yet, skipped"
+	@test -f $(V8_OUT)/sha256sums.txt \
+	  && $(PY) -m bpneat.v8.verify --dir $(V8_OUT) \
+	  || echo "v8 release not sealed yet, skipped"
 
 audit:
 	$(PY) bench/audit_2026_10.py

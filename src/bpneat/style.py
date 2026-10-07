@@ -562,6 +562,20 @@ for _candidates in V6_BUDGET_CANDIDATES:
     for _arm, _role in _V6_ARM_ROLE.items():
         _ROLE_OF[f"{_arm}_b{_candidates}"] = _role
 
+#: v8 names its four arms with bare words, because on real data the budget is
+#: not a factor and the arm is the whole identity. Three of them are roles this
+#: table already has. The fourth, ``linear``, is a fixed architecture given the
+#: matched budget — which is what `control_matched` means — and it is warm for
+#: the same reason every other fixed thing is: nobody searched for it.
+_ROLE_OF.update(
+    {
+        "search": "search_primary",
+        "null": "search_null",
+        "linear": "control_matched",
+        "fixed": "control_best",
+    }
+)
+
 
 def role_of(condition: str) -> str:
     """The semantic role of a condition, in any protocol.
