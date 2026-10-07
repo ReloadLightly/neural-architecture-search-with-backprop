@@ -1,0 +1,259 @@
+{
+  "arm": "search",
+  "budget": "b1000",
+  "budget_multiplier": 0.47619047619047616,
+  "candidate_budget": 1000,
+  "champion": {
+    "active": [
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3,
+      4,
+      3,
+      3,
+      4,
+      4
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      2,
+      0,
+      4,
+      5
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "mult"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      7
+    ],
+    "src": [
+      0,
+      1,
+      2,
+      1,
+      4,
+      3,
+      2,
+      0
+    ],
+    "weights": [
+      -0.1671317568034679,
+      -0.5716340043429499,
+      -0.015990132567440807,
+      -0.4475846224441647,
+      -0.4445881230715829,
+      -0.3167813265269619,
+      0.735011476978471,
+      0.6352733562314465
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 1000,
+    "connection_additions": 323,
+    "crossovers": 826,
+    "gradient_steps": 53300,
+    "node_additions": 186,
+    "wall_time_seconds": 12.03545093536377
+  },
+  "condition": "search_b1000",
+  "config": {
+    "arm": "search",
+    "batch_size": 10,
+    "budget": "b1000",
+    "candidate_budget": 1000,
+    "crossover": true,
+    "generations": 9,
+    "generator": "v3",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "matched_steps": null,
+    "matched_to": null,
+    "n_species": 5,
+    "noise": 0.5,
+    "p_add_connection": 0.5,
+    "p_add_node": 0.2,
+    "population": 100,
+    "restarts": null,
+    "success_threshold": 0.8,
+    "use_penalty": true
+  },
+  "dataset_seed": 90248,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v4_frozen": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v5_frozen": "33f2c177be4b53350ec232fca6e0794acbd6a9ed8faea06ee60ca76d11b759de",
+    "v6": "f1205038f33ad77e9706d8a51fe04cd32de268ea19f060f03c891a536c493cc0",
+    "v6_modules": [
+      "conditions.py",
+      "protocol.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.7273729205464791,
+      "candidates": 100,
+      "champion_fitness": -0.7273729205464791,
+      "champion_nodes": 4,
+      "generation": 0,
+      "gradient_steps": 6000,
+      "max_nodes": 4,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "n_species": 1
+    },
+    {
+      "best_fitness": -0.7269702519847048,
+      "candidates": 200,
+      "champion_fitness": -0.7269702519847048,
+      "champion_nodes": 4,
+      "generation": 1,
+      "gradient_steps": 10720,
+      "max_nodes": 5,
+      "mean_connections": 3.7,
+      "mean_nodes": 4.18,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7270510478725519,
+      "candidates": 300,
+      "champion_fitness": -0.7269702519847048,
+      "champion_nodes": 4,
+      "generation": 2,
+      "gradient_steps": 15400,
+      "max_nodes": 6,
+      "mean_connections": 4.06,
+      "mean_nodes": 4.32,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7289139540983945,
+      "candidates": 400,
+      "champion_fitness": -0.7269702519847048,
+      "champion_nodes": 4,
+      "generation": 3,
+      "gradient_steps": 20040,
+      "max_nodes": 6,
+      "mean_connections": 4.2,
+      "mean_nodes": 4.38,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.693973206074379,
+      "candidates": 500,
+      "champion_fitness": -0.693973206074379,
+      "champion_nodes": 5,
+      "generation": 4,
+      "gradient_steps": 24760,
+      "max_nodes": 6,
+      "mean_connections": 4.35,
+      "mean_nodes": 4.42,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6957406648887411,
+      "candidates": 600,
+      "champion_fitness": -0.693973206074379,
+      "champion_nodes": 5,
+      "generation": 5,
+      "gradient_steps": 30080,
+      "max_nodes": 7,
+      "mean_connections": 5.12,
+      "mean_nodes": 4.96,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6884855205553769,
+      "candidates": 700,
+      "champion_fitness": -0.6884855205553769,
+      "champion_nodes": 5,
+      "generation": 6,
+      "gradient_steps": 35640,
+      "max_nodes": 7,
+      "mean_connections": 5.45,
+      "mean_nodes": 5.04,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6798167649812035,
+      "candidates": 800,
+      "champion_fitness": -0.6798167649812035,
+      "champion_nodes": 5,
+      "generation": 7,
+      "gradient_steps": 41180,
+      "max_nodes": 8,
+      "mean_connections": 6.28,
+      "mean_nodes": 5.2,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6866825824882018,
+      "candidates": 900,
+      "champion_fitness": -0.6798167649812035,
+      "champion_nodes": 5,
+      "generation": 8,
+      "gradient_steps": 47140,
+      "max_nodes": 8,
+      "mean_connections": 7.57,
+      "mean_nodes": 5.7,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.6812179437853204,
+      "candidates": 1000,
+      "champion_fitness": -0.6798167649812035,
+      "champion_nodes": 5,
+      "generation": 9,
+      "gradient_steps": 53300,
+      "max_nodes": 8,
+      "mean_connections": 8.18,
+      "mean_nodes": 5.88,
+      "n_species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 7,
+    "causal_hidden_nodes": 1,
+    "causal_nodes": 5,
+    "causal_operators": {
+      "mult": 1
+    },
+    "collapsed": false,
+    "generalization_gap": -0.03500000000000003,
+    "represented_connections": 7,
+    "represented_nodes": 5,
+    "success": false,
+    "train_accuracy": 0.515,
+    "train_loss": 0.675399441667453,
+    "validation_accuracy": 0.55,
+    "validation_loss": 0.6266442381580402
+  },
+  "protocol_version": "v6",
+  "replicate": 20,
+  "run_id": "checkerboard__search_b1000__r20",
+  "search_seed": 100248,
+  "task": "checkerboard",
+  "test_evaluated": false
+}
