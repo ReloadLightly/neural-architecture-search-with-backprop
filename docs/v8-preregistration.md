@@ -247,16 +247,41 @@ computed and can change no verdict.
 
 ## Cost, measured before the freeze
 
-COST_TABLE
+Measured on the pilot seeds, before the freeze, at a reduced budget and
+scaled to the full one. The method is recorded in the pilot file and is not
+the same for every arm: the two search-like arms were run at 500 candidates
+and scaled linearly in candidates, which is right for the null and an
+**under-estimate** for the search, whose cost grows as its networks do (v6's
+pilot measured that growth directly, at about 2.4x over linear). The two
+matched arms were run at 20,000 gradient steps and scaled linearly in steps,
+which is right for a fixed architecture.
+
+| dataset | `search` | `null` | `linear` | `fixed` | one replicate |
+|---|---|---|---|---|---|
+| `iris` | 2.3 | 5.5 | 1.0 | 5.6 | **14.4** |
+| `wine` | 4.2 | 6.8 | 1.4 | 6.1 | **18.6** |
+| `breast_cancer` | 1.7 | 3.7 | 0.7 | 3.4 | **9.4** |
+| `digits` *(extension)* | 40.9 | 13.5 | 1.8 | 7.7 | **63.8** |
+
+Minutes per run at the full budget of 2,100 candidate evaluations.
+
+**The confirmatory suite is 42.4 minutes per replicate across the three
+datasets and all four arms — about 21 core-hours over 30 replicates,**
+or roughly five wall-hours on this four-core machine with `SHARDS=4`. The
+`digits` extension is 63.8 minutes per replicate on its own — about 32 core-hours,
+half again the whole confirmatory suite, and almost all of it in one arm:
+a single search on `digits` costs 40.9 minutes against 2.3 on `iris`. That ratio is why it is
+declared as an extension, and the declaration was made from these numbers
+rather than from a guess.
 
 ## Freeze record
 
 | | |
 |---|---|
 | v8 science modules | `conditions.py`, `protocol.py` |
-| v8 fingerprint | `FINGERPRINT_V8` |
-| data fingerprint (committed CSVs, by content) | `FINGERPRINT_DATA` |
-| n-dimensional core | `FINGERPRINT_ND` |
+| v8 fingerprint | `63a61a71b6f501410350a105448ff754eb2117b0df065261a4325f5f7a3321d4` |
+| data fingerprint (committed CSVs, by content) | `4b053257886fab95ab101037f1d814b78b41ea2a9fbebf63f57ec247ad232ec3` |
+| n-dimensional core | `6563ecbcff16483344bc295899cfc9b4ca091627b6a38610ad18132de8c600be` |
 | v5 fingerprint (released) | `33f2c177be4b5335…` |
 | v3 fingerprint (released) | `8438c9e89c7c72a3…` |
 | v2 fingerprint (frozen) | `cfdf1fa3198adc0e…` |

@@ -420,6 +420,16 @@ restored; the preregistration was written to make either outcome publishable.
 
 ## 11. Limitations
 
+**Two dimensions.** Every protocol above ran on 2-D synthetic geometries,
+because the frozen genome fixes two input nodes. `src/bpneat/nd/` lifts that —
+an encoding for any number of inputs, proved byte-identical to the frozen one at
+two — and protocol v8 is the first to use it, on four real tabular datasets.
+Its contract is frozen and **it has not run**; nothing in this README depends on
+it. One thing measured while designing it is worth stating here, because it
+bounds what that study can show: on all four of those datasets a *linear* model
+reaches 0.946 to 0.982, so there is very little room above it for any
+architecture to win in.
+
 **One budget.** Every protocol above ran the search at 2,100 candidate
 evaluations — a population of 100 for twenty generations, inherited from the
 published description and never varied. So the headline is a statement about
@@ -452,8 +462,9 @@ make setup && make gates && make verify
 | `make gates` | the correctness gates, plus ruff |
 | `make verify` | proves the v2 release rebuilds from its raw records |
 | `make audit` | reproduces the October 2026 audit |
-| `make v3-run` · `v4-run` · `v5-run` · `v6-run` | a suite, sharded and resumable, in the background |
-| `make v6-status` | per-rung progress of the v6 budget ladder |
+| `make v3-run` · `v4-run` · `v5-run` · `v6-run` · `v8-run` | a suite, sharded and resumable, in the background |
+| `make v6-status` · `v8-status` | per-rung and per-dataset progress |
+| `make vendor-data` | re-extract the real datasets; the CSVs are committed, so a reader never needs it |
 | `make v3-finaltest` / `make v3-release` | one-shot sealed test, then seal |
 
 `verify` rebuilds every derived table from `raw/runs/*.json` in a scratch
@@ -510,8 +521,9 @@ figure style, so the two read as one body of work;
 | [`docs/v3-preregistration.md`](docs/v3-preregistration.md) | the frozen v3 contract |
 | [`docs/v2-errata.md`](docs/v2-errata.md) · [`docs/audit-2026-10.md`](docs/audit-2026-10.md) | what was wrong, and its reproduction |
 | [`docs/audit-dense-ordering.md`](docs/audit-dense-ordering.md) | a latent defect in the fast evaluator, reached by no result |
+| [`docs/v8-preregistration.md`](docs/v8-preregistration.md) | v8 — the frozen real-data contract, **not yet run, no results** |
 | [`docs/research-programme.md`](docs/research-programme.md) | what v7 and v8 would have to do — a plan, not a result |
-| `src/bpneat/nd/` · [`data/tabular/`](data/tabular/) | the n-dimensional core and four real datasets, **no protocol yet** |
+| `src/bpneat/nd/` · [`data/tabular/`](data/tabular/) | the n-dimensional core and four real datasets it runs on |
 | [`docs/writeup.md`](docs/writeup.md) | the motivating argument — an argument, not evidence |
 | [`docs/figure-style.md`](docs/figure-style.md) | the figure contract, shared with the sister study |
 | `src/bpneat/` · `v3/` · `v4/` · `v5/` · `v6/` | frozen v2 science modules, then one package per protocol |
