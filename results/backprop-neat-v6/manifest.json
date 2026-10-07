@@ -17,7 +17,7 @@
     "search_b500",
     "search_b6300"
   ],
-  "elapsed_seconds": 20281.44184279442,
+  "elapsed_seconds": 0.9333236217498779,
   "extension_complete": false,
   "extension_planned": 270,
   "extension_present": 0,
@@ -159,7 +159,6 @@
     "spiral3__search_b2100__r28",
     "spiral3__search_b2100__r29",
     "spiral3__search_b2100__r30",
-    "spiral3__search_b500__r25",
     "spiral3__search_b500__r26",
     "spiral3__search_b500__r27",
     "spiral3__search_b500__r28",
@@ -235,12 +234,12 @@
     "spiral__search_b6300__r30"
   ],
   "planned": 1080,
-  "present": 881,
+  "present": 882,
   "protocol_version": "v6",
   "test_evaluated": false,
   "this_shard": {
-    "completed": 159,
-    "skipped": 57
+    "completed": 0,
+    "skipped": 216
   },
   "unexpected": []
 }
