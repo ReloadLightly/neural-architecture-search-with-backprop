@@ -1,0 +1,163 @@
+{
+  "arm": "null",
+  "budget": "b500",
+  "budget_multiplier": 0.23809523809523808,
+  "candidate_budget": 500,
+  "champion": {
+    "active": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      4,
+      3,
+      5,
+      3,
+      6,
+      3,
+      7,
+      3,
+      5,
+      4,
+      6,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sigmoid",
+      "square",
+      "square",
+      "add"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      8,
+      8,
+      9
+    ],
+    "src": [
+      0,
+      4,
+      1,
+      5,
+      0,
+      6,
+      0,
+      7,
+      2,
+      5,
+      5,
+      0
+    ],
+    "weights": [
+      -2.361643106005141,
+      -0.2699181724637296,
+      0.5465262613112085,
+      0.51815275673235,
+      1.6500004808760893,
+      -0.09598378501577369,
+      0.008081904094636761,
+      0.2632810826615314,
+      0.6264431614638191,
+      -0.3339404709086638,
+      -1.2485131554264386,
+      -0.2251725359646662
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 500,
+    "gradient_steps": 31500,
+    "wall_time_seconds": 27.753766298294067
+  },
+  "condition": "null_b500",
+  "config": {
+    "arm": "null",
+    "batch_size": 10,
+    "budget": "b500",
+    "candidate_budget": 500,
+    "crossover": true,
+    "generations": null,
+    "generator": "v3",
+    "inner_steps": 600,
+    "kind": "random_search",
+    "matched_steps": null,
+    "matched_to": null,
+    "n_species": 5,
+    "noise": 0.5,
+    "p_add_connection": 0.5,
+    "p_add_node": 0.2,
+    "population": null,
+    "restarts": null,
+    "success_threshold": 0.8,
+    "use_penalty": true
+  },
+  "dataset_seed": 90313,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v4_frozen": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v5_frozen": "33f2c177be4b53350ec232fca6e0794acbd6a9ed8faea06ee60ca76d11b759de",
+    "v6": "f1205038f33ad77e9706d8a51fe04cd32de268ea19f060f03c891a536c493cc0",
+    "v6_modules": [
+      "conditions.py",
+      "protocol.py"
+    ]
+  },
+  "history": [],
+  "metrics": {
+    "causal_connections": 12,
+    "causal_hidden_nodes": 4,
+    "causal_nodes": 8,
+    "causal_operators": {
+      "add": 1,
+      "sigmoid": 1,
+      "square": 2
+    },
+    "collapsed": false,
+    "generalization_gap": 0.0050000000000000044,
+    "represented_connections": 12,
+    "represented_nodes": 8,
+    "success": false,
+    "train_accuracy": 0.705,
+    "train_loss": 0.674965277328001,
+    "validation_accuracy": 0.7,
+    "validation_loss": 0.5992876503895515
+  },
+  "protocol_version": "v6",
+  "replicate": 25,
+  "run_id": "checkerboard__null_b500__r25",
+  "search_seed": 100313,
+  "task": "checkerboard",
+  "test_evaluated": false
+}
