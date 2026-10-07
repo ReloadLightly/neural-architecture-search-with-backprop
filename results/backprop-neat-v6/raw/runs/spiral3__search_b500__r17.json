@@ -1,0 +1,170 @@
+{
+  "arm": "search",
+  "budget": "b500",
+  "budget_multiplier": 0.23809523809523808,
+  "candidate_budget": 500,
+  "champion": {
+    "active": [
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      3,
+      3,
+      3
+    ],
+    "innovation": [
+      0,
+      1,
+      2
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0
+    ],
+    "src": [
+      0,
+      1,
+      2
+    ],
+    "weights": [
+      0.039878306641564706,
+      0.0892894130516861,
+      0.0008500111761887141
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 500,
+    "connection_additions": 160,
+    "crossovers": 353,
+    "gradient_steps": 26780,
+    "node_additions": 78,
+    "wall_time_seconds": 5.8182454109191895
+  },
+  "condition": "search_b500",
+  "config": {
+    "arm": "search",
+    "batch_size": 10,
+    "budget": "b500",
+    "candidate_budget": 500,
+    "crossover": true,
+    "generations": 4,
+    "generator": "v3",
+    "inner_steps": 600,
+    "kind": "evolution",
+    "matched_steps": null,
+    "matched_to": null,
+    "n_species": 5,
+    "noise": 0.5,
+    "p_add_connection": 0.5,
+    "p_add_node": 0.2,
+    "population": 100,
+    "restarts": null,
+    "success_threshold": 0.75,
+    "use_penalty": true
+  },
+  "dataset_seed": 90209,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v4_frozen": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v5_frozen": "33f2c177be4b53350ec232fca6e0794acbd6a9ed8faea06ee60ca76d11b759de",
+    "v6": "f1205038f33ad77e9706d8a51fe04cd32de268ea19f060f03c891a536c493cc0",
+    "v6_modules": [
+      "conditions.py",
+      "protocol.py"
+    ]
+  },
+  "history": [
+    {
+      "best_fitness": -0.7227959638207685,
+      "candidates": 100,
+      "champion_fitness": -0.7227959638207685,
+      "champion_nodes": 4,
+      "generation": 0,
+      "gradient_steps": 6460,
+      "max_nodes": 4,
+      "mean_connections": 3.0,
+      "mean_nodes": 4.0,
+      "n_species": 1
+    },
+    {
+      "best_fitness": -0.7227959638207685,
+      "candidates": 200,
+      "champion_fitness": -0.7227959638207685,
+      "champion_nodes": 4,
+      "generation": 1,
+      "gradient_steps": 11220,
+      "max_nodes": 5,
+      "mean_connections": 3.69,
+      "mean_nodes": 4.14,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7234130850927636,
+      "candidates": 300,
+      "champion_fitness": -0.7227959638207685,
+      "champion_nodes": 4,
+      "generation": 2,
+      "gradient_steps": 16340,
+      "max_nodes": 6,
+      "mean_connections": 4.55,
+      "mean_nodes": 4.63,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7288098428689501,
+      "candidates": 400,
+      "champion_fitness": -0.7227959638207685,
+      "champion_nodes": 4,
+      "generation": 3,
+      "gradient_steps": 21340,
+      "max_nodes": 7,
+      "mean_connections": 5.53,
+      "mean_nodes": 5.42,
+      "n_species": 5
+    },
+    {
+      "best_fitness": -0.7265691655684491,
+      "candidates": 500,
+      "champion_fitness": -0.7227959638207685,
+      "champion_nodes": 4,
+      "generation": 4,
+      "gradient_steps": 26780,
+      "max_nodes": 7,
+      "mean_connections": 5.24,
+      "mean_nodes": 4.93,
+      "n_species": 5
+    }
+  ],
+  "metrics": {
+    "causal_connections": 3,
+    "causal_hidden_nodes": 0,
+    "causal_nodes": 4,
+    "causal_operators": {},
+    "collapsed": true,
+    "generalization_gap": 0.030000000000000027,
+    "represented_connections": 3,
+    "represented_nodes": 4,
+    "success": false,
+    "train_accuracy": 0.54,
+    "train_loss": 0.6851232753488877,
+    "validation_accuracy": 0.51,
+    "validation_loss": 0.6870935363837058
+  },
+  "protocol_version": "v6",
+  "replicate": 17,
+  "run_id": "spiral3__search_b500__r17",
+  "search_seed": 100209,
+  "task": "spiral3",
+  "test_evaluated": false
+}
