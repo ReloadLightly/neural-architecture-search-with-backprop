@@ -17,7 +17,7 @@
     "search_b500",
     "search_b6300"
   ],
-  "elapsed_seconds": 6625.036115169525,
+  "elapsed_seconds": 2.371337890625,
   "extension_complete": false,
   "extension_planned": 270,
   "extension_present": 0,
@@ -39,8 +39,8 @@
   "protocol_version": "v6",
   "test_evaluated": false,
   "this_shard": {
-    "completed": 50,
-    "skipped": 226
+    "completed": 0,
+    "skipped": 276
   },
   "unexpected": []
 }
