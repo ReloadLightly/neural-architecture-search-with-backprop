@@ -31,13 +31,15 @@ V8=results/backprop-neat-v8
 # days; it will be edited while running.
 main() {
 
+  # One line on purpose. This was a multi-line `python -c "..."`, and wrapping
+  # this script's body in a function indented every line of it by two spaces —
+  # including the lines inside the Python string, which made it an
+  # IndentationError. `2>/dev/null` swallowed that, python exited non-zero, and
+  # the queue waited forever on a condition that was already true. A one-liner
+  # cannot be broken by re-indenting the shell around it.
   complete() {
     [ -f "$1" ] || return 1
-    .venv/bin/python -c "
-  import json, sys
-  m = json.load(open('$1'))
-  sys.exit(0 if m.get('$2') else 1)
-  " 2>/dev/null
+    .venv/bin/python -c "import json,sys; sys.exit(0 if json.load(open('$1')).get('$2') else 1)" 2>/dev/null
   }
 
   await() {
