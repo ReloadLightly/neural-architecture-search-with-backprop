@@ -51,6 +51,11 @@ v8-extension:
 v8-status:
 	@$(PY) -m bpneat.v8.run --out $(V8_OUT) --status
 
+## Ask whether v8's sealed test would be accepted, and what it would
+## cover, without taking it. Reads no test data and marks nothing.
+v8-preflight:
+	@$(PY) -m bpneat.preflight v8 --out $(V8_OUT)
+
 v8-finaltest:
 	$(PY) -m bpneat.v8.run --out $(V8_OUT) --final-test
 
@@ -184,6 +189,11 @@ v6-extension:
 
 v6-status:
 	@$(PY) -m bpneat.v6.run --out $(V6_OUT) --status
+
+## Ask whether v6's sealed test would be accepted, and what it would
+## cover, without taking it. Reads no test data and marks nothing.
+v6-preflight:
+	@$(PY) -m bpneat.preflight v6 --out $(V6_OUT)
 
 v6-finaltest:
 	$(PY) -m bpneat.v6.run --out $(V6_OUT) --final-test
