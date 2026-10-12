@@ -17,10 +17,10 @@
     "search_b500",
     "search_b6300"
   ],
-  "elapsed_seconds": 24773.23603439331,
+  "elapsed_seconds": 25713.653688192368,
   "extension_complete": false,
   "extension_planned": 270,
-  "extension_present": 140,
+  "extension_present": 145,
   "failed": [],
   "fingerprints": {
     "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
@@ -39,8 +39,8 @@
   "protocol_version": "v6",
   "test_evaluated": false,
   "this_shard": {
-    "completed": 27,
-    "skipped": 153
+    "completed": 29,
+    "skipped": 151
   },
   "unexpected": []
 }
