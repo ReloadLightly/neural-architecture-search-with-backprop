@@ -1,0 +1,158 @@
+{
+  "arm": "null",
+  "budget": "b16800",
+  "budget_multiplier": 8.0,
+  "candidate_budget": 16800,
+  "champion": {
+    "active": [
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true
+    ],
+    "dst": [
+      4,
+      3,
+      5,
+      3,
+      6,
+      3,
+      7,
+      3,
+      5,
+      3,
+      4
+    ],
+    "innovation": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "op_names": [
+      "null",
+      "null",
+      "null",
+      "null",
+      "sigmoid",
+      "sin",
+      "sin",
+      "add"
+    ],
+    "ops": [
+      0,
+      0,
+      0,
+      0,
+      1,
+      5,
+      5,
+      9
+    ],
+    "src": [
+      2,
+      4,
+      1,
+      5,
+      1,
+      6,
+      0,
+      7,
+      2,
+      1,
+      5
+    ],
+    "weights": [
+      2.5386190654089615,
+      -0.27442469675604214,
+      2.4115590577327937,
+      0.8196254418584685,
+      -0.5611500555771268,
+      0.4516734286448546,
+      -0.038371804202977686,
+      0.14252997400752834,
+      -1.0613825118253732,
+      0.12191647099174006,
+      -0.07682567641439739
+    ]
+  },
+  "compute": {
+    "candidate_evaluations": 16800,
+    "gradient_steps": 1060820,
+    "wall_time_seconds": 745.109174489975
+  },
+  "condition": "null_b16800",
+  "config": {
+    "arm": "null",
+    "batch_size": 10,
+    "budget": "b16800",
+    "candidate_budget": 16800,
+    "crossover": true,
+    "generations": null,
+    "generator": "v3",
+    "inner_steps": 600,
+    "kind": "random_search",
+    "matched_steps": null,
+    "matched_to": null,
+    "n_species": 5,
+    "noise": 0.5,
+    "p_add_connection": 0.5,
+    "p_add_node": 0.2,
+    "population": null,
+    "restarts": null,
+    "success_threshold": 0.75,
+    "use_penalty": true
+  },
+  "dataset_seed": 90157,
+  "fingerprints": {
+    "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
+    "v3_frozen": "8438c9e89c7c72a330fa68e0bd36f350865ba5ab0939614ce9629f42a9ea5ceb",
+    "v4_frozen": "cd9d0c1f60b44c8d9fc99ceee11e66e4a5f32e5c6299303b8532129126e3ddd0",
+    "v5_frozen": "33f2c177be4b53350ec232fca6e0794acbd6a9ed8faea06ee60ca76d11b759de",
+    "v6": "f1205038f33ad77e9706d8a51fe04cd32de268ea19f060f03c891a536c493cc0",
+    "v6_modules": [
+      "conditions.py",
+      "protocol.py"
+    ]
+  },
+  "history": [],
+  "metrics": {
+    "causal_connections": 11,
+    "causal_hidden_nodes": 4,
+    "causal_nodes": 8,
+    "causal_operators": {
+      "add": 1,
+      "sigmoid": 1,
+      "sin": 2
+    },
+    "collapsed": false,
+    "generalization_gap": -0.010000000000000009,
+    "represented_connections": 11,
+    "represented_nodes": 8,
+    "success": false,
+    "train_accuracy": 0.63,
+    "train_loss": 0.6387332252418659,
+    "validation_accuracy": 0.64,
+    "validation_loss": 0.6387690396046507
+  },
+  "protocol_version": "v6",
+  "replicate": 13,
+  "run_id": "spiral3__null_b16800__r13",
+  "search_seed": 100157,
+  "task": "spiral3",
+  "test_evaluated": false
+}
