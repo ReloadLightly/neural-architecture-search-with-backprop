@@ -33,11 +33,46 @@ from .protocol import (
 
 
 def shard_cells(index: int, total: int, include_extension: bool = False):
+    """Partition the cells across shards, balanced within every dataset.
+
+    Not `i % total` over ``cells()``. That list is replicate-major -- dataset
+    varies fastest -- so a cell's position mod the dataset count *is* its
+    dataset. Run the extension, where there are four datasets, on four shards
+    and the two cancel exactly: every shard gets one dataset and nothing else.
+    All thirty ``digits`` cells landed on shard 3 while shards 0, 1 and 2 found
+    their datasets already complete and exited within the minute, leaving one
+    core doing a four-core job.
+
+    The confirmatory suite hid this: three datasets against four shards are
+    coprime, so it distributed evenly and looked correct.
+
+    So rank each cell *within its own dataset* and deal those ranks out
+    round-robin, offset by the dataset, which balances each dataset separately
+    and cannot alias with the dataset count however many of either there are.
+    Iteration order is still the replicate-major one ``cells()`` defines, for
+    the reason its docstring gives: a run cut short holds complete replicates
+    on every dataset.
+
+    Sharding decides which process evaluates a cell, never what the cell
+    computes -- every run is seeded from the protocol -- so this file is not a
+    science module and changing it moves no fingerprint.
+    """
     if not (0 <= index < total):
         raise ValueError(f"shard {index} out of range for {total}")
-    return [
-        c for i, c in enumerate(cells(include_extension)) if i % total == index
-    ]
+    every = cells(include_extension)
+    order: list[str] = []
+    for task, _ in every:
+        if task not in order:
+            order.append(task)
+    offset = {task: i for i, task in enumerate(order)}
+    seen: dict[str, int] = {}
+    owner: dict[tuple[str, int], int] = {}
+    for cell in every:
+        task = cell[0]
+        rank = seen.get(task, 0)
+        seen[task] = rank + 1
+        owner[cell] = (rank + offset[task]) % total
+    return [c for c in every if owner[c] == index]
 
 
 def _plan_by_cell(include_extension: bool) -> dict[tuple[str, int], list[dict]]:

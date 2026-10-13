@@ -14,6 +14,7 @@ from __future__ import annotations
 import ast
 import json
 import sys
+from collections import Counter
 from pathlib import Path
 
 import numpy as np
@@ -224,10 +225,45 @@ def test_run_condition_refuses_an_arm_it_does_not_have():
 
 def test_shards_partition_the_cells():
     for total in (1, 3, 4, 7):
-        seen = [c for i in range(total) for c in shard_cells(i, total)]
-        assert sorted(seen) == sorted(cells())
+        for ext in (False, True):
+            seen = [c for i in range(total) for c in shard_cells(i, total, ext)]
+            assert sorted(seen) == sorted(cells(ext))
     with pytest.raises(ValueError):
         shard_cells(4, 4)
+
+
+def test_every_shard_gets_work_on_every_dataset():
+    """A partition is not enough: it has to be a *balanced* one.
+
+    `i % total` over a replicate-major cell list makes a cell's position mod the
+    dataset count its dataset, so four shards over the extension's four datasets
+    cancelled exactly -- shard 3 owned all thirty `digits` cells and the other
+    three exited immediately, one core doing a four-core job. The suite still
+    completed, and `test_shards_partition_the_cells` still passed, because a
+    partition it remained; only the throughput was wrong, which no assertion
+    looked at. It also only ever checked the default, so the extension -- the
+    one case where datasets and shards could cancel -- was untested.
+
+    Balance to within one cell per dataset, which is the most an even deal can
+    be off by.
+    """
+    for ext in (False, True):
+        every = cells(ext)
+        datasets = {task for task, _ in every}
+        for total in (2, 3, 4, 5, 8):
+            counts = [
+                Counter(task for task, _ in shard_cells(i, total, ext))
+                for i in range(total)
+            ]
+            for task in datasets:
+                per = [c[task] for c in counts]
+                n = sum(per)
+                assert min(per) >= n // total, (
+                    f"{task}: shard starved with ext={ext}, total={total}: {per}"
+                )
+                assert max(per) - min(per) <= 1, (
+                    f"{task}: unbalanced with ext={ext}, total={total}: {per}"
+                )
 
 
 def test_a_cell_runs_the_search_before_the_arms_matched_to_it():
