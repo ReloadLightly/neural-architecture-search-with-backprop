@@ -11,10 +11,10 @@
     "iris",
     "wine"
   ],
-  "elapsed_seconds": 11569.34466600418,
+  "elapsed_seconds": 12156.380465745926,
   "extension_complete": false,
   "extension_planned": 120,
-  "extension_present": 65,
+  "extension_present": 68,
   "failed": [],
   "fingerprints": {
     "data": "4b053257886fab95ab101037f1d814b78b41ea2a9fbebf63f57ec247ad232ec3",
@@ -34,8 +34,8 @@
   "protocol_version": "v8",
   "test_evaluated": false,
   "this_shard": {
-    "completed": 16,
-    "skipped": 52
+    "completed": 19,
+    "skipped": 61
   },
   "unexpected": []
 }
