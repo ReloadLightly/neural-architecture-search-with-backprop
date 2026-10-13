@@ -17,10 +17,10 @@
     "search_b500",
     "search_b6300"
   ],
-  "elapsed_seconds": 48862.13991999626,
+  "elapsed_seconds": 49966.01791214943,
   "extension_complete": false,
   "extension_planned": 270,
-  "extension_present": 247,
+  "extension_present": 253,
   "failed": [],
   "fingerprints": {
     "v2_frozen": "cfdf1fa3198adc0e369466800ede0ea5afa24d99af18000a2161357ae5ec0d75",
